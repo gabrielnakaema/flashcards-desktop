@@ -8,7 +8,12 @@ import { useListDeckCategories } from "./use-list-deck-categories";
 
 const repo = deckRepository;
 
-export const useCreateDeckForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
+interface UseCreateDeckFormProps {
+  onSuccess?: () => void;
+}
+export const useCreateDeckForm = ({
+  onSuccess,
+}: UseCreateDeckFormProps = {}) => {
   const { data: categories } = useListDeckCategories();
 
   const formMethods = useForm<CreateDeckForm>({

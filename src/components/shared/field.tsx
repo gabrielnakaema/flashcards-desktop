@@ -6,6 +6,7 @@ interface FieldProps {
   children?: React.ReactNode;
   error?: string;
   label?: string;
+  htmlFor?: string;
 }
 
 export const Field = ({
@@ -14,11 +15,15 @@ export const Field = ({
   children,
   error,
   label,
+  htmlFor,
 }: FieldProps) => {
   return (
     <div className={cn("flex flex-col gap-1", containerClassName)}>
       {label && (
-        <label className={cn("text-sm font-medium", labelClassName)}>
+        <label
+          htmlFor={htmlFor}
+          className={cn("text-sm font-medium", labelClassName)}
+        >
           {label}
         </label>
       )}

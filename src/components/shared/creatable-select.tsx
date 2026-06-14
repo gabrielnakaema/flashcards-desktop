@@ -34,6 +34,7 @@ interface CreatableSelectProps {
   emptyMessage?: string;
   placeholder?: string;
   isLoading?: boolean;
+  id?: string;
 }
 
 export const CreatableSelect = ({
@@ -44,6 +45,7 @@ export const CreatableSelect = ({
   emptyMessage = "No options found.",
   placeholder = "Search...",
   isLoading = false,
+  id,
 }: CreatableSelectProps) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -59,6 +61,7 @@ export const CreatableSelect = ({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           role="combobox"
           aria-expanded={open}

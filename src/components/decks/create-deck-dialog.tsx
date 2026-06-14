@@ -67,16 +67,18 @@ export const CreateDeckDialog = () => {
           onSubmit={handleSubmit(submit)}
           className="w-full flex flex-col gap-2"
         >
-          <Field label="Title" error={errors.title?.message}>
+          <Field label="Title" htmlFor="deck-title" error={errors.title?.message}>
             <Input
               {...register("title")}
+              id="deck-title"
               placeholder="Enter title"
               className="w-full"
             />
           </Field>
-          <Field label="Tags" error={errors.tags?.message}>
+          <Field label="Tags" htmlFor="deck-tags" error={errors.tags?.message}>
             <Input
               {...register("tags")}
+              id="deck-tags"
               placeholder="e.g. math, science, history"
               className="w-full"
             />
@@ -86,8 +88,9 @@ export const CreateDeckDialog = () => {
             control={formMethods.control}
             name="categoryId"
             render={({ field, fieldState: { error } }) => (
-              <Field label="Category" error={error?.message}>
+              <Field label="Category" htmlFor="deck-category" error={error?.message}>
                 <CreatableSelect
+                  id="deck-category"
                   emptyMessage="No categories found. Create a new category."
                   options={
                     categories?.map((category) => ({
@@ -108,6 +111,10 @@ export const CreateDeckDialog = () => {
               </Field>
             )}
           />
+
+          {errors.root?.message && (
+            <p className="text-sm text-red-500">{errors.root.message}</p>
+          )}
 
           <div className="flex items-center justify-end gap-2">
             <DialogClose asChild>
