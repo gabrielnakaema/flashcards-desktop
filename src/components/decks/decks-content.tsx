@@ -7,11 +7,10 @@ export const DecksContent = () => {
   return (
     <div className="w-full flex flex-col gap-4 py-8 px-16">
       <section className="w-full flex items-center justify-between">
-        <div className="flex flex-col gap-4">
-          <h1 className="text-3xl font-medium text-primary">Deck dashboard</h1>
-          <h2 className="text-foreground text-base">
-            You have <strong>142</strong> cards due today across{" "}
-            <strong>6</strong> decks
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-medium text-foreground">Decks</h1>
+          <h2 className="text-muted-foreground text-base">
+            Manage your decks and categories.
           </h2>
         </div>
 

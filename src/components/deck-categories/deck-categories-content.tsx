@@ -46,7 +46,7 @@ export const DeckCategoriesContent = () => {
   return (
     <div className="w-full flex flex-col gap-4 py-8 px-16">
       <section className="w-full flex items-center justify-between">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
           <Button variant="ghost" size="sm" className="w-fit -ml-2" asChild>
             <Link to="/">
               <ArrowLeftIcon className="size-4" />
