@@ -8,6 +8,7 @@ import {
   toDeck,
   toDeckCategory,
   toDeckWithStats,
+  UpdateDeckCategoryPayload,
   UpdateDeckPayload,
 } from "@/types/deck";
 import { formatZodError } from "@/utils/format-zod-error";
@@ -50,6 +51,32 @@ export class DeckSqliteRepository implements DeckRepository {
     }
 
     return results.map((result) => result.data);
+  };
+
+  updateCategory = async (
+    payload: UpdateDeckCategoryPayload
+  ): Promise<DeckCategory> => {
+    const query =
+      "UPDATE deck_categories SET name = $1 WHERE id = $2 RETURNING id, name";
+    const params = [payload.name, payload.id];
+    const [category] = await this.dbClient.select<DeckCategory[]>(
+      query,
+      params
+    );
+
+    const result = toDeckCategory(category);
+    if (!result.success) {
+      throw new Error(
+        `Failed to parse category: ${formatZodError(result.error!)}`
+      );
+    }
+
+    return result.data;
+  };
+
+  deleteCategory = async (id: string): Promise<void> => {
+    const query = "DELETE FROM deck_categories WHERE id = $1";
+    await this.dbClient.execute(query, [id]);
   };
 
   listDeckWithStats = async (): Promise<DeckWithStats[]> => {

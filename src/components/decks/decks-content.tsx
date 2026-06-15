@@ -1,4 +1,6 @@
+import { Button } from "@/components/ui/button";
 import { useListDecks } from "@/hooks/decks/use-list-decks";
+import { Link } from "@tanstack/react-router";
 import { CreateDeckDialog } from "./create-deck-dialog";
 
 export const DecksContent = () => {
@@ -15,7 +17,10 @@ export const DecksContent = () => {
           </h2>
         </div>
 
-        <div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="lg" asChild>
+            <Link to="/deck-categories">Manage deck categories</Link>
+          </Button>
           <CreateDeckDialog />
         </div>
       </section>

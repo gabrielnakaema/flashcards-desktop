@@ -44,6 +44,41 @@ describe("DeckSqliteRepository", () => {
     expect(categories).toHaveLength(2);
   });
 
+  it("updates a category", async () => {
+    const testContext = await createTestDeckRepository();
+    teardown = testContext.teardown;
+
+    await seedCategory(testContext.db, {
+      id: "cat-1",
+      name: "Languages",
+    });
+
+    const updated = await testContext.repository.updateCategory({
+      id: "cat-1",
+      name: "World Languages",
+    });
+
+    expect(updated.name).toBe("World Languages");
+
+    const categories = await testContext.repository.listCategories();
+    expect(categories[0].name).toBe("World Languages");
+  });
+
+  it("deletes a category", async () => {
+    const testContext = await createTestDeckRepository();
+    teardown = testContext.teardown;
+
+    await seedCategory(testContext.db, {
+      id: "cat-1",
+      name: "Languages",
+    });
+
+    await testContext.repository.deleteCategory("cat-1");
+
+    const categories = await testContext.repository.listCategories();
+    expect(categories).toHaveLength(0);
+  });
+
   it("creates a deck", async () => {
     const testContext = await createTestDeckRepository();
     teardown = testContext.teardown;

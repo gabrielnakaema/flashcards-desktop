@@ -41,7 +41,9 @@ export const CreateDeckDialog = () => {
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) formMethods.reset();
+        if (!next) {
+          formMethods.reset();
+        }
         setOpen(next);
       }}
     >
@@ -67,7 +69,11 @@ export const CreateDeckDialog = () => {
           onSubmit={handleSubmit(submit)}
           className="w-full flex flex-col gap-2"
         >
-          <Field label="Title" htmlFor="deck-title" error={errors.title?.message}>
+          <Field
+            label="Title"
+            htmlFor="deck-title"
+            error={errors.title?.message}
+          >
             <Input
               {...register("title")}
               id="deck-title"
@@ -88,7 +94,11 @@ export const CreateDeckDialog = () => {
             control={formMethods.control}
             name="categoryId"
             render={({ field, fieldState: { error } }) => (
-              <Field label="Category" htmlFor="deck-category" error={error?.message}>
+              <Field
+                label="Category"
+                htmlFor="deck-category"
+                error={error?.message}
+              >
                 <CreatableSelect
                   id="deck-category"
                   emptyMessage="No categories found. Create a new category."
