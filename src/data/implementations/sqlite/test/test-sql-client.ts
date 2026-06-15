@@ -6,9 +6,9 @@ import { join } from "node:path";
 import { applySqliteMigrations } from "../migrations";
 import type { QueryResult, SqlClient } from "../sql-client";
 
-function toNativePlaceholders(query: string): string {
+const toNativePlaceholders = (query: string): string => {
   return query.replace(/\$(\d+)/g, "?");
-}
+};
 
 export class TestSqlClient implements SqlClient {
   private readonly db: Database.Database;

@@ -26,9 +26,10 @@ export class DeckSqliteRepository implements DeckRepository {
     payload: CreateDeckCategoryPayload
   ): Promise<DeckCategory> => {
     const query =
-      "INSERT INTO deck_categories (id, name) VALUES ($1, $2) RETURNING id, name";
+      "INSERT INTO deck_categories (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING id, name";
     const id = crypto.randomUUID();
-    const params = [id, payload.name];
+    const timestamp = new Date().toISOString();
+    const params = [id, payload.name, timestamp, timestamp];
     const [category] = await this.dbClient.select<DeckCategory[]>(
       query,
       params
@@ -56,9 +57,10 @@ export class DeckSqliteRepository implements DeckRepository {
   updateCategory = async (
     payload: UpdateDeckCategoryPayload
   ): Promise<DeckCategory> => {
+    const timestamp = new Date().toISOString();
     const query =
-      "UPDATE deck_categories SET name = $1 WHERE id = $2 RETURNING id, name";
-    const params = [payload.name, payload.id];
+      "UPDATE deck_categories SET name = $1, updated_at = $2 WHERE id = $3 RETURNING id, name";
+    const params = [payload.name, timestamp, payload.id];
     const [category] = await this.dbClient.select<DeckCategory[]>(
       query,
       params
@@ -88,10 +90,20 @@ export class DeckSqliteRepository implements DeckRepository {
         d.category as categoryId,
         dc.name AS categoryName,
         COUNT(c.id) AS totalCards,
-        COUNT(c.id) AS cardsDue,
-        COUNT(c.id) AS masteryPercentage
+        COALESCE(SUM(
+          CASE WHEN c.is_suspended = 0
+            AND cs.due_at IS NOT NULL
+            AND cs.due_at <= datetime('now')
+          THEN 1 ELSE 0 END
+        ), 0) AS cardsDue,
+        CASE WHEN COUNT(c.id) = 0 THEN 0
+          ELSE ROUND(
+            100.0 * SUM(CASE WHEN cs.state = 'review' THEN 1 ELSE 0 END) / COUNT(c.id)
+          )
+        END AS masteryPercentage
       FROM decks d
       LEFT JOIN cards c ON d.id = c.deck_id
+      LEFT JOIN card_schedules cs ON c.id = cs.card_id
       LEFT JOIN deck_categories dc ON d.category = dc.id
       GROUP BY d.id, d.title, d.tags, d.category
     `;
@@ -132,15 +144,18 @@ export class DeckSqliteRepository implements DeckRepository {
 
   createDeck = async (payload: CreateDeckPayload): Promise<Deck> => {
     const query = `
-      INSERT INTO decks (id, title, tags, category) VALUES ($1, $2, $3, $4)
+      INSERT INTO decks (id, title, tags, category, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id, title, tags, category
     `;
     const id = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
     const params = [
       id,
       payload.title,
       JSON.stringify(payload.tags),
       payload.categoryId,
+      timestamp,
+      timestamp,
     ];
 
     const [deck] = await this.dbClient.select<Deck[]>(query, params);
@@ -154,14 +169,16 @@ export class DeckSqliteRepository implements DeckRepository {
   };
 
   updateDeck = async (payload: UpdateDeckPayload): Promise<Deck> => {
+    const timestamp = new Date().toISOString();
     const query = `
-      UPDATE decks SET title = $1, tags = $2, category = $3 WHERE id = $4
+      UPDATE decks SET title = $1, tags = $2, category = $3, updated_at = $4 WHERE id = $5
       RETURNING id, title, tags, category
     `;
     const params = [
       payload.title,
       JSON.stringify(payload.tags),
       payload.categoryId,
+      timestamp,
       payload.id,
     ];
 

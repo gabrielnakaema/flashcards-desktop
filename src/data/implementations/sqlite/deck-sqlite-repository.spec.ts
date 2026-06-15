@@ -166,10 +166,22 @@ describe("DeckSqliteRepository", () => {
       categoryId: "cat-1",
     });
 
-    await testContext.db.execute(
-      "INSERT INTO cards (id, deck_id) VALUES ($1, $2), ($3, $4)",
-      [randomUUID(), deck.id, randomUUID(), deck.id]
-    );
+    const timestamp = new Date().toISOString();
+    const cardId1 = randomUUID();
+    const cardId2 = randomUUID();
+
+    for (const cardId of [cardId1, cardId2]) {
+      await testContext.db.execute(
+        `INSERT INTO cards (id, deck_id, type, front, content, tags, is_suspended, created_at, updated_at)
+         VALUES ($1, $2, 'plain', 'Q?', '{}', '[]', 0, $3, $4)`,
+        [cardId, deck.id, timestamp, timestamp]
+      );
+      await testContext.db.execute(
+        `INSERT INTO card_schedules (card_id, state, interval_days, ease_factor, repetition_count, lapse_count, created_at, updated_at)
+         VALUES ($1, 'new', 0, 2.5, 0, 0, $2, $3)`,
+        [cardId, timestamp, timestamp]
+      );
+    }
 
     const decks = await testContext.repository.listDeckWithStats();
 

@@ -5,15 +5,15 @@ export const DATABASE_PATH = "sqlite:flashcards.db";
 
 let dbInstance: SqlClient | undefined;
 
-export async function initDb(): Promise<SqlClient> {
+export const initDb = async (): Promise<SqlClient> => {
   if (!dbInstance) {
     dbInstance = await Database.load(DATABASE_PATH);
   }
 
   return dbInstance;
-}
+};
 
-export function getDb(): SqlClient {
+export const getDb = (): SqlClient => {
   if (!dbInstance) {
     throw new Error(
       "Database not initialized. Call initDb() before using repositories."
@@ -21,4 +21,4 @@ export function getDb(): SqlClient {
   }
 
   return dbInstance;
-}
+};

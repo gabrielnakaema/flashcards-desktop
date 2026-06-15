@@ -14,11 +14,11 @@ export const SQLITE_MIGRATIONS: readonly SqliteMigration[] = [
   },
 ];
 
-export function applySqliteMigrations(
+export const applySqliteMigrations = (
   exec: (sql: string) => void,
   migrations: readonly SqliteMigration[] = SQLITE_MIGRATIONS
-): void {
+): void => {
   for (const migration of migrations) {
     exec(migration.sql);
   }
-}
+};

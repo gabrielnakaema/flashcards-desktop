@@ -1,7 +1,7 @@
 import { DeckSqliteRepository } from "../deck-sqlite-repository";
 import { TestSqlClient } from "./test-sql-client";
 
-export async function createTestDeckRepository() {
+export const createTestDeckRepository = async () => {
   const db = await TestSqlClient.create();
   const repository = new DeckSqliteRepository(db);
 
@@ -12,14 +12,15 @@ export async function createTestDeckRepository() {
       await db.destroy();
     },
   };
-}
+};
 
-export async function seedCategory(
+export const seedCategory = async (
   db: TestSqlClient,
   category: { id: string; name: string }
-) {
-  await db.execute("INSERT INTO deck_categories (id, name) VALUES ($1, $2)", [
-    category.id,
-    category.name,
-  ]);
-}
+) => {
+  const timestamp = new Date().toISOString();
+  await db.execute(
+    "INSERT INTO deck_categories (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4)",
+    [category.id, category.name, timestamp, timestamp]
+  );
+};
