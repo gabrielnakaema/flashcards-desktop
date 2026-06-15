@@ -48,7 +48,10 @@ const deckWithStatsSchema = z.object({
     (value) => JSON.parse(value as string),
     z.array(z.string())
   ),
-  category: z.string(),
+  category: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
   cardsDue: z.number(),
   masteryPercentage: z.number(),
   totalCards: z.number(),

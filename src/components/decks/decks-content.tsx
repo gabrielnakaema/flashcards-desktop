@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { useListDecks } from "@/hooks/decks/use-list-decks";
 import { Link } from "@tanstack/react-router";
 import { CreateDeckDialog } from "./create-deck-dialog";
+import { DeckList } from "./deck-list";
 
 export const DecksContent = () => {
-  const { data: decks } = useListDecks();
-
   return (
     <div className="w-full flex flex-col gap-4 py-8 px-16">
       <section className="w-full flex items-center justify-between">
@@ -25,13 +23,7 @@ export const DecksContent = () => {
         </div>
       </section>
 
-      <section>
-        {decks?.map((deck) => (
-          <div key={deck.id}>
-            <h3>{deck.title}</h3>
-          </div>
-        ))}
-      </section>
+      <DeckList />
     </div>
   );
 };

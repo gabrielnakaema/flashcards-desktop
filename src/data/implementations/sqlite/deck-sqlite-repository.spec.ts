@@ -176,5 +176,7 @@ describe("DeckSqliteRepository", () => {
     expect(decks).toHaveLength(1);
     expect(decks[0].title).toBe("Japanese");
     expect(decks[0].totalCards).toBe(2);
+    expect(decks[0].category.name).toBe("Languages");
+    expect(decks[0].category.id).toBe("cat-1");
   });
 });

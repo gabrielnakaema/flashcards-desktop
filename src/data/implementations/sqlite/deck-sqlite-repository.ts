@@ -85,18 +85,39 @@ export class DeckSqliteRepository implements DeckRepository {
         d.id,
         d.title,
         d.tags,
-        d.category,
+        d.category as categoryId,
+        dc.name AS categoryName,
         COUNT(c.id) AS totalCards,
         COUNT(c.id) AS cardsDue,
         COUNT(c.id) AS masteryPercentage
       FROM decks d
       LEFT JOIN cards c ON d.id = c.deck_id
+      LEFT JOIN deck_categories dc ON d.category = dc.id
       GROUP BY d.id, d.title, d.tags, d.category
     `;
 
-    const decks = await this.dbClient.select<DeckWithStats[]>(query);
+    interface QueryResultItem {
+      id: string;
+      title: string;
+      tags: string[];
+      categoryId: string;
+      categoryName: string;
+      totalCards: number;
+      cardsDue: number;
+      masteryPercentage: number;
+    }
 
-    const results = decks.map(toDeckWithStats);
+    const decks = await this.dbClient.select<QueryResultItem[]>(query);
+
+    const results = decks.map((deck) =>
+      toDeckWithStats({
+        ...deck,
+        category: {
+          id: deck.categoryId,
+          name: deck.categoryName,
+        },
+      })
+    );
     const success = results.every((result) => result.success);
 
     if (!success) {
