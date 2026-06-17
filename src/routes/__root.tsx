@@ -7,9 +7,9 @@ function RootLayout() {
   useTheme();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
-      <main className="p-6">
+      <main className="flex-1 flex flex-col">
         <Outlet />
       </main>
       <TanStackRouterDevtools position="bottom-right" />

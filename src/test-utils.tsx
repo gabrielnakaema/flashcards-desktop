@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, RenderOptions } from "@testing-library/react";
+import { render, RenderOptions, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ReactElement } from "react";
+import { expect } from "vitest";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -25,3 +27,15 @@ const customRender = (
 
 export * from "@testing-library/react";
 export { customRender as render };
+
+export const selectComboboxOption = async (
+  user: ReturnType<typeof userEvent.setup>,
+  combobox: HTMLElement,
+  optionName: string | RegExp
+): Promise<void> => {
+  await user.click(combobox);
+  await user.click(await screen.findByRole("option", { name: optionName }));
+  await waitFor(() => {
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+};

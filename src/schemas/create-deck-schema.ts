@@ -9,7 +9,7 @@ const tagsSchema = z
     tags.forEach((tag, index) => {
       if (tag.length === 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: `Tag at position ${index + 1} is empty. Remove trailing or consecutive commas.`,
         });
       }

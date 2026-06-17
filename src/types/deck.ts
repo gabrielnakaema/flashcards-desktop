@@ -7,7 +7,10 @@ const deckSchema = z.object({
     (value) => JSON.parse(value as string),
     z.array(z.string())
   ),
-  category: z.string(),
+  category: z.object({
+    id: z.string(),
+    name: z.string().optional(),
+  }),
 });
 
 export const toDeck = (data: unknown) => {

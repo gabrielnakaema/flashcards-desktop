@@ -1,9 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { DeckCardsContent } from "@/components/cards/deck-cards-content";
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/decks/$deckId/cards')({
+export const Route = createFileRoute("/decks/$deckId/cards")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  return <div>Hello "/decks/$deckId/cards"!</div>
+  const { deckId } = Route.useParams();
+
+  return <DeckCardsContent deckId={deckId} />;
 }

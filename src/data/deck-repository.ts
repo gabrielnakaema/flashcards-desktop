@@ -17,4 +17,5 @@ export interface DeckRepository {
   createDeck: (payload: CreateDeckPayload) => Promise<Deck>;
   updateDeck: (payload: UpdateDeckPayload) => Promise<Deck>;
   deleteDeck: (id: string) => Promise<void>;
+  getDeck: (id: string) => Promise<Deck>;
 }

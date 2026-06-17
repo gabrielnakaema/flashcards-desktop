@@ -14,6 +14,15 @@ if (typeof window !== "undefined") {
   window.HTMLElement.prototype.scrollIntoView = function () {};
 }
 
+// jsdom does not implement pointer-capture APIs, which Radix UI Select depends on
+if (typeof window !== "undefined") {
+  window.Element.prototype.hasPointerCapture = function () {
+    return false;
+  };
+  window.Element.prototype.setPointerCapture = function () {};
+  window.Element.prototype.releasePointerCapture = function () {};
+}
+
 afterEach(() => {
   cleanup();
 });

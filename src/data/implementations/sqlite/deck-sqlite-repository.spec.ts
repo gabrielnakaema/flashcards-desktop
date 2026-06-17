@@ -99,7 +99,7 @@ describe("DeckSqliteRepository", () => {
     );
     expect(deck.title).toBe("Japanese");
     expect(deck.tags).toEqual(["vocab", "n5"]);
-    expect(deck.category).toBe("cat-1");
+    expect(deck.category.id).toBe("cat-1");
   });
 
   it("updates a deck", async () => {
@@ -126,7 +126,9 @@ describe("DeckSqliteRepository", () => {
 
     expect(updated.id).toBe(created.id);
     expect(updated.title).toBe("Japanese N5");
-    expect(updated.tags).toBe(JSON.stringify(["vocab", "grammar"]));
+    expect(updated.tags).toEqual(["vocab", "grammar"]);
+    expect(updated.category.id).toBe("cat-1");
+    expect(updated.category.name).toBe("Languages");
   });
 
   it("deletes a deck", async () => {

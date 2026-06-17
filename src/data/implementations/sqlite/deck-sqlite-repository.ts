@@ -160,12 +160,9 @@ export class DeckSqliteRepository implements DeckRepository {
 
     const [deck] = await this.dbClient.select<Deck[]>(query, params);
 
-    const result = toDeck(deck);
-    if (!result.success) {
-      throw new Error(`Failed to parse deck: ${formatZodError(result.error!)}`);
-    }
+    const result = await this.getDeck(deck.id);
 
-    return result.data;
+    return result;
   };
 
   updateDeck = async (payload: UpdateDeckPayload): Promise<Deck> => {
@@ -182,8 +179,16 @@ export class DeckSqliteRepository implements DeckRepository {
       payload.id,
     ];
 
-    const [deck] = await this.dbClient.select<Deck[]>(query, params);
-    return deck;
+    interface QueryResultItem {
+      id: string;
+      title: string;
+      tags: string;
+      category: string;
+    }
+
+    const [deck] = await this.dbClient.select<QueryResultItem[]>(query, params);
+    const result = await this.getDeck(deck.id);
+    return result;
   };
 
   deleteDeck = async (id: string): Promise<void> => {
@@ -193,5 +198,48 @@ export class DeckSqliteRepository implements DeckRepository {
     const params = [id];
 
     await this.dbClient.execute(query, params);
+  };
+
+  getDeck = async (id: string): Promise<Deck> => {
+    const query = `
+      SELECT
+        d.id,
+        d.title,
+        d.tags,
+        d.category as categoryId,
+        dc.name AS categoryName
+      FROM decks d
+      LEFT JOIN deck_categories dc ON d.category = dc.id
+      WHERE d.id = $1
+    `;
+
+    interface QueryResultItem {
+      id: string;
+      title: string;
+      tags: string[];
+      categoryId: string;
+      categoryName: string;
+    }
+
+    const params = [id];
+    const [deck] = await this.dbClient.select<QueryResultItem[]>(query, params);
+    if (!deck) {
+      throw new Error(`Deck not found: ${id}`);
+    }
+
+    const result = toDeck({
+      id: deck.id,
+      title: deck.title,
+      tags: deck.tags,
+      category: {
+        id: deck.categoryId,
+        name: deck.categoryName,
+      },
+    });
+    if (!result.success) {
+      console.error(result.error);
+      throw new Error(`Failed to parse deck: ${formatZodError(result.error!)}`);
+    }
+    return result.data;
   };
 }
