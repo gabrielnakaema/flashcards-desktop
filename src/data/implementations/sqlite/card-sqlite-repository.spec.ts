@@ -63,7 +63,9 @@ describe("CardSqliteRepository", () => {
       expect(schedule.state).toBe("new");
       expect(schedule.easeFactor).toBe(2.5);
       expect(schedule.intervalDays).toBe(0);
-      expect(schedule.dueAt).toBeNull();
+      expect(schedule.dueAt).not.toBeNull();
+      expect(new Date(schedule.dueAt!).toString()).not.toBe("Invalid Date");
+      expect(schedule.lastReviewedAt).toBeNull();
     });
 
     it("creates a multiple choice card", async () => {
@@ -128,7 +130,11 @@ describe("CardSqliteRepository", () => {
       for (const card of cards) {
         const schedule = await ctx.repository.getSchedule(card.id);
         expect(schedule.state).toBe("new");
+        expect(schedule.dueAt).not.toBeNull();
       }
+
+      const dueCards = await ctx.repository.getDueCards(DECK_ID);
+      expect(dueCards.map((card) => card.front)).toEqual(["Q1", "Q2", "Q3"]);
     });
 
     it("returns empty array for empty input", async () => {
@@ -289,18 +295,37 @@ describe("CardSqliteRepository", () => {
       expect(due).toHaveLength(0);
     });
 
-    it("excludes new cards with null due_at", async () => {
+    it("returns newly created cards as due immediately", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
 
-      await ctx.repository.createCard({
+      const card = await ctx.repository.createCard({
         deckId: DECK_ID,
         type: "plain",
-        front: "New card, not due yet",
+        front: "New card, due now",
       });
 
       const due = await ctx.repository.getDueCards(DECK_ID);
-      expect(due).toHaveLength(0);
+      expect(due).toHaveLength(1);
+      expect(due[0].id).toBe(card.id);
+      expect(due[0].schedule.state).toBe("new");
+    });
+
+    it("returns same-day ISO due timestamps", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      await seedCard(ctx.db, {
+        id: "iso-due-card",
+        deckId: DECK_ID,
+        front: "ISO due now",
+        state: "review",
+        dueAt: new Date().toISOString(),
+      });
+
+      const due = await ctx.repository.getDueCards(DECK_ID);
+      expect(due).toHaveLength(1);
+      expect(due[0].id).toBe("iso-due-card");
     });
   });
 

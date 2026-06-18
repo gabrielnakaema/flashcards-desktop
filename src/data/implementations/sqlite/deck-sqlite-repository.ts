@@ -93,7 +93,7 @@ export class DeckSqliteRepository implements DeckRepository {
         COALESCE(SUM(
           CASE WHEN c.is_suspended = 0
             AND cs.due_at IS NOT NULL
-            AND cs.due_at <= datetime('now')
+            AND datetime(cs.due_at) <= datetime('now')
           THEN 1 ELSE 0 END
         ), 0) AS cardsDue,
         CASE WHEN COUNT(c.id) = 0 THEN 0

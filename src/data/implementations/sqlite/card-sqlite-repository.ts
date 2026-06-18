@@ -140,8 +140,8 @@ export class CardSqliteRepository implements CardRepository {
         card_id, state, due_at, interval_days, ease_factor,
         repetition_count, lapse_count, last_reviewed_at,
         created_at, updated_at
-      ) VALUES ($1,'new',NULL,0,$2,0,0,NULL,$3,$4)`,
-      [id, DEFAULT_EASE_FACTOR, timestamp, timestamp]
+      ) VALUES ($1,'new',$2,0,$3,0,0,NULL,$4,$5)`,
+      [id, timestamp, DEFAULT_EASE_FACTOR, timestamp, timestamp]
     );
 
     const [raw] = await this.dbClient.select<Record<string, unknown>[]>(
@@ -271,7 +271,7 @@ export class CardSqliteRepository implements CardRepository {
       WHERE c.deck_id = $1
         AND c.is_suspended = 0
         AND cs.due_at IS NOT NULL
-        AND cs.due_at <= datetime('now')
+        AND datetime(cs.due_at) <= datetime('now')
       ORDER BY cs.due_at ASC`,
       [deckId]
     );

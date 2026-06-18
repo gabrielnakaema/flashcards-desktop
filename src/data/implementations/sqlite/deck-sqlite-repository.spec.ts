@@ -179,9 +179,9 @@ describe("DeckSqliteRepository", () => {
         [cardId, deck.id, timestamp, timestamp]
       );
       await testContext.db.execute(
-        `INSERT INTO card_schedules (card_id, state, interval_days, ease_factor, repetition_count, lapse_count, created_at, updated_at)
-         VALUES ($1, 'new', 0, 2.5, 0, 0, $2, $3)`,
-        [cardId, timestamp, timestamp]
+        `INSERT INTO card_schedules (card_id, state, due_at, interval_days, ease_factor, repetition_count, lapse_count, created_at, updated_at)
+         VALUES ($1, 'new', $2, 0, 2.5, 0, 0, $3, $4)`,
+        [cardId, timestamp, timestamp, timestamp]
       );
     }
 
@@ -190,7 +190,68 @@ describe("DeckSqliteRepository", () => {
     expect(decks).toHaveLength(1);
     expect(decks[0].title).toBe("Japanese");
     expect(decks[0].totalCards).toBe(2);
+    expect(decks[0].cardsDue).toBe(2);
     expect(decks[0].category.name).toBe("Languages");
     expect(decks[0].category.id).toBe("cat-1");
+  });
+
+  it("counts only due unsuspended cards in deck stats", async () => {
+    const testContext = await createTestDeckRepository();
+    teardown = testContext.teardown;
+
+    await seedCategory(testContext.db, {
+      id: "cat-1",
+      name: "Languages",
+    });
+
+    const deck = await testContext.repository.createDeck({
+      title: "Japanese",
+      tags: ["vocab"],
+      categoryId: "cat-1",
+    });
+
+    const timestamp = new Date().toISOString();
+    const cards = [
+      {
+        id: randomUUID(),
+        front: "Due new",
+        state: "new",
+        dueAt: timestamp,
+        isSuspended: 0,
+      },
+      {
+        id: randomUUID(),
+        front: "Future review",
+        state: "review",
+        dueAt: "2099-01-01T00:00:00.000Z",
+        isSuspended: 0,
+      },
+      {
+        id: randomUUID(),
+        front: "Suspended due",
+        state: "review",
+        dueAt: timestamp,
+        isSuspended: 1,
+      },
+    ];
+
+    for (const card of cards) {
+      await testContext.db.execute(
+        `INSERT INTO cards (id, deck_id, type, front, content, tags, is_suspended, created_at, updated_at)
+         VALUES ($1, $2, 'plain', $3, '{}', '[]', $4, $5, $6)`,
+        [card.id, deck.id, card.front, card.isSuspended, timestamp, timestamp]
+      );
+      await testContext.db.execute(
+        `INSERT INTO card_schedules (card_id, state, due_at, interval_days, ease_factor, repetition_count, lapse_count, created_at, updated_at)
+         VALUES ($1, $2, $3, 0, 2.5, 0, 0, $4, $5)`,
+        [card.id, card.state, card.dueAt, timestamp, timestamp]
+      );
+    }
+
+    const decks = await testContext.repository.listDeckWithStats();
+
+    expect(decks).toHaveLength(1);
+    expect(decks[0].totalCards).toBe(3);
+    expect(decks[0].cardsDue).toBe(1);
   });
 });
