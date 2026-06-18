@@ -40,8 +40,8 @@ const DIFFICULTY_OPTIONS = [
 
 export const CardForm = ({ deckId, card, onSuccess }: CardFormProps) => {
   const isEdit = Boolean(card);
-  const { create, isPending: isCreating } = useCreateCard(deckId);
-  const { update, isPending: isUpdating } = useUpdateCard(deckId);
+  const { create, isPending: isCreating } = useCreateCard();
+  const { update, isPending: isUpdating } = useUpdateCard();
   const isPending = isCreating || isUpdating;
 
   const {
@@ -92,7 +92,7 @@ export const CardForm = ({ deckId, card, onSuccess }: CardFormProps) => {
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit, (errs) => console.error(errs))}
+      onSubmit={handleSubmit(onSubmit)}
       className="w-full flex flex-col gap-4 py-4"
     >
       <div className="flex flex-col gap-1">

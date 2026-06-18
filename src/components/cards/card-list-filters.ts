@@ -64,7 +64,10 @@ export const normalizeCardListFilters = (
     : DEFAULT_CARD_LIST_FILTERS.difficulty,
 });
 
-export const filterCards = (cards: Card[], filters: CardListFilters) => {
+export const filterCards = <T extends Card>(
+  cards: T[],
+  filters: CardListFilters
+) => {
   const normalizedSearch = filters.search.trim().toLowerCase();
 
   return cards.filter((card) => {

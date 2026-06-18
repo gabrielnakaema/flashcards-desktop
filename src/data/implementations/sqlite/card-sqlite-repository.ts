@@ -87,6 +87,39 @@ const parseSchedule = (raw: Record<string, unknown>): CardSchedule => {
   return result.data;
 };
 
+const createBindBuilder = () => {
+  const values: unknown[] = [];
+
+  const add = (value: unknown): string => {
+    values.push(value);
+    return `$${values.length}`;
+  };
+
+  return { values, add };
+};
+
+const buildCardInsertStatements = (
+  payload: CreateCardPayload,
+  add: (value: unknown) => string
+): { id: string; statements: string[] } => {
+  const id = crypto.randomUUID();
+  const timestamp = now();
+
+  const cardInsert = `INSERT INTO cards (
+    id, deck_id, type, front, back, content,
+    hint, explanation, source_excerpt, difficulty,
+    tags, is_suspended, created_at, updated_at
+  ) VALUES (${add(id)},${add(payload.deckId)},${add(payload.type)},${add(payload.front)},${add(payload.back ?? null)},${add(JSON.stringify(payload.content ?? {}))},${add(payload.hint ?? null)},${add(payload.explanation ?? null)},${add(payload.sourceExcerpt ?? null)},${add(payload.difficulty ?? null)},${add(JSON.stringify(payload.tags ?? []))},0,${add(timestamp)},${add(timestamp)})`;
+
+  const scheduleInsert = `INSERT INTO card_schedules (
+    card_id, state, due_at, interval_days, ease_factor,
+    repetition_count, lapse_count, last_reviewed_at,
+    created_at, updated_at
+  ) VALUES (${add(id)},'new',${add(timestamp)},0,${add(DEFAULT_EASE_FACTOR)},0,0,NULL,${add(timestamp)},${add(timestamp)})`;
+
+  return { id, statements: [cardInsert, scheduleInsert] };
+};
+
 export class CardSqliteRepository implements CardRepository {
   constructor(private readonly db?: SqlClient) {}
 
@@ -94,54 +127,13 @@ export class CardSqliteRepository implements CardRepository {
     return this.db ?? getDb();
   }
 
-  private async beginTransaction(): Promise<void> {
-    await this.dbClient.execute("BEGIN");
-  }
-
-  private async commitTransaction(): Promise<void> {
-    await this.dbClient.execute("COMMIT");
-  }
-
-  private async rollbackTransaction(): Promise<void> {
-    await this.dbClient.execute("ROLLBACK");
-  }
-
-  private async insertCardWithSchedule(
-    payload: CreateCardPayload
-  ): Promise<Card> {
-    const id = crypto.randomUUID();
-    const timestamp = now();
+  createCard = async (payload: CreateCardPayload): Promise<Card> => {
+    const { values, add } = createBindBuilder();
+    const { id, statements } = buildCardInsertStatements(payload, add);
 
     await this.dbClient.execute(
-      `INSERT INTO cards (
-        id, deck_id, type, front, back, content,
-        hint, explanation, source_excerpt, difficulty,
-        tags, is_suspended, created_at, updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,0,$12,$13)`,
-      [
-        id,
-        payload.deckId,
-        payload.type,
-        payload.front,
-        payload.back ?? null,
-        JSON.stringify(payload.content ?? {}),
-        payload.hint ?? null,
-        payload.explanation ?? null,
-        payload.sourceExcerpt ?? null,
-        payload.difficulty ?? null,
-        JSON.stringify(payload.tags ?? []),
-        timestamp,
-        timestamp,
-      ]
-    );
-
-    await this.dbClient.execute(
-      `INSERT INTO card_schedules (
-        card_id, state, due_at, interval_days, ease_factor,
-        repetition_count, lapse_count, last_reviewed_at,
-        created_at, updated_at
-      ) VALUES ($1,'new',$2,0,$3,0,0,NULL,$4,$5)`,
-      [id, timestamp, DEFAULT_EASE_FACTOR, timestamp, timestamp]
+      ["BEGIN", ...statements, "COMMIT"].join(";\n"),
+      values
     );
 
     const [raw] = await this.dbClient.select<Record<string, unknown>[]>(
@@ -149,33 +141,33 @@ export class CardSqliteRepository implements CardRepository {
       [id]
     );
     return parseCard(raw);
-  }
-
-  createCard = async (payload: CreateCardPayload): Promise<Card> => {
-    await this.beginTransaction();
-    try {
-      const card = await this.insertCardWithSchedule(payload);
-      await this.commitTransaction();
-      return card;
-    } catch (err) {
-      await this.rollbackTransaction();
-      throw err;
-    }
   };
 
   bulkCreateCards = async (payloads: CreateCardPayload[]): Promise<Card[]> => {
-    await this.beginTransaction();
-    try {
-      const cards: Card[] = [];
-      for (const payload of payloads) {
-        cards.push(await this.insertCardWithSchedule(payload));
-      }
-      await this.commitTransaction();
-      return cards;
-    } catch (err) {
-      await this.rollbackTransaction();
-      throw err;
+    if (payloads.length === 0) {
+      return [];
     }
+
+    const { values, add } = createBindBuilder();
+    const cardIds: string[] = [];
+    const statements: string[] = [];
+
+    for (const payload of payloads) {
+      const result = buildCardInsertStatements(payload, add);
+      cardIds.push(result.id);
+      statements.push(...result.statements);
+    }
+
+    await this.dbClient.execute(
+      ["BEGIN", ...statements, "COMMIT"].join(";\n"),
+      values
+    );
+
+    const cards: Card[] = [];
+    for (const id of cardIds) {
+      cards.push(await this.getCard(id));
+    }
+    return cards;
   };
 
   updateCard = async (payload: UpdateCardPayload): Promise<Card> => {
@@ -249,15 +241,42 @@ export class CardSqliteRepository implements CardRepository {
     return parseCard(raw);
   };
 
-  listCardsByDeck = async (deckId: string): Promise<Card[]> => {
+  listCardsByDeck = async (deckId: string): Promise<CardWithSchedule[]> => {
     const rows = await this.dbClient.select<Record<string, unknown>[]>(
-      "SELECT * FROM cards WHERE deck_id = $1 ORDER BY created_at ASC",
+      `SELECT
+        c.*,
+        cs.card_id, cs.state, cs.due_at, cs.interval_days,
+        cs.ease_factor, cs.repetition_count, cs.lapse_count,
+        cs.last_reviewed_at,
+        cs.created_at AS cs_created_at,
+        cs.updated_at AS cs_updated_at
+      FROM cards c
+      JOIN card_schedules cs ON c.id = cs.card_id
+      WHERE c.deck_id = $1
+      ORDER BY c.created_at ASC`,
       [deckId]
     );
-    return rows.map(parseCard);
+    return rows.map((row) => {
+      const card = parseCard(row);
+      const schedule = parseSchedule({
+        card_id: row.card_id,
+        state: row.state,
+        due_at: row.due_at,
+        interval_days: row.interval_days,
+        ease_factor: row.ease_factor,
+        repetition_count: row.repetition_count,
+        lapse_count: row.lapse_count,
+        last_reviewed_at: row.last_reviewed_at,
+        created_at: row.cs_created_at,
+        updated_at: row.cs_updated_at,
+      });
+      return { ...card, schedule };
+    });
   };
 
   getDueCards = async (deckId: string): Promise<CardWithSchedule[]> => {
+    const timeNow = now();
+
     const rows = await this.dbClient.select<Record<string, unknown>[]>(
       `SELECT
         c.*,
@@ -271,9 +290,9 @@ export class CardSqliteRepository implements CardRepository {
       WHERE c.deck_id = $1
         AND c.is_suspended = 0
         AND cs.due_at IS NOT NULL
-        AND datetime(cs.due_at) <= datetime('now')
+        AND datetime(cs.due_at) <= datetime($2)
       ORDER BY cs.due_at ASC`,
-      [deckId]
+      [deckId, timeNow]
     );
 
     return rows.map((row) => {
@@ -323,56 +342,27 @@ export class CardSqliteRepository implements CardRepository {
 
     const timestamp = now();
     const logId = crypto.randomUUID();
+    const wasCorrect =
+      payload.wasCorrect !== undefined ? (payload.wasCorrect ? 1 : 0) : null;
 
-    await this.beginTransaction();
-    try {
-      await this.dbClient.execute(
+    const { values, add } = createBindBuilder();
+
+    await this.dbClient.execute(
+      [
+        "BEGIN",
         `UPDATE card_schedules SET
-          state = $1, due_at = $2, interval_days = $3,
-          ease_factor = $4, repetition_count = $5, lapse_count = $6,
-          last_reviewed_at = $7, updated_at = $8
-        WHERE card_id = $9`,
-        [
-          update.state,
-          update.dueAt,
-          update.intervalDays,
-          update.easeFactor,
-          update.repetitionCount,
-          update.lapseCount,
-          update.lastReviewedAt,
-          timestamp,
-          payload.cardId,
-        ]
-      );
-
-      await this.dbClient.execute(
+          state = ${add(update.state)}, due_at = ${add(update.dueAt)}, interval_days = ${add(update.intervalDays)},
+          ease_factor = ${add(update.easeFactor)}, repetition_count = ${add(update.repetitionCount)}, lapse_count = ${add(update.lapseCount)},
+          last_reviewed_at = ${add(update.lastReviewedAt)}, updated_at = ${add(timestamp)}
+        WHERE card_id = ${add(payload.cardId)}`,
         `INSERT INTO review_logs (
           id, card_id, deck_id, rating, response, was_correct,
           reviewed_at, previous_due_at, next_due_at, elapsed_ms
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
-        [
-          logId,
-          payload.cardId,
-          payload.deckId,
-          payload.rating,
-          payload.response ?? null,
-          payload.wasCorrect !== undefined
-            ? payload.wasCorrect
-              ? 1
-              : 0
-            : null,
-          update.lastReviewedAt,
-          currentSchedule.dueAt,
-          update.dueAt,
-          payload.elapsedMs ?? null,
-        ]
-      );
-
-      await this.commitTransaction();
-    } catch (err) {
-      await this.rollbackTransaction();
-      throw err;
-    }
+        ) VALUES (${add(logId)},${add(payload.cardId)},${add(payload.deckId)},${add(payload.rating)},${add(payload.response ?? null)},${add(wasCorrect)},${add(update.lastReviewedAt)},${add(currentSchedule.dueAt)},${add(update.dueAt)},${add(payload.elapsedMs ?? null)})`,
+        "COMMIT",
+      ].join(";\n"),
+      values
+    );
 
     const [rawLog] = await this.dbClient.select<Record<string, unknown>[]>(
       "SELECT * FROM review_logs WHERE id = $1",

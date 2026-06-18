@@ -10,6 +10,37 @@ const toNativePlaceholders = (query: string): string => {
   return query.replace(/\$(\d+)/g, "?");
 };
 
+const splitStatements = (query: string): string[] => {
+  return query
+    .split(";")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+};
+
+const runStatement = (
+  db: Database.Database,
+  statementSql: string,
+  bindValues: unknown[]
+): Database.RunResult | null => {
+  const placeholderNumbers = [...statementSql.matchAll(/\$(\d+)/g)].map(
+    (match) => Number(match[1])
+  );
+
+  if (placeholderNumbers.length === 0) {
+    db.exec(`${statementSql};`);
+    return null;
+  }
+
+  const min = Math.min(...placeholderNumbers);
+  const max = Math.max(...placeholderNumbers);
+  const statementBinds = bindValues.slice(min - 1, max);
+  const renumberedSql = toNativePlaceholders(
+    statementSql.replace(/\$(\d+)/g, (_, num) => `$${Number(num) - min + 1}`)
+  );
+
+  return db.prepare(renumberedSql).run(...statementBinds);
+};
+
 export class TestSqlClient implements SqlClient {
   private readonly db: Database.Database;
   private readonly tempDir: string;
@@ -42,13 +73,30 @@ export class TestSqlClient implements SqlClient {
     query: string,
     bindValues: unknown[] = []
   ): Promise<QueryResult> {
-    const statement = this.db.prepare(toNativePlaceholders(query));
-    const result = statement.run(...bindValues);
+    const statements = splitStatements(query);
 
-    return {
-      rowsAffected: result.changes,
-      lastInsertId: Number(result.lastInsertRowid),
-    };
+    if (statements.length === 1) {
+      const result = runStatement(this.db, statements[0], bindValues);
+      return {
+        rowsAffected: result?.changes ?? 0,
+        lastInsertId: result ? Number(result.lastInsertRowid) : undefined,
+      };
+    }
+
+    let rowsAffected = 0;
+    let lastInsertId: number | undefined;
+
+    for (const statementSql of statements) {
+      const result = runStatement(this.db, statementSql, bindValues);
+      if (!result) {
+        continue;
+      }
+
+      rowsAffected += result.changes;
+      lastInsertId = Number(result.lastInsertRowid);
+    }
+
+    return { rowsAffected, lastInsertId };
   }
 
   async destroy(): Promise<void> {

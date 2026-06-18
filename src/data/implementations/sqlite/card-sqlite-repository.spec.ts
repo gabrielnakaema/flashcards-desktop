@@ -222,6 +222,9 @@ describe("CardSqliteRepository", () => {
       const cards = await ctx.repository.listCardsByDeck(DECK_ID);
       expect(cards).toHaveLength(2);
       expect(cards[0].front).toBe("First");
+      expect(cards[0].schedule.cardId).toBe(cards[0].id);
+      expect(cards[0].schedule.state).toBe("new");
+      expect(cards[0].schedule.dueAt).not.toBeNull();
     });
 
     it("does not return cards from other decks", async () => {
@@ -404,6 +407,38 @@ describe("CardSqliteRepository", () => {
 
       expect(log.response).toBe("Paris");
       expect(log.wasCorrect).toBe(1);
+    });
+
+    it("writes schedule update and review log in a single transaction", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Review me",
+      });
+      const originalExecute = ctx.db.execute.bind(ctx.db);
+      let executeCallCount = 0;
+
+      ctx.db.execute = async (query, bindValues) => {
+        executeCallCount += 1;
+        expect(query).toContain("BEGIN");
+        expect(query).toContain("UPDATE card_schedules");
+        expect(query).toContain("INSERT INTO review_logs");
+        expect(query).toContain("COMMIT");
+        return originalExecute(query, bindValues);
+      };
+
+      const log = await ctx.repository.submitReview({
+        cardId: card.id,
+        deckId: DECK_ID,
+        rating: "good",
+      });
+
+      expect(executeCallCount).toBe(1);
+      expect(log.cardId).toBe(card.id);
+      expect(log.rating).toBe("good");
     });
   });
 });

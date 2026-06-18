@@ -1,11 +1,11 @@
 import { render, screen } from "@/test-utils";
-import { Card } from "@/types/card";
+import { CardWithSchedule } from "@/types/card";
 import userEvent from "@testing-library/user-event";
 import { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { CardListItem } from "./card-list-item";
 
-const card: Card = {
+const card: CardWithSchedule = {
   id: "card-1",
   deckId: "deck-1",
   type: "plain",
@@ -20,6 +20,18 @@ const card: Card = {
   isSuspended: false,
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-01T00:00:00.000Z",
+  schedule: {
+    cardId: "card-1",
+    state: "review",
+    dueAt: "2024-01-02T15:00:00.000Z",
+    intervalDays: 3,
+    easeFactor: 2.35,
+    repetitionCount: 4,
+    lapseCount: 1,
+    lastReviewedAt: "2024-01-01T15:00:00.000Z",
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
+  },
 };
 
 function setup(props: Partial<ComponentProps<typeof CardListItem>> = {}) {
@@ -48,6 +60,14 @@ describe("CardListItem", () => {
     setup({ card: { ...card, tags: ["tag1", "tag2"] } });
     expect(screen.getByText("tag1")).toBeInTheDocument();
     expect(screen.getByText("tag2")).toBeInTheDocument();
+  });
+
+  it("renders SRS schedule details below the card data", () => {
+    setup();
+    expect(screen.getByText(/due/i)).toBeInTheDocument();
+    expect(screen.getByText("Review")).toBeInTheDocument();
+    expect(screen.getByText("Interval: 3 days")).toBeInTheDocument();
+    expect(screen.getByText(/last reviewed/i)).toBeInTheDocument();
   });
 
   it("renders card back if card.type is plain", () => {
