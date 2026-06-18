@@ -18,7 +18,27 @@ export const cardStateSchema = z.enum([
 ]);
 export type CardState = z.infer<typeof cardStateSchema>;
 
-export const cardSchema = z.object({
+const cardChoiceSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+});
+export const plainCardContentSchema = z.object({});
+export const multipleChoiceCardContentSchema = z.object({
+  question: z.string().optional(),
+  choices: z.array(cardChoiceSchema),
+  correctChoiceId: z.string(),
+});
+export const typedAnswerCardContentSchema = z.object({
+  prompt: z.string().optional(),
+  acceptedAnswer: z.string(),
+  aliases: z.array(z.string()).optional(),
+  caseSensitive: z.boolean().optional(),
+});
+
+const jsonField = <T extends z.ZodType>(schema: T) =>
+  z.preprocess((v) => (typeof v === "string" ? JSON.parse(v) : v), schema);
+
+export const cardBaseSchema = z.object({
   id: z.string(),
   deckId: z.string(),
   type: cardTypeSchema,
@@ -31,7 +51,7 @@ export const cardSchema = z.object({
   hint: z.string().nullable(),
   explanation: z.string().nullable(),
   sourceExcerpt: z.string().nullable(),
-  difficulty: z.string().nullable(),
+  difficulty: z.enum(["easy", "medium", "hard"]).nullable(),
   tags: z.preprocess(
     (v) => (typeof v === "string" ? JSON.parse(v) : v),
     z.array(z.string())
@@ -40,6 +60,22 @@ export const cardSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 });
+
+export const cardSchema = z.discriminatedUnion("type", [
+  cardBaseSchema.extend({
+    type: z.literal("plain"),
+    content: jsonField(plainCardContentSchema),
+  }),
+  cardBaseSchema.extend({
+    type: z.literal("multiple_choice"),
+    content: jsonField(multipleChoiceCardContentSchema),
+  }),
+  cardBaseSchema.extend({
+    type: z.literal("typed_answer"),
+    content: jsonField(typedAnswerCardContentSchema),
+  }),
+]);
+
 export type Card = z.infer<typeof cardSchema>;
 
 export const cardScheduleSchema = z.object({

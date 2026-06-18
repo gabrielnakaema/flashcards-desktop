@@ -24,7 +24,7 @@ const makePlainCard = (overrides: Partial<Card> = {}): Card => ({
   type: "plain",
   front: "What is gravity?",
   back: "A force",
-  content: {},
+  content: {} as any,
   hint: null,
   explanation: null,
   sourceExcerpt: null,

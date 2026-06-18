@@ -243,7 +243,7 @@ const makeCard = (overrides: Partial<Card> = {}): Card => ({
   type: "plain",
   front: "What is gravity?",
   back: "A force",
-  content: {},
+  content: {} as any,
   hint: "Physics",
   explanation: "Newton's law",
   sourceExcerpt: "Principia",
