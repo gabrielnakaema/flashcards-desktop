@@ -441,4 +441,124 @@ describe("CardSqliteRepository", () => {
       expect(log.rating).toBe("good");
     });
   });
+
+  describe("resetDeckStudyProgress", () => {
+    it("clears review logs and returns deck schedules to new due-now state", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Review me",
+      });
+
+      await ctx.repository.submitReview({
+        cardId: card.id,
+        deckId: DECK_ID,
+        rating: "easy",
+      });
+
+      const reviewedSchedule = await ctx.repository.getSchedule(card.id);
+      expect(reviewedSchedule.state).toBe("review");
+      expect(reviewedSchedule.repetitionCount).toBe(1);
+
+      await ctx.repository.resetDeckStudyProgress(DECK_ID);
+
+      const resetSchedule = await ctx.repository.getSchedule(card.id);
+      expect(resetSchedule.state).toBe("new");
+      expect(resetSchedule.intervalDays).toBe(0);
+      expect(resetSchedule.easeFactor).toBe(2.5);
+      expect(resetSchedule.repetitionCount).toBe(0);
+      expect(resetSchedule.lapseCount).toBe(0);
+      expect(resetSchedule.lastReviewedAt).toBeNull();
+      expect(resetSchedule.dueAt).not.toBeNull();
+
+      const dueCards = await ctx.repository.getDueCards(DECK_ID);
+      expect(dueCards.map((dueCard) => dueCard.id)).toEqual([card.id]);
+
+      const [logRow] = await ctx.db.select<unknown[]>(
+        "SELECT * FROM review_logs WHERE deck_id = $1",
+        [DECK_ID]
+      );
+      expect(logRow).toBeUndefined();
+    });
+
+    it("does not reset cards or review logs from another deck", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      await seedDeck(ctx.db, {
+        id: "deck-2",
+        categoryId: CATEGORY_ID,
+        title: "Other Deck",
+      });
+
+      const deckCard = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Mine",
+      });
+      const otherCard = await ctx.repository.createCard({
+        deckId: "deck-2",
+        type: "plain",
+        front: "Other",
+      });
+
+      await ctx.repository.submitReview({
+        cardId: deckCard.id,
+        deckId: DECK_ID,
+        rating: "good",
+      });
+      await ctx.repository.submitReview({
+        cardId: otherCard.id,
+        deckId: "deck-2",
+        rating: "good",
+      });
+
+      await ctx.repository.resetDeckStudyProgress(DECK_ID);
+
+      const otherSchedule = await ctx.repository.getSchedule(otherCard.id);
+      expect(otherSchedule.state).toBe("review");
+      expect(otherSchedule.repetitionCount).toBe(1);
+
+      const [otherLogRow] = await ctx.db.select<unknown[]>(
+        "SELECT * FROM review_logs WHERE deck_id = $1",
+        ["deck-2"]
+      );
+      expect(otherLogRow).toBeDefined();
+    });
+
+    it("preserves card content and suspension state", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "typed_answer",
+        front: "Capital of France?",
+        content: { acceptedAnswer: "Paris" },
+        difficulty: "medium",
+        tags: ["geography"],
+      });
+      await ctx.db.execute("UPDATE cards SET is_suspended = 1 WHERE id = $1", [
+        card.id,
+      ]);
+
+      await ctx.repository.submitReview({
+        cardId: card.id,
+        deckId: DECK_ID,
+        rating: "good",
+      });
+      await ctx.repository.resetDeckStudyProgress(DECK_ID);
+
+      const [resetCard] = await ctx.repository.listCardsByDeck(DECK_ID);
+      expect(resetCard.type).toBe("typed_answer");
+      expect(resetCard.content).toEqual({ acceptedAnswer: "Paris" });
+      expect(resetCard.difficulty).toBe("medium");
+      expect(resetCard.tags).toEqual(["geography"]);
+      expect(resetCard.isSuspended).toBe(true);
+      expect(resetCard.schedule.state).toBe("new");
+    });
+  });
 });

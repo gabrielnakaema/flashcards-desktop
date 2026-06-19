@@ -18,4 +18,5 @@ export interface CardRepository {
   getDueCards: (deckId: string) => Promise<CardWithSchedule[]>;
   getSchedule: (cardId: string) => Promise<CardSchedule>;
   submitReview: (payload: SubmitReviewPayload) => Promise<ReviewLog>;
+  resetDeckStudyProgress: (deckId: string) => Promise<void>;
 }

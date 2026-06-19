@@ -6,6 +6,8 @@ import { useState } from "react";
 import { DeckCardsList } from "./deck-cards-list";
 import { CardForm } from "./card-form";
 import { Button } from "../ui/button";
+import { DevStudyTools } from "@/components/dev/dev-study-tools";
+import { isDevToolsEnabled } from "@/lib/dev-tools";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +31,7 @@ export const DeckCardsContent = ({
   const { data: deck, isFetching } = useDeckDetails(deckId);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const showDevStudyTools = isDevToolsEnabled();
 
   if (isFetching) {
     return (
@@ -93,6 +96,8 @@ export const DeckCardsContent = ({
           />
         </DialogContent>
       </Dialog>
+
+      {showDevStudyTools && <DevStudyTools deckId={deckId} />}
     </div>
   );
 };

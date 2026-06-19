@@ -5,6 +5,8 @@ import { initDb } from "@/data/implementations/sqlite/db";
 import { routeTree } from "./routeTree.gen";
 import "./index.css";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { initializeDevClock } from "@/lib/dev-clock";
+import { isDevToolsEnabled } from "@/lib/dev-tools";
 
 const queryClient = new QueryClient();
 
@@ -18,9 +20,13 @@ declare module "@tanstack/react-router" {
 
 const rootElement = document.getElementById("root");
 
-async function bootstrap() {
+const bootstrap = async (): Promise<void> => {
   if (!rootElement || rootElement.innerHTML) {
     return;
+  }
+
+  if (isDevToolsEnabled()) {
+    initializeDevClock();
   }
 
   await initDb();
@@ -32,6 +38,6 @@ async function bootstrap() {
       </QueryClientProvider>
     </React.StrictMode>
   );
-}
+};
 
 void bootstrap();

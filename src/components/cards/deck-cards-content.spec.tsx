@@ -47,7 +47,7 @@ const defaultDeck: Deck = {
   category: { id: "cat-1", name: "Languages" },
 };
 
-function setup() {
+const setup = () => {
   const user = userEvent.setup();
   render(
     <DeckCardsContent
@@ -57,7 +57,7 @@ function setup() {
     />
   );
   return { user };
-}
+};
 
 beforeEach(() => {
   vi.clearAllMocks();

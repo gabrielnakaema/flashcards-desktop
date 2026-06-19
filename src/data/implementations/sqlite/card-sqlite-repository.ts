@@ -377,4 +377,30 @@ export class CardSqliteRepository implements CardRepository {
     }
     return result.data;
   };
+
+  resetDeckStudyProgress = async (deckId: string): Promise<void> => {
+    const timestamp = now();
+    const { values, add } = createBindBuilder();
+
+    await this.dbClient.execute(
+      [
+        "BEGIN",
+        `DELETE FROM review_logs WHERE deck_id = ${add(deckId)}`,
+        `UPDATE card_schedules
+          SET state = 'new',
+            due_at = ${add(timestamp)},
+            interval_days = 0,
+            ease_factor = ${add(DEFAULT_EASE_FACTOR)},
+            repetition_count = 0,
+            lapse_count = 0,
+            last_reviewed_at = NULL,
+            updated_at = ${add(timestamp)}
+          WHERE card_id IN (
+            SELECT id FROM cards WHERE deck_id = ${add(deckId)}
+          )`,
+        "COMMIT",
+      ].join(";\n"),
+      values
+    );
+  };
 }
