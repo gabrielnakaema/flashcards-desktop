@@ -18,6 +18,7 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   LOCKED_RESPONSE_FORMAT_PROMPT,
 } from "./generate-cards-constants";
+import { useSettings } from "@/hooks/settings/use-settings";
 
 interface GenerateCardsFormProps {
   deck: Deck;
@@ -27,6 +28,8 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [savedCount, setSavedCount] = useState<number | null>(null);
 
+  const { data: settings } = useSettings();
+
   const {
     register,
     control,
@@ -35,10 +38,10 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
   } = useForm<GenerateCardsSchema>({
     resolver: zodResolver(generateCardsSchema),
     defaultValues: {
-      provider: "openai",
+      provider: settings.defaultProvider,
       systemPrompt: DEFAULT_SYSTEM_PROMPT,
       prompt: `Generate 10 flashcards for the topic: ${deck.title}`,
-      apiKey: "",
+      apiKey: settings.apiKey ?? "",
     },
   });
 

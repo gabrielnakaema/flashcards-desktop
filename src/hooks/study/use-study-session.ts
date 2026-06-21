@@ -106,7 +106,13 @@ export const useStudySession = (deckId: string) => {
   const [cardStartedAt, setCardStartedAt] = useState(() => Date.now());
 
   useEffect(() => {
-    if (initializedDeckId === deckId || !dueCardsQuery.data) return;
+    if (
+      initializedDeckId === deckId ||
+      !dueCardsQuery.data ||
+      dueCardsQuery.isFetching
+    ) {
+      return;
+    }
 
     setQueue(dueCardsQuery.data);
     setInitialCounts(countDueCards(dueCardsQuery.data));
@@ -117,7 +123,7 @@ export const useStudySession = (deckId: string) => {
     setPendingRating(null);
     setCardStartedAt(Date.now());
     setInitializedDeckId(deckId);
-  }, [deckId, dueCardsQuery.data, initializedDeckId]);
+  }, [deckId, dueCardsQuery.data, dueCardsQuery.isFetching, initializedDeckId]);
 
   const currentCard = queue[0] ?? null;
   const remainingCounts = useMemo(() => countDueCards(queue), [queue]);
@@ -241,7 +247,9 @@ export const useStudySession = (deckId: string) => {
     remainingCounts,
     stats,
     isInitialized: initializedDeckId === deckId,
-    isLoading: dueCardsQuery.isLoading || initializedDeckId !== deckId,
+    isLoading:
+      initializedDeckId !== deckId &&
+      (dueCardsQuery.isPending || dueCardsQuery.isFetching),
     isFetching: dueCardsQuery.isFetching,
     isSubmitting: isPending || pendingRating !== null,
     pendingRating,

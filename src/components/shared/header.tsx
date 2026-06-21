@@ -12,7 +12,7 @@ export const Header = () => {
       </Link>
 
       <nav>
-        <ul>
+        <ul className="flex items-center gap-4">
           <li>
             <Link
               to="/"
@@ -22,6 +22,17 @@ export const Header = () => {
               }}
             >
               Decks
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/settings"
+              className={inactiveLinkClasses}
+              activeProps={{
+                className: cn(inactiveLinkClasses, activeLinkClasses),
+              }}
+            >
+              Settings
             </Link>
           </li>
         </ul>

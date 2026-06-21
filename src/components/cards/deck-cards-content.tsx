@@ -1,13 +1,10 @@
-import { useDeckDetails } from "@/hooks/decks/use-deck-details";
-import { ArrowLeftIcon, Loader2 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { GenerateCardsForm } from "./generate-cards-form";
-import { useState } from "react";
-import { DeckCardsList } from "./deck-cards-list";
-import { CardForm } from "./card-form";
-import { Button } from "../ui/button";
 import { DevStudyTools } from "@/components/dev/dev-study-tools";
-import { isDevToolsEnabled } from "@/lib/dev-tools";
+import { useDeckDetails } from "@/hooks/decks/use-deck-details";
+import { useSettings } from "@/hooks/settings/use-settings";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeftIcon, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { CardForm } from "./card-form";
 import type { CardListFilters } from "./card-list-filters";
+import { DeckCardsList } from "./deck-cards-list";
+import { GenerateCardsForm } from "./generate-cards-form";
 
 interface DeckCardsContentProps {
   deckId: string;
@@ -31,7 +31,8 @@ export const DeckCardsContent = ({
   const { data: deck, isFetching } = useDeckDetails(deckId);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const showDevStudyTools = isDevToolsEnabled();
+  const { data: settings } = useSettings();
+  const showDevStudyTools = settings.devMode === "on";
 
   if (isFetching) {
     return (

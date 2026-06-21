@@ -36,11 +36,11 @@ export const DeckCardMenu = ({ deck }: DeckCardMenuProps) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="lg">
+          <Button variant="secondary" size="lg">
             <MenuIcon />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-36">
           <DropdownMenuItem className="whitespace-nowrap" asChild>
             <Link to="/decks/$deckId/cards" params={{ deckId: deck.id }}>
               <Layers />

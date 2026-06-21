@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "flashcards-tauri",
+  "productName": "Flashcards",
   "version": "0.1.0",
   "identifier": "dev.gabrielnakaema.flashcards-srs",
   "build": {
@@ -17,9 +17,8 @@
   "app": {
     "windows": [
       {
-        "title": "flashcards-tauri",
-        "width": 800,
-        "height": 600
+        "title": "Flashcards",
+        "maximized": true
       }
     ],
     "security": {

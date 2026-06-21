@@ -5,8 +5,7 @@ import { initDb } from "@/data/implementations/sqlite/db";
 import { routeTree } from "./routeTree.gen";
 import "./index.css";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { initializeDevClock } from "@/lib/dev-clock";
-import { isDevToolsEnabled } from "@/lib/dev-tools";
+import { SettingsProvider } from "./components/settings/settings-context";
 
 const queryClient = new QueryClient();
 
@@ -25,16 +24,14 @@ const bootstrap = async (): Promise<void> => {
     return;
   }
 
-  if (isDevToolsEnabled()) {
-    initializeDevClock();
-  }
-
   await initDb();
 
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <SettingsProvider>
+          <RouterProvider router={router} />
+        </SettingsProvider>
       </QueryClientProvider>
     </React.StrictMode>
   );

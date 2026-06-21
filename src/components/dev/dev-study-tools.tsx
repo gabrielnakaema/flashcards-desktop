@@ -11,6 +11,7 @@ import {
   initializeDevClock,
   setDevClockTime,
 } from "@/lib/dev-clock";
+import { useQueryClient } from "@tanstack/react-query";
 import { ClockIcon, MinusIcon, RotateCcwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -30,6 +31,7 @@ export const DevStudyTools = ({ deckId }: DevStudyToolsProps) => {
     isPending: isResetting,
     error: resetError,
   } = useResetDeckStudyProgress(deckId);
+  const queryClient = useQueryClient();
   const [clockTimeMs, setClockTimeMs] = useState(() => getDevClockTime());
   const [timeInput, setTimeInput] = useState(() =>
     formatDevClockInputValue(getDevClockTime())
@@ -45,6 +47,7 @@ export const DevStudyTools = ({ deckId }: DevStudyToolsProps) => {
   }, []);
 
   const updateClock = (timeMs: number | null) => {
+    queryClient.removeQueries();
     setClockTimeMs(timeMs);
     setTimeInput(formatDevClockInputValue(timeMs));
     setClockError(null);
