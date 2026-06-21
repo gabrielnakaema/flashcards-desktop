@@ -64,7 +64,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
   }
 
   return (
-    <div className="dark flex min-h-screen flex-col bg-background text-foreground">
+    <div className="dark flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
       <StudyHeader
         deckTitle={deckTitle}
         counts={session.initialCounts}
@@ -73,7 +73,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
         onBack={handleBack}
       />
 
-      <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-8 md:px-8">
+      <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-8 md:px-8 overflow-auto">
         {session.initialTotal === 0 && (
           <section className="mx-auto flex w-full max-w-lg flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center">
             <h1 className="text-2xl font-bold">No due cards</h1>

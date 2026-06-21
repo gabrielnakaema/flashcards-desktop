@@ -14,9 +14,9 @@ function RootLayout() {
   const isStudyRoute = /^\/decks\/[^/]+\/study\/?$/.test(pathname);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="h-screen bg-background text-foreground flex flex-col overflow-hidden">
       {!isStudyRoute && <Header />}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col overflow-hidden">
         <Outlet />
       </main>
       <TanStackRouterDevtools position="bottom-right" />

@@ -42,8 +42,8 @@ export const DeckCardsContent = ({
   }
 
   return (
-    <div className="w-full flex flex-col lg:flex-row items-stretch flex-1">
-      <main className="w-full min-w-0 flex flex-col gap-8 py-8 px-6 lg:px-16">
+    <div className="w-full flex flex-col lg:flex-row items-stretch flex-1 overflow-hidden">
+      <main className="w-full min-w-0 flex flex-col gap-8 py-8 px-6 lg:px-16 overflow-auto">
         <section className="w-full flex flex-col gap-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex flex-col gap-2">
@@ -76,7 +76,7 @@ export const DeckCardsContent = ({
         </section>
       </main>
 
-      <aside className="w-full lg:max-w-md p-6 lg:p-8 border-t lg:border-t-0 lg:border-l border-border bg-muted/20">
+      <aside className="w-full lg:max-w-md p-6 lg:p-8 border-t lg:border-t-0 lg:border-l border-border bg-muted/20 h-full overflow-auto ">
         <div className="flex flex-col gap-4 lg:sticky lg:top-8">
           <GenerateCardsForm deck={deck!} />
         </div>
