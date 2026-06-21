@@ -1,8 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { useDeckDetails } from "@/hooks/decks/use-deck-details";
 import { useStudySession } from "@/hooks/study/use-study-session";
+import { cn } from "@/lib/utils";
+import type { Rating } from "@/types/card";
 import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import { Loader2Icon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import "./study-motion.css";
 import { StudyActionBar } from "./study-action-bar";
 import { StudyAnswerPanel } from "./study-answer-panel";
 import { StudyCard } from "./study-card";
@@ -13,6 +17,8 @@ interface StudyScreenProps {
   deckId: string;
 }
 
+const RATING_EXIT_MS = 240;
+
 export const StudyScreen = ({ deckId }: StudyScreenProps) => {
   const {
     data: deck,
@@ -22,10 +28,23 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
   const session = useStudySession(deckId);
   const canGoBack = useCanGoBack();
   const router = useRouter();
+  const [exitingRating, setExitingRating] = useState<Rating | null>(null);
+  const exitTimerRef = useRef<number | null>(null);
 
   const isLoading = isDeckLoading || session.isLoading;
   const error = deckError ?? session.queryError;
   const deckTitle = deck?.title ?? "Study";
+  const isRatingTransitioning = exitingRating !== null;
+
+  useEffect(() => {
+    setExitingRating(null);
+
+    return () => {
+      if (exitTimerRef.current !== null) {
+        window.clearTimeout(exitTimerRef.current);
+      }
+    };
+  }, [deckId, session.currentCard?.id]);
 
   const handleBack = () => {
     if (canGoBack) {
@@ -33,6 +52,18 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
     } else {
       router.navigate({ to: "/" });
     }
+  };
+
+  const handleRate = (rating: Rating) => {
+    if (isRatingTransitioning) return;
+
+    setExitingRating(rating);
+    exitTimerRef.current = window.setTimeout(() => {
+      void session.rateCurrentCard(rating).finally(() => {
+        setExitingRating(null);
+        exitTimerRef.current = null;
+      });
+    }, RATING_EXIT_MS);
   };
 
   if (isLoading) {
@@ -73,9 +104,9 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
         onBack={handleBack}
       />
 
-      <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-8 md:px-8 overflow-auto">
+      <main className="study-enter flex flex-1 flex-col items-center justify-center gap-8 overflow-auto px-4 py-8 md:px-8">
         {session.initialTotal === 0 && (
-          <section className="mx-auto flex w-full max-w-lg flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center">
+          <section className="study-enter mx-auto flex w-full max-w-lg flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center">
             <h1 className="text-2xl font-bold">No due cards</h1>
             <p className="text-sm leading-6 text-muted-foreground">
               This deck is caught up. New or due cards will appear here when
@@ -92,15 +123,22 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
         )}
 
         {session.currentCard && (
-          <div className="flex w-full max-w-3xl flex-col gap-6">
+          <div
+            key={session.currentCard.id}
+            className={cn(
+              "study-enter flex w-full max-w-3xl flex-col gap-6 will-change-transform",
+              exitingRating && "study-card-exit"
+            )}
+          >
             <StudyCard
               card={session.currentCard}
               isRevealed={session.answerResult?.isRevealed === true}
+              wasCorrect={session.answerResult?.wasCorrect}
             />
             {session.submitError && (
               <div
                 role="alert"
-                className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-200"
+                className="study-enter rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-200"
               >
                 {session.submitError}
               </div>
@@ -108,15 +146,13 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
             <StudyAnswerPanel
               card={session.currentCard}
               answerResult={session.answerResult}
-              isSubmitting={session.isSubmitting}
-              pendingRating={session.pendingRating}
+              isSubmitting={session.isSubmitting || isRatingTransitioning}
+              pendingRating={exitingRating ?? session.pendingRating}
               onRevealPlainAnswer={session.revealPlainAnswer}
               onTypedSubmit={session.submitTypedAnswer}
               onChoiceSelect={session.selectChoice}
               onDontKnow={session.markUnknown}
-              onRate={(rating) => {
-                void session.rateCurrentCard(rating);
-              }}
+              onRate={handleRate}
             />
           </div>
         )}

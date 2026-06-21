@@ -4,6 +4,7 @@ import type { CardWithSchedule } from "@/types/card";
 interface StudyCardProps {
   card: CardWithSchedule;
   isRevealed: boolean;
+  wasCorrect?: boolean;
 }
 
 const difficultyClasses = {
@@ -28,9 +29,28 @@ const getCardKindLabel = (card: CardWithSchedule): string => {
   return "Plain";
 };
 
-export const StudyCard = ({ card, isRevealed }: StudyCardProps) => {
+export const StudyCard = ({ card, isRevealed, wasCorrect }: StudyCardProps) => {
   return (
-    <article className="w-full rounded-lg border border-border/70 bg-card p-5 shadow-2xl md:p-8">
+    <article
+      className={cn(
+        "relative w-full overflow-hidden rounded-lg border border-border/70 bg-card p-5 shadow-2xl transition-colors duration-300 md:p-8",
+        isRevealed && "study-card-revealed",
+        wasCorrect === true && "border-green-500/35",
+        wasCorrect === false && "border-red-500/35"
+      )}
+    >
+      {wasCorrect !== undefined && (
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-x-6 top-0 h-px opacity-80 blur-[1px]",
+            wasCorrect
+              ? "bg-linear-to-r from-transparent via-green-300 to-transparent"
+              : "bg-linear-to-r from-transparent via-red-300 to-transparent"
+          )}
+        />
+      )}
+
       <div className="mb-7 flex flex-wrap items-center gap-2">
         <span className="rounded-full border border-border bg-muted px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
           {card.tags[0] ?? getCardKindLabel(card)}
@@ -53,19 +73,19 @@ export const StudyCard = ({ card, isRevealed }: StudyCardProps) => {
         </h1>
 
         {card.hint && !isRevealed && (
-          <p className="max-w-xl text-sm font-medium leading-6 text-muted-foreground">
+          <p className="study-enter max-w-xl text-sm font-medium leading-6 text-muted-foreground">
             Hint: {card.hint}
           </p>
         )}
 
         {card.sourceExcerpt && (
-          <blockquote className="mt-2 max-w-xl rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm leading-6 text-muted-foreground">
+          <blockquote className="study-enter mt-2 max-w-xl rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm leading-6 text-muted-foreground">
             {card.sourceExcerpt}
           </blockquote>
         )}
 
         {isRevealed && card.explanation && (
-          <div className="mt-3 w-full rounded-lg border border-border bg-muted/50 p-4 text-left">
+          <div className="study-enter mt-3 w-full rounded-lg border border-border bg-muted/50 p-4 text-left">
             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Explanation
             </p>

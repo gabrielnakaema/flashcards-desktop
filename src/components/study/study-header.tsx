@@ -21,46 +21,61 @@ export const StudyHeader = ({
   total,
   onBack,
 }: StudyHeaderProps) => {
+  const progressPercent =
+    total > 0 ? Math.min(100, (reviewed / total) * 100) : 0;
+
   return (
-    <header className="sticky top-0 z-10 flex h-14 w-full items-center justify-between border-b border-border/60 bg-background/95 px-4 backdrop-blur md:px-6">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Exit study"
-          type="button"
-          onClick={onBack}
+    <header className="sticky top-0 z-10 border-b border-border/60 bg-background/95 backdrop-blur">
+      <div className="flex h-14 w-full items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Exit study"
+            type="button"
+            onClick={onBack}
+          >
+            <XIcon className="size-4" />
+          </Button>
+          <p className="text-sm font-bold text-primary md:text-base">
+            {deckTitle}
+          </p>
+        </div>
+
+        <div className="hidden items-center gap-6 md:flex">
+          <div className={counterClasses}>
+            <span className="text-sm text-foreground">{counts.new}</span>
+            New
+          </div>
+          <div className={counterClasses}>
+            <span className="text-sm text-foreground">{counts.learning}</span>
+            Learning
+          </div>
+          <div className={counterClasses}>
+            <span className="text-sm text-foreground">{counts.review}</span>
+            Review
+          </div>
+        </div>
+
+        <div
+          className={cn(
+            "flex items-center gap-2 text-xs font-medium text-muted-foreground",
+            total > 0 && "text-foreground"
+          )}
         >
-          <XIcon className="size-4" />
-        </Button>
-        <p className="text-sm font-bold text-primary md:text-base">
-          {deckTitle}
-        </p>
-      </div>
-
-      <div className="hidden items-center gap-6 md:flex">
-        <div className={counterClasses}>
-          <span className="text-sm text-foreground">{counts.new}</span>
-          New
-        </div>
-        <div className={counterClasses}>
-          <span className="text-sm text-foreground">{counts.learning}</span>
-          Learning
-        </div>
-        <div className={counterClasses}>
-          <span className="text-sm text-foreground">{counts.review}</span>
-          Review
+          <TimerIcon className="size-4 text-primary" />
+          <span key={reviewed} className="study-progress-pop inline-block">
+            {reviewed}/{total}
+          </span>
         </div>
       </div>
 
-      <div
-        className={cn(
-          "flex items-center gap-2 text-xs font-medium text-muted-foreground",
-          total > 0 && "text-foreground"
-        )}
-      >
-        <TimerIcon className="size-4 text-primary" />
-        {reviewed}/{total}
+      <div className="h-0.5 w-full overflow-hidden bg-border/40">
+        <div
+          className="h-full rounded-r-full bg-primary transition-[width] duration-500 ease-out"
+          style={{ width: `${progressPercent}%` }}
+          aria-hidden="true"
+        />
       </div>
     </header>
   );
