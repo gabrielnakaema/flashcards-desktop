@@ -14,10 +14,10 @@ describe("generateCardsSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects an empty provider", () => {
+  it("rejects unsupported providers", () => {
     const result = generateCardsSchema.safeParse({
       ...validInput,
-      provider: "",
+      provider: "anthropic",
     });
     expect(result.success).toBe(false);
     const paths = result.error?.issues.map((i) => i.path).flat();

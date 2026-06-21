@@ -1,4 +1,4 @@
-import { cardTypeSchema, type Card, type CardType } from "@/types/card";
+import { cardDifficultySchema, cardTypeSchema, type Card } from "@/types/card";
 import type { CreateCardPayload, UpdateCardPayload } from "@/types/card";
 import { z } from "zod";
 
@@ -153,29 +153,11 @@ const optionalText = (value?: string): string | undefined => {
   return trimmed ? trimmed : undefined;
 };
 
-const buildContent = (
-  type: CardType,
-  values: CardFormValues
-): Record<string, unknown> | undefined => {
-  if (type === "multiple_choice") {
-    return {
-      question: values.front,
-      choices: values.choices ?? [],
-      correctChoiceId: values.correctChoiceId,
-    };
-  }
-
-  if (type === "typed_answer") {
-    const aliases = parseAliases(values.aliases);
-    return {
-      prompt: values.front,
-      acceptedAnswer: values.acceptedAnswer!.trim(),
-      ...(aliases ? { aliases } : {}),
-      caseSensitive: values.caseSensitive,
-    };
-  }
-
-  return undefined;
+const optionalDifficulty = (
+  value?: string
+): CreateCardPayload["difficulty"] | undefined => {
+  const result = cardDifficultySchema.safeParse(optionalText(value));
+  return result.success ? result.data : undefined;
 };
 
 export const cardToFormValues = (card?: Card): CardFormValues => {
@@ -234,24 +216,47 @@ export const formValuesToCreatePayload = (
   deckId: string,
   values: CardFormValues
 ): CreateCardPayload => {
-  const payload: CreateCardPayload = {
+  const base = {
     deckId,
-    type: values.type,
     front: values.front.trim(),
     hint: optionalText(values.hint),
     explanation: optionalText(values.explanation),
     sourceExcerpt: optionalText(values.sourceExcerpt),
-    difficulty: optionalText(values.difficulty),
+    difficulty: optionalDifficulty(values.difficulty),
     tags: parseTags(values.tags),
   };
 
   if (values.type === "plain") {
-    payload.back = values.back!.trim();
-    return payload;
+    return {
+      ...base,
+      type: "plain",
+      back: values.back!.trim(),
+    };
   }
 
-  payload.content = buildContent(values.type, values);
-  return payload;
+  if (values.type === "multiple_choice") {
+    return {
+      ...base,
+      type: "multiple_choice",
+      content: {
+        question: values.front,
+        choices: values.choices ?? [],
+        correctChoiceId: values.correctChoiceId ?? "",
+      },
+    };
+  }
+
+  const aliases = parseAliases(values.aliases);
+  return {
+    ...base,
+    type: "typed_answer",
+    content: {
+      prompt: values.front,
+      acceptedAnswer: values.acceptedAnswer!.trim(),
+      ...(aliases ? { aliases } : {}),
+      caseSensitive: values.caseSensitive,
+    },
+  };
 };
 
 export const formValuesToUpdatePayload = (

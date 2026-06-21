@@ -179,6 +179,7 @@ describe("CardSqliteRepository", () => {
         deckId: DECK_ID,
         type: "plain",
         front: "To be deleted",
+        back: "Delete me",
       });
 
       await ctx.repository.submitReview({
@@ -212,11 +213,13 @@ describe("CardSqliteRepository", () => {
         deckId: DECK_ID,
         type: "plain",
         front: "First",
+        back: "First answer",
       });
       await ctx.repository.createCard({
         deckId: DECK_ID,
         type: "plain",
         front: "Second",
+        back: "Second answer",
       });
 
       const cards = await ctx.repository.listCardsByDeck(DECK_ID);
@@ -241,11 +244,13 @@ describe("CardSqliteRepository", () => {
         deckId: DECK_ID,
         type: "plain",
         front: "Mine",
+        back: "Mine answer",
       });
       await ctx.repository.createCard({
         deckId: "deck-2",
         type: "plain",
         front: "Not mine",
+        back: "Not mine answer",
       });
 
       const cards = await ctx.repository.listCardsByDeck(DECK_ID);
@@ -306,6 +311,7 @@ describe("CardSqliteRepository", () => {
         deckId: DECK_ID,
         type: "plain",
         front: "New card, due now",
+        back: "New answer",
       });
 
       const due = await ctx.repository.getDueCards(DECK_ID);
@@ -341,6 +347,7 @@ describe("CardSqliteRepository", () => {
         deckId: DECK_ID,
         type: "plain",
         front: "Review me",
+        back: "Review answer",
       });
 
       const log = await ctx.repository.submitReview({
@@ -417,6 +424,7 @@ describe("CardSqliteRepository", () => {
         deckId: DECK_ID,
         type: "plain",
         front: "Review me",
+        back: "Review answer",
       });
       const originalExecute = ctx.db.execute.bind(ctx.db);
       let executeCallCount = 0;
@@ -451,6 +459,7 @@ describe("CardSqliteRepository", () => {
         deckId: DECK_ID,
         type: "plain",
         front: "Review me",
+        back: "Review answer",
       });
 
       await ctx.repository.submitReview({
@@ -498,11 +507,13 @@ describe("CardSqliteRepository", () => {
         deckId: DECK_ID,
         type: "plain",
         front: "Mine",
+        back: "Mine answer",
       });
       const otherCard = await ctx.repository.createCard({
         deckId: "deck-2",
         type: "plain",
         front: "Other",
+        back: "Other answer",
       });
 
       await ctx.repository.submitReview({

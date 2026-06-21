@@ -1,40 +1,38 @@
-import { Deck } from "@/types/deck";
-import { Field } from "../shared/field";
-import { Textarea } from "../ui/textarea";
-import { Controller, useForm } from "react-hook-form";
+import { useGenerateCards } from "@/hooks/cards/use-generate-cards";
 import {
   GenerateCardsSchema,
   generateCardsSchema,
 } from "@/schemas/generate-cards-schema";
+import { Deck } from "@/types/deck";
+import { getErrorMessage } from "@/utils/handle-error";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { Field } from "../shared/field";
 import { Select } from "../shared/select";
-import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { ReviewCardsDialog } from "./review-cards-dialog";
+import {
+  DEFAULT_SYSTEM_PROMPT,
+  LOCKED_RESPONSE_FORMAT_PROMPT,
+} from "./generate-cards-constants";
 
 interface GenerateCardsFormProps {
   deck: Deck;
 }
 
-const DEFAULT_SYSTEM_PROMPT = `You are a helpful assistant that generates flashcards for a given topic.
-You will be given a topic in a prompt and you will need to generate flashcards for it.
-Your response should exclusively be a JSON Array of objects, with each object having the following TypeScript Schema:
-
-interface CreateFlashcardItem {
-  type: "plain" | "multiple_choice" | "typed_answer";
-  front: string;
-  back?: string;
-  content?: Record<string, unknown>;
-  hint?: string;
-  explanation?: string;
-  sourceExcerpt?: string;
-  difficulty?: string;
-  tags?: string[];
-}
-
-`;
-
 export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
-  const { register, control, handleSubmit } = useForm<GenerateCardsSchema>({
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [savedCount, setSavedCount] = useState<number | null>(null);
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<GenerateCardsSchema>({
     resolver: zodResolver(generateCardsSchema),
     defaultValues: {
       provider: "openai",
@@ -44,9 +42,30 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
     },
   });
 
+  const {
+    mutate: generateCards,
+    isPending: isGenerating,
+    data,
+    error,
+    reset,
+  } = useGenerateCards();
+  const generatedCards = data ?? [];
+  const errorMessage = getErrorMessage(error);
+
   const onSubmit = (data: GenerateCardsSchema) => {
-    console.log(data);
+    generateCards(
+      {
+        apiKey: data.apiKey,
+        prompt: data.prompt,
+        systemPrompt: `${data.systemPrompt}\n\n${LOCKED_RESPONSE_FORMAT_PROMPT}`,
+      },
+      { onSuccess: () => setIsReviewDialogOpen(true) }
+    );
   };
+
+  const isSubmitting = isGenerating;
+
+  const generateButtonLabel = isGenerating ? "Generating..." : "Generate";
 
   return (
     <form
@@ -78,7 +97,7 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
         />
       </Field>
 
-      <Field label="API Key" htmlFor="prompt">
+      <Field label="API Key" htmlFor="api-key" error={errors.apiKey?.message}>
         <Input
           {...register("apiKey")}
           id="api-key"
@@ -88,29 +107,76 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
         />
       </Field>
 
-      <Field label="System prompt" htmlFor="system-prompt">
+      <Field
+        label="System prompt"
+        htmlFor="system-prompt"
+        error={errors.systemPrompt?.message}
+      >
         <Textarea
           id="system-prompt"
           placeholder="Enter system prompt"
-          className="w-full"
+          className="w-full max-h-[200px] overflow-y-auto"
           rows={15}
           {...register("systemPrompt")}
         />
       </Field>
 
-      <Field label="Prompt" htmlFor="prompt">
+      <Field label="Prompt" htmlFor="prompt" error={errors.prompt?.message}>
         <Textarea
           id="prompt"
           placeholder="Enter prompt"
-          className="w-full"
+          className="w-full max-h-[200px] overflow-y-auto"
           rows={10}
           {...register("prompt")}
         />
       </Field>
 
-      <Button type="submit" className="w-full">
-        Generate
+      {errorMessage && !isReviewDialogOpen && (
+        <p className="text-sm text-red-500" role="alert">
+          {errorMessage}
+        </p>
+      )}
+
+      {savedCount !== null ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          Saved {savedCount} flashcards.
+        </p>
+      ) : generatedCards.length > 0 ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          Generated {generatedCards.length} flashcards.
+        </p>
+      ) : null}
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isSubmitting}
+        aria-busy={isSubmitting}
+      >
+        {generateButtonLabel}
       </Button>
+
+      {generatedCards.length > 0 && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => setIsReviewDialogOpen(true)}
+        >
+          Review {generatedCards.length} generated cards
+        </Button>
+      )}
+
+      <ReviewCardsDialog
+        open={isReviewDialogOpen}
+        onOpenChange={setIsReviewDialogOpen}
+        onSave={(count) => {
+          setSavedCount(count);
+          reset();
+        }}
+        cards={generatedCards}
+        deck={deck}
+      />
     </form>
   );
 };

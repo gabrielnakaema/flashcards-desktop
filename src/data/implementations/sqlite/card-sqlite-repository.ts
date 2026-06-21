@@ -3,6 +3,7 @@ import {
   toCard,
   toCardSchedule,
   toReviewLog,
+  createCardPayloadSchema,
   type Card,
   type CardSchedule,
   type CardWithSchedule,
@@ -120,6 +121,16 @@ const buildCardInsertStatements = (
   return { id, statements: [cardInsert, scheduleInsert] };
 };
 
+const parseCreateCardPayload = (payload: CreateCardPayload): CreateCardPayload => {
+  const result = createCardPayloadSchema.safeParse(payload);
+  if (!result.success) {
+    throw new Error(
+      `Invalid card payload: ${formatZodError(result.error)}`
+    );
+  }
+  return result.data;
+};
+
 export class CardSqliteRepository implements CardRepository {
   constructor(private readonly db?: SqlClient) {}
 
@@ -128,8 +139,9 @@ export class CardSqliteRepository implements CardRepository {
   }
 
   createCard = async (payload: CreateCardPayload): Promise<Card> => {
+    const parsedPayload = parseCreateCardPayload(payload);
     const { values, add } = createBindBuilder();
-    const { id, statements } = buildCardInsertStatements(payload, add);
+    const { id, statements } = buildCardInsertStatements(parsedPayload, add);
 
     await this.dbClient.execute(
       ["BEGIN", ...statements, "COMMIT"].join(";\n"),
@@ -153,7 +165,7 @@ export class CardSqliteRepository implements CardRepository {
     const statements: string[] = [];
 
     for (const payload of payloads) {
-      const result = buildCardInsertStatements(payload, add);
+      const result = buildCardInsertStatements(parseCreateCardPayload(payload), add);
       cardIds.push(result.id);
       statements.push(...result.statements);
     }

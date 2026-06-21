@@ -18,20 +18,42 @@ export const cardStateSchema = z.enum([
 ]);
 export type CardState = z.infer<typeof cardStateSchema>;
 
-const cardChoiceSchema = z.object({
-  id: z.string(),
-  text: z.string(),
+export const cardDifficultySchema = z.enum(["easy", "medium", "hard"]);
+
+const requiredTextSchema = z.string().trim().min(1);
+const optionalTextSchema = requiredTextSchema.optional();
+const optionalTagsSchema = z.array(requiredTextSchema).optional();
+
+export const cardChoiceSchema = z.object({
+  id: requiredTextSchema,
+  text: requiredTextSchema,
 });
 export const plainCardContentSchema = z.object({});
-export const multipleChoiceCardContentSchema = z.object({
-  question: z.string().optional(),
-  choices: z.array(cardChoiceSchema),
-  correctChoiceId: z.string(),
-});
+export const multipleChoiceCardContentSchema = z
+  .object({
+    question: optionalTextSchema,
+    choices: z.array(cardChoiceSchema).min(2),
+    correctChoiceId: requiredTextSchema,
+  })
+  .superRefine((content, ctx) => {
+    const hasCorrectChoice = content.choices.some(
+      (choice) => choice.id === content.correctChoiceId
+    );
+
+    if (hasCorrectChoice) {
+      return;
+    }
+
+    ctx.addIssue({
+      code: "custom",
+      message: "Correct choice must match one of the options",
+      path: ["correctChoiceId"],
+    });
+  });
 export const typedAnswerCardContentSchema = z.object({
-  prompt: z.string().optional(),
-  acceptedAnswer: z.string(),
-  aliases: z.array(z.string()).optional(),
+  prompt: optionalTextSchema,
+  acceptedAnswer: requiredTextSchema,
+  aliases: optionalTagsSchema,
   caseSensitive: z.boolean().optional(),
 });
 
@@ -51,7 +73,7 @@ export const cardBaseSchema = z.object({
   hint: z.string().nullable(),
   explanation: z.string().nullable(),
   sourceExcerpt: z.string().nullable(),
-  difficulty: z.enum(["easy", "medium", "hard"]).nullable(),
+  difficulty: cardDifficultySchema.nullable(),
   tags: z.preprocess(
     (v) => (typeof v === "string" ? JSON.parse(v) : v),
     z.array(z.string())
@@ -77,6 +99,60 @@ export const cardSchema = z.discriminatedUnion("type", [
 ]);
 
 export type Card = z.infer<typeof cardSchema>;
+
+const createCardPayloadBaseSchema = z.object({
+  deckId: requiredTextSchema,
+  front: requiredTextSchema,
+  hint: optionalTextSchema,
+  explanation: optionalTextSchema,
+  sourceExcerpt: optionalTextSchema,
+  difficulty: cardDifficultySchema.optional(),
+  tags: optionalTagsSchema,
+});
+const generatedCardPayloadBaseSchema = createCardPayloadBaseSchema.omit({
+  deckId: true,
+});
+
+export const createCardPayloadSchema = z.discriminatedUnion("type", [
+  createCardPayloadBaseSchema.extend({
+    type: z.literal("plain"),
+    back: requiredTextSchema,
+    content: plainCardContentSchema.optional(),
+  }),
+  createCardPayloadBaseSchema.extend({
+    type: z.literal("multiple_choice"),
+    back: optionalTextSchema,
+    content: multipleChoiceCardContentSchema,
+  }),
+  createCardPayloadBaseSchema.extend({
+    type: z.literal("typed_answer"),
+    back: optionalTextSchema,
+    content: typedAnswerCardContentSchema,
+  }),
+]);
+
+export const createCardPayloadWithoutDeckIdSchema = z.discriminatedUnion(
+  "type",
+  [
+    generatedCardPayloadBaseSchema.extend({
+      type: z.literal("plain"),
+      back: requiredTextSchema,
+      content: plainCardContentSchema.optional(),
+    }),
+    generatedCardPayloadBaseSchema.extend({
+      type: z.literal("multiple_choice"),
+      back: optionalTextSchema,
+      content: multipleChoiceCardContentSchema,
+    }),
+    generatedCardPayloadBaseSchema.extend({
+      type: z.literal("typed_answer"),
+      back: optionalTextSchema,
+      content: typedAnswerCardContentSchema,
+    }),
+  ]
+);
+export const generatedCardPayloadSchema = createCardPayloadWithoutDeckIdSchema;
+export type GeneratedCardPayload = z.infer<typeof generatedCardPayloadSchema>;
 
 export const cardScheduleSchema = z.object({
   cardId: z.string(),
@@ -108,18 +184,7 @@ export type ReviewLog = z.infer<typeof reviewLogSchema>;
 
 export type CardWithSchedule = Card & { schedule: CardSchedule };
 
-export interface CreateCardPayload {
-  deckId: string;
-  type: CardType;
-  front: string;
-  back?: string;
-  content?: Record<string, unknown>;
-  hint?: string;
-  explanation?: string;
-  sourceExcerpt?: string;
-  difficulty?: string;
-  tags?: string[];
-}
+export type CreateCardPayload = z.infer<typeof createCardPayloadSchema>;
 
 export interface UpdateCardPayload extends Partial<
   Omit<CreateCardPayload, "deckId">
