@@ -44,7 +44,7 @@ export const DeckCardMasteryProgress = ({
       >
         <div
           className="absolute top-0 left-0 h-full bg-[linear-gradient(to_right,var(--color-green-700),var(--color-green-600))] rounded-full"
-          style={{ width: `${percentage}%` }}
+          style={{ width: `${value}%` }}
         />
       </div>
     </div>

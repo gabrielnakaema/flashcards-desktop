@@ -191,6 +191,7 @@ describe("DeckSqliteRepository", () => {
     expect(decks[0].title).toBe("Japanese");
     expect(decks[0].totalCards).toBe(2);
     expect(decks[0].cardsDue).toBe(2);
+    expect(decks[0].masteryPercentage).toBe(0);
     expect(decks[0].category.name).toBe("Languages");
     expect(decks[0].category.id).toBe("cat-1");
   });
@@ -253,5 +254,92 @@ describe("DeckSqliteRepository", () => {
     expect(decks).toHaveLength(1);
     expect(decks[0].totalCards).toBe(3);
     expect(decks[0].cardsDue).toBe(1);
+  });
+
+  it("counts only active mature review cards as mastery", async () => {
+    const testContext = await createTestDeckRepository();
+    teardown = testContext.teardown;
+
+    await seedCategory(testContext.db, {
+      id: "cat-1",
+      name: "Languages",
+    });
+
+    const deck = await testContext.repository.createDeck({
+      title: "Japanese",
+      tags: ["vocab"],
+      categoryId: "cat-1",
+    });
+
+    const timestamp = new Date().toISOString();
+    const cards = [
+      {
+        id: randomUUID(),
+        front: "Unseen",
+        state: "new",
+        intervalDays: 0,
+        lastReviewedAt: null,
+        isSuspended: 0,
+      },
+      {
+        id: randomUUID(),
+        front: "Learning",
+        state: "learning",
+        intervalDays: 0,
+        lastReviewedAt: timestamp,
+        isSuspended: 0,
+      },
+      {
+        id: randomUUID(),
+        front: "Young review",
+        state: "review",
+        intervalDays: 6,
+        lastReviewedAt: timestamp,
+        isSuspended: 0,
+      },
+      {
+        id: randomUUID(),
+        front: "Mature review",
+        state: "review",
+        intervalDays: 21,
+        lastReviewedAt: timestamp,
+        isSuspended: 0,
+      },
+      {
+        id: randomUUID(),
+        front: "Suspended mature",
+        state: "review",
+        intervalDays: 90,
+        lastReviewedAt: timestamp,
+        isSuspended: 1,
+      },
+    ];
+
+    for (const card of cards) {
+      await testContext.db.execute(
+        `INSERT INTO cards (id, deck_id, type, front, content, tags, is_suspended, created_at, updated_at)
+         VALUES ($1, $2, 'plain', $3, '{}', '[]', $4, $5, $6)`,
+        [card.id, deck.id, card.front, card.isSuspended, timestamp, timestamp]
+      );
+      await testContext.db.execute(
+        `INSERT INTO card_schedules (
+          card_id, state, due_at, interval_days, ease_factor, repetition_count,
+          lapse_count, last_reviewed_at, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, 2.5, 0, 0, $5, $6, $7)`,
+        [
+          card.id,
+          card.state,
+          timestamp,
+          card.intervalDays,
+          card.lastReviewedAt,
+          timestamp,
+          timestamp,
+        ]
+      );
+    }
+
+    const decks = await testContext.repository.listDeckWithStats();
+
+    expect(decks[0].masteryPercentage).toBe(20);
   });
 });

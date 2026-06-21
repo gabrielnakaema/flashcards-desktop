@@ -1,4 +1,5 @@
 import { DeckRepository } from "@/data/deck-repository";
+import { MATURE_INTERVAL_DAYS } from "@/lib/srs";
 import {
   CreateDeckCategoryPayload,
   CreateDeckPayload,
@@ -83,6 +84,7 @@ export class DeckSqliteRepository implements DeckRepository {
 
   listDeckWithStats = async (): Promise<DeckWithStats[]> => {
     const query = `
+      WITH params(now, mature_interval_days) AS (SELECT $1, $2)
       SELECT
         d.id,
         d.title,
@@ -93,15 +95,22 @@ export class DeckSqliteRepository implements DeckRepository {
         COALESCE(SUM(
           CASE WHEN c.is_suspended = 0
             AND cs.due_at IS NOT NULL
-            AND datetime(cs.due_at) <= datetime($1)
+            AND datetime(cs.due_at) <= datetime(params.now)
           THEN 1 ELSE 0 END
         ), 0) AS cardsDue,
         CASE WHEN COUNT(c.id) = 0 THEN 0
           ELSE ROUND(
-            100.0 * SUM(CASE WHEN cs.state = 'review' THEN 1 ELSE 0 END) / COUNT(c.id)
+            100.0 * SUM(
+              CASE WHEN c.is_suspended = 0
+                AND cs.state = 'review'
+                AND cs.interval_days >= params.mature_interval_days
+                AND cs.last_reviewed_at IS NOT NULL
+              THEN 1 ELSE 0 END
+            ) / COUNT(c.id)
           )
         END AS masteryPercentage
       FROM decks d
+      CROSS JOIN params
       LEFT JOIN cards c ON d.id = c.deck_id
       LEFT JOIN card_schedules cs ON c.id = cs.card_id
       LEFT JOIN deck_categories dc ON d.category = dc.id
@@ -121,6 +130,7 @@ export class DeckSqliteRepository implements DeckRepository {
 
     const decks = await this.dbClient.select<QueryResultItem[]>(query, [
       new Date().toISOString(),
+      MATURE_INTERVAL_DAYS,
     ]);
 
     const results = decks.map((deck) =>

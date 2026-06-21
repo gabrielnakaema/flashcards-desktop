@@ -2,6 +2,7 @@ import type { CardState, Rating } from "@/types/card";
 
 const MIN_EASE_FACTOR = 1.3;
 const DEFAULT_EASE_FACTOR = 2.5;
+const MATURE_INTERVAL_DAYS = 21;
 const LEARNING_STEP_MINUTES = 10;
 
 export interface CardScheduleInput {
@@ -164,4 +165,4 @@ const clampEase = (ease: number): number => {
   return Math.max(MIN_EASE_FACTOR, ease);
 };
 
-export { DEFAULT_EASE_FACTOR };
+export { DEFAULT_EASE_FACTOR, MATURE_INTERVAL_DAYS };
