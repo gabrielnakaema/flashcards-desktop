@@ -43,6 +43,18 @@ afterEach(() => {
 });
 
 describe("openAiLlmProvider", () => {
+  it("lists available models", async () => {
+    const models = await openAiLlmProvider.listModels({ apiKey: "sk-test" });
+
+    expect(mockTauriFetch).not.toHaveBeenCalled();
+    expect(models).toHaveLength(10);
+    expect(models).toContainEqual({ label: "gpt-5.5", value: "gpt-5.5" });
+    expect(models).toContainEqual({
+      label: "gpt-4.1-mini",
+      value: "gpt-4.1-mini",
+    });
+  });
+
   it("requests structured outputs and returns generated cards", async () => {
     const payload = {
       output_text: JSON.stringify({ cards: [makeOpenAiCard()] }),
@@ -51,6 +63,7 @@ describe("openAiLlmProvider", () => {
 
     const cards = await openAiLlmProvider.generateCards({
       apiKey: "sk-test",
+      model: "gpt-test",
       systemPrompt: "System prompt",
       prompt: "Generate cards",
     });
@@ -69,6 +82,7 @@ describe("openAiLlmProvider", () => {
     const request = mockTauriFetch.mock.calls[0][1] as RequestInit;
     const body = JSON.parse(request.body as string);
 
+    expect(body.model).toBe("gpt-test");
     expect(body.text.format.type).toBe("json_schema");
     expect(body.text.format.strict).toBe(true);
     expect(body.text.format.schema.required).toEqual(["cards"]);
@@ -95,6 +109,7 @@ describe("openAiLlmProvider", () => {
     await expect(
       openAiLlmProvider.generateCards({
         apiKey: "sk-test",
+        model: "gpt-test",
         systemPrompt: "System prompt",
         prompt: "Generate cards",
       })
@@ -112,6 +127,7 @@ describe("openAiLlmProvider", () => {
     await expect(
       openAiLlmProvider.generateCards({
         apiKey: "sk-test",
+        model: "gpt-test",
         systemPrompt: "System prompt",
         prompt: "Generate cards",
       })

@@ -5,7 +5,7 @@ export const settingsFormSchema = z.object({
   devMode: z.enum(["off", "on"]),
   saveApiSettings: z.boolean().default(false).optional().nullable(),
   defaultProvider: llmProviderIdSchema,
-  defaultModel: z.string(),
+  defaultModel: z.string().min(1),
   apiKey: z.string(),
 });
 

@@ -1,4 +1,6 @@
 import { useSettings } from "@/hooks/settings/use-settings";
+import { useListLlmModels } from "@/hooks/llm/use-list-llm-models";
+import { getLlmProviderOptions } from "@/providers/llm-provider";
 import { Switch } from "@/components/ui/switch";
 import { Field } from "../shared/field";
 import { Select } from "../shared/select";
@@ -8,8 +10,9 @@ import {
   settingsFormSchema,
   SettingsFormValues,
 } from "@/schemas/settings-form-schema";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { Button } from "../ui/button";
+import { getErrorMessage } from "@/utils/handle-error";
 
 export const SettingsContent = () => {
   const { data, setData } = useSettings();
@@ -28,6 +31,18 @@ export const SettingsContent = () => {
       apiKey: data.apiKey ?? "",
     },
   });
+  const defaultProvider = useWatch({ control, name: "defaultProvider" });
+  const defaultModel = useWatch({ control, name: "defaultModel" });
+  const apiKey = useWatch({ control, name: "apiKey" });
+  const modelListQuery = useListLlmModels({
+    provider: defaultProvider,
+    apiKey,
+    enabled: true,
+  });
+  const modelOptions = modelListQuery.data ?? [
+    { label: defaultModel, value: defaultModel },
+  ];
+  const modelListErrorMessage = getErrorMessage(modelListQuery.error);
 
   const onSubmit: SubmitHandler<SettingsFormValues> = (data) => {
     setData({
@@ -88,26 +103,42 @@ export const SettingsContent = () => {
                   id="provider"
                   value={field.value ?? ""}
                   onChange={field.onChange}
-                  options={[{ label: "OpenAI", value: "openai" }]}
+                  options={getLlmProviderOptions()}
                 />
               )}
             />
           </Field>
 
           <Field label="Default model" htmlFor="model">
-            <Controller
-              control={control}
-              name="defaultModel"
-              render={({ field }) => (
-                <Select
-                  className="w-full"
-                  id="model"
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                  options={[{ label: "GPT-4.1-mini", value: "gpt-4.1-mini" }]}
-                />
-              )}
-            />
+            <div className="flex gap-2">
+              <Controller
+                control={control}
+                name="defaultModel"
+                render={({ field }) => (
+                  <Select
+                    className="w-full"
+                    id="model"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    options={modelOptions}
+                    disabled={modelListQuery.isFetching}
+                  />
+                )}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={modelListQuery.isFetching}
+                onClick={() => void modelListQuery.refetch()}
+              >
+                {modelListQuery.isFetching ? "Loading..." : "Load models"}
+              </Button>
+            </div>
+            {modelListErrorMessage && (
+              <p className="text-sm text-red-500" role="alert">
+                {modelListErrorMessage}
+              </p>
+            )}
           </Field>
 
           <Field label="API Key" htmlFor="api-key">

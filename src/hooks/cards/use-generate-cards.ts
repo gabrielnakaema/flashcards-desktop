@@ -1,11 +1,16 @@
 import { getLlmProvider } from "@/providers/llm-provider";
+import type { GenerateCardsRequest } from "@/providers/llm-provider";
+import type { LlmProviderId } from "@/types/llm";
 import { useMutation } from "@tanstack/react-query";
 
-const llmProvider = getLlmProvider("openai");
+export interface GenerateCardsMutationRequest extends GenerateCardsRequest {
+  provider: LlmProviderId;
+}
 
 export const useGenerateCards = () => {
   const mutation = useMutation({
-    mutationFn: llmProvider.generateCards,
+    mutationFn: ({ provider, ...request }: GenerateCardsMutationRequest) =>
+      getLlmProvider(provider).generateCards(request),
   });
 
   return mutation;

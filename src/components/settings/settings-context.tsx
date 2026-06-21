@@ -2,6 +2,7 @@ import { createContext, useEffect, useState } from "react";
 import { clearDevClock, initializeDevClock } from "@/lib/dev-clock";
 import { z } from "zod";
 import { llmProviderIdSchema } from "@/types/llm";
+import { defaultLlmProvider } from "@/providers/llm-provider";
 
 const SETTINGS_STORAGE_KEY = "flashcards:settings";
 
@@ -9,8 +10,12 @@ const settingsSchema = z.object({
   devMode: z.enum(["off", "on"]).default("off"),
   apiKey: z.string().optional().nullable(),
   saveApiSettings: z.boolean().default(false),
-  defaultProvider: llmProviderIdSchema.default("openai"),
-  defaultModel: z.string().default("gpt-4.1-mini").optional().nullable(),
+  defaultProvider: llmProviderIdSchema.default(defaultLlmProvider.id),
+  defaultModel: z
+    .string()
+    .default(defaultLlmProvider.defaultModel)
+    .optional()
+    .nullable(),
 });
 
 type SettingsData = z.infer<typeof settingsSchema>;

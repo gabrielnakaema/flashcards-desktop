@@ -1,9 +1,22 @@
-import { generatedCardsResponseSchema } from "@/types/llm";
+import { generatedCardsResponseSchema, type LlmModelOption } from "@/types/llm";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import type { LlmProvider } from "./llm-provider";
 
+// const OPENAI_MODELS_URL = "https://api.openai.com/v1/models";
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-const OPENAI_MODEL = "gpt-4.1-mini";
+const OPENAI_DEFAULT_MODEL = "gpt-4.1-mini";
+const OPENAI_MODEL_OPTIONS: LlmModelOption[] = [
+  { label: "gpt-5.5", value: "gpt-5.5" },
+  { label: "gpt-5.5-pro", value: "gpt-5.5-pro" },
+  { label: "gpt-5.4", value: "gpt-5.4" },
+  { label: "gpt-5.4-mini", value: "gpt-5.4-mini" },
+  { label: "gpt-5.4-nano", value: "gpt-5.4-nano" },
+  { label: "gpt-5.4-pro", value: "gpt-5.4-pro" },
+  { label: "gpt-4.1", value: "gpt-4.1" },
+  { label: "gpt-4.1-mini", value: "gpt-4.1-mini" },
+  { label: "gpt-4.1-nano", value: "gpt-4.1-nano" },
+  { label: "gpt-4o", value: "gpt-4o" },
+];
 
 const cardContentJsonSchema = {
   type: "object",
@@ -114,6 +127,28 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
 };
 
+/* const toLlmModelOption = (value: unknown): LlmModelOption | null => {
+  if (!isRecord(value) || typeof value.id !== "string") {
+    return null;
+  }
+
+  return {
+    label: value.id,
+    value: value.id,
+  };
+};
+
+const parseOpenAiModels = (payload: unknown): LlmModelOption[] => {
+  if (!isRecord(payload) || !Array.isArray(payload.data)) {
+    throw new Error("OpenAI returned an invalid model list.");
+  }
+
+  return payload.data
+    .map(toLlmModelOption)
+    .filter((model): model is LlmModelOption => model !== null)
+    .sort((first, second) => first.label.localeCompare(second.label));
+}; */
+
 const getRecordArray = (
   value: Record<string, unknown>,
   key: string
@@ -197,11 +232,12 @@ const readOpenAiError = async (response: Response): Promise<string> => {
 };
 
 const buildOpenAiRequestBody = (
+  model: string,
   systemPrompt: string,
   prompt: string
 ): Record<string, unknown> => {
   return {
-    model: OPENAI_MODEL,
+    model,
     input: [
       {
         role: "system",
@@ -220,8 +256,29 @@ const buildOpenAiRequestBody = (
 
 export const openAiLlmProvider: LlmProvider = {
   id: "openai",
-  generateCards: async ({ apiKey, systemPrompt, prompt }) => {
-    const body = buildOpenAiRequestBody(systemPrompt, prompt);
+  label: "OpenAI",
+  defaultModel: OPENAI_DEFAULT_MODEL,
+  listModels: async ({ apiKey }) => {
+    void apiKey;
+
+    /* const response = await tauriFetch(OPENAI_MODELS_URL, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(await readOpenAiError(response));
+    }
+    
+    const payload = (await response.json()) as unknown;
+    return parseOpenAiModels(payload); */
+
+    return OPENAI_MODEL_OPTIONS;
+  },
+  generateCards: async ({ apiKey, model, systemPrompt, prompt }) => {
+    const body = buildOpenAiRequestBody(model, systemPrompt, prompt);
 
     const response = await tauriFetch(OPENAI_RESPONSES_URL, {
       method: "POST",

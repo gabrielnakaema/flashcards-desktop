@@ -8,10 +8,21 @@ const mockGenerateCards = vi.fn();
 const mockBulkCreateCards = vi.fn();
 
 vi.mock("@/providers/llm-provider", () => ({
+  defaultLlmProvider: {
+    id: "openai",
+    label: "OpenAI",
+    defaultModel: "gpt-4.1-mini",
+  },
   getLlmProvider: () => ({
     id: "openai",
+    label: "OpenAI",
+    defaultModel: "gpt-4.1-mini",
+    listModels: vi.fn().mockResolvedValue([
+      { label: "gpt-4.1-mini", value: "gpt-4.1-mini" },
+    ]),
     generateCards: (...args: unknown[]) => mockGenerateCards(...args),
   }),
+  getLlmProviderOptions: () => [{ label: "OpenAI", value: "openai" }],
 }));
 
 vi.mock("@/data/repositories", () => ({
@@ -62,11 +73,13 @@ describe("GenerateCardsForm", () => {
 
     const request = mockGenerateCards.mock.calls[0][0] as {
       apiKey: string;
+      model: string;
       prompt: string;
       systemPrompt: string;
     };
 
     expect(request.apiKey).toBe("sk-test");
+    expect(request.model).toBe("gpt-4.1-mini");
     expect(request.prompt).toBe(
       "Generate 10 flashcards for the topic: Physics"
     );

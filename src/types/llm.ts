@@ -9,6 +9,11 @@ import { z } from "zod";
 export const llmProviderIdSchema = z.enum(["openai"]);
 export type LlmProviderId = z.infer<typeof llmProviderIdSchema>;
 
+export interface LlmModelOption {
+  label: string;
+  value: string;
+}
+
 export type GeneratedCard = GeneratedCardPayload;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {

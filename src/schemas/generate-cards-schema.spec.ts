@@ -3,13 +3,14 @@ import { generateCardsSchema } from "./generate-cards-schema";
 
 const validInput = {
   provider: "openai",
+  model: "gpt-4.1-mini",
   systemPrompt: "You are a helpful assistant.",
   prompt: "Generate 10 flashcards.",
   apiKey: "sk-abc123",
 };
 
 describe("generateCardsSchema", () => {
-  it("accepts all four required fields present and non-empty", () => {
+  it("accepts all required fields present and non-empty", () => {
     const result = generateCardsSchema.safeParse(validInput);
     expect(result.success).toBe(true);
   });
@@ -32,6 +33,16 @@ describe("generateCardsSchema", () => {
     expect(result.success).toBe(false);
     const paths = result.error?.issues.map((i) => i.path).flat();
     expect(paths).toContain("systemPrompt");
+  });
+
+  it("rejects an empty model", () => {
+    const result = generateCardsSchema.safeParse({
+      ...validInput,
+      model: "",
+    });
+    expect(result.success).toBe(false);
+    const paths = result.error?.issues.map((i) => i.path).flat();
+    expect(paths).toContain("model");
   });
 
   it("rejects an empty prompt", () => {

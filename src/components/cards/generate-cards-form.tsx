@@ -1,4 +1,6 @@
 import { useGenerateCards } from "@/hooks/cards/use-generate-cards";
+import { useListLlmModels } from "@/hooks/llm/use-list-llm-models";
+import { getLlmProvider, getLlmProviderOptions } from "@/providers/llm-provider";
 import {
   GenerateCardsSchema,
   generateCardsSchema,
@@ -7,7 +9,7 @@ import { Deck } from "@/types/deck";
 import { getErrorMessage } from "@/utils/handle-error";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Field } from "../shared/field";
 import { Select } from "../shared/select";
 import { Button } from "../ui/button";
@@ -29,6 +31,9 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
   const [savedCount, setSavedCount] = useState<number | null>(null);
 
   const { data: settings } = useSettings();
+  const defaultProvider = settings.defaultProvider;
+  const defaultModel =
+    settings.defaultModel ?? getLlmProvider(defaultProvider).defaultModel;
 
   const {
     register,
@@ -38,12 +43,24 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
   } = useForm<GenerateCardsSchema>({
     resolver: zodResolver(generateCardsSchema),
     defaultValues: {
-      provider: settings.defaultProvider,
+      provider: defaultProvider,
+      model: defaultModel,
       systemPrompt: DEFAULT_SYSTEM_PROMPT,
       prompt: `Generate 10 flashcards for the topic: ${deck.title}`,
       apiKey: settings.apiKey ?? "",
     },
   });
+  const provider = useWatch({ control, name: "provider" });
+  const model = useWatch({ control, name: "model" });
+  const apiKey = useWatch({ control, name: "apiKey" });
+  const modelListQuery = useListLlmModels({
+    provider,
+    apiKey,
+    enabled: true,
+  });
+  const modelOptions = modelListQuery.data ?? [
+    { label: model || defaultModel, value: model || defaultModel },
+  ];
 
   const {
     mutate: generateCards,
@@ -54,11 +71,14 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
   } = useGenerateCards();
   const generatedCards = data ?? [];
   const errorMessage = getErrorMessage(error);
+  const modelListErrorMessage = getErrorMessage(modelListQuery.error);
 
   const onSubmit = (data: GenerateCardsSchema) => {
     generateCards(
       {
+        provider: data.provider,
         apiKey: data.apiKey,
+        model: data.model,
         prompt: data.prompt,
         systemPrompt: `${data.systemPrompt}\n\n${LOCKED_RESPONSE_FORMAT_PROMPT}`,
       },
@@ -94,10 +114,42 @@ export const GenerateCardsForm = ({ deck }: GenerateCardsFormProps) => {
               id="provider"
               value={field.value}
               onChange={field.onChange}
-              options={[{ label: "OpenAI", value: "openai" }]}
+              options={getLlmProviderOptions()}
             />
           )}
         />
+      </Field>
+
+      <Field label="Model" htmlFor="model" error={errors.model?.message}>
+        <div className="flex gap-2">
+          <Controller
+            control={control}
+            name="model"
+            render={({ field }) => (
+              <Select
+                className="w-full"
+                id="model"
+                value={field.value}
+                onChange={field.onChange}
+                options={modelOptions}
+                disabled={modelListQuery.isFetching}
+              />
+            )}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={modelListQuery.isFetching}
+            onClick={() => void modelListQuery.refetch()}
+          >
+            {modelListQuery.isFetching ? "Loading..." : "Load models"}
+          </Button>
+        </div>
+        {modelListErrorMessage && (
+          <p className="text-sm text-red-500" role="alert">
+            {modelListErrorMessage}
+          </p>
+        )}
       </Field>
 
       <Field label="API Key" htmlFor="api-key" error={errors.apiKey?.message}>
