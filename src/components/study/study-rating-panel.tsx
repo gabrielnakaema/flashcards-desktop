@@ -18,12 +18,14 @@ interface StudyRatingPanelProps {
 const ratingOptions: Array<{
   value: Rating;
   label: string;
+  shortcut: string;
   className: string;
   icon: typeof RotateCcwIcon;
 }> = [
   {
     value: "again",
     label: "Again",
+    shortcut: "1",
     className:
       "border-red-500/40 text-red-300 hover:bg-red-500/10 hover:shadow-red-500/10",
     icon: RotateCcwIcon,
@@ -31,6 +33,7 @@ const ratingOptions: Array<{
   {
     value: "hard",
     label: "Hard",
+    shortcut: "2",
     className:
       "border-yellow-500/40 text-yellow-200 hover:bg-yellow-500/10 hover:shadow-yellow-500/10",
     icon: TrendingUpIcon,
@@ -38,6 +41,7 @@ const ratingOptions: Array<{
   {
     value: "good",
     label: "Medium",
+    shortcut: "3",
     className:
       "border-blue-500/40 text-blue-200 hover:bg-blue-500/10 hover:shadow-blue-500/10",
     icon: ZapIcon,
@@ -45,6 +49,7 @@ const ratingOptions: Array<{
   {
     value: "easy",
     label: "Easy",
+    shortcut: "4",
     className:
       "border-green-500/40 text-green-200 hover:bg-green-500/10 hover:shadow-green-500/10",
     icon: SparklesIcon,
@@ -68,6 +73,7 @@ export const StudyRatingPanel = ({
             type="button"
             variant="outline"
             size="lg"
+            aria-keyshortcuts={option.shortcut}
             disabled={isSubmitting}
             style={{ "--study-stagger": index } as CSSProperties}
             className={cn(

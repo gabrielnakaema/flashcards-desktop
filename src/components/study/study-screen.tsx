@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useDeckDetails } from "@/hooks/decks/use-deck-details";
+import { useStudyKeyboardShortcuts } from "@/hooks/study/use-study-keyboard-shortcuts";
 import { useStudySession } from "@/hooks/study/use-study-session";
-import { cn } from "@/lib/utils";
 import type { Rating } from "@/types/card";
 import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import { Loader2Icon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import "./study-motion.css";
 import { StudyActionBar } from "./study-action-bar";
 import { StudyAnswerPanel } from "./study-answer-panel";
@@ -17,8 +16,6 @@ interface StudyScreenProps {
   deckId: string;
 }
 
-const RATING_EXIT_MS = 240;
-
 export const StudyScreen = ({ deckId }: StudyScreenProps) => {
   const {
     data: deck,
@@ -28,23 +25,11 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
   const session = useStudySession(deckId);
   const canGoBack = useCanGoBack();
   const router = useRouter();
-  const [exitingRating, setExitingRating] = useState<Rating | null>(null);
-  const exitTimerRef = useRef<number | null>(null);
 
   const isLoading = isDeckLoading || session.isLoading;
   const error = deckError ?? session.queryError;
   const deckTitle = deck?.title ?? "Study";
-  const isRatingTransitioning = exitingRating !== null;
-
-  useEffect(() => {
-    setExitingRating(null);
-
-    return () => {
-      if (exitTimerRef.current !== null) {
-        window.clearTimeout(exitTimerRef.current);
-      }
-    };
-  }, [deckId, session.currentCard?.id]);
+  const isAnswerRevealed = session.answerResult?.isRevealed === true;
 
   const handleBack = () => {
     if (canGoBack) {
@@ -55,16 +40,17 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
   };
 
   const handleRate = (rating: Rating) => {
-    if (isRatingTransitioning) return;
-
-    setExitingRating(rating);
-    exitTimerRef.current = window.setTimeout(() => {
-      void session.rateCurrentCard(rating).finally(() => {
-        setExitingRating(null);
-        exitTimerRef.current = null;
-      });
-    }, RATING_EXIT_MS);
+    void session.rateCurrentCard(rating);
   };
+
+  const shortcutItems = useStudyKeyboardShortcuts({
+    currentCard: session.currentCard,
+    isAnswerRevealed,
+    isDisabled: session.isSubmitting,
+    onRevealPlainAnswer: session.revealPlainAnswer,
+    onChoiceSelect: session.selectChoice,
+    onRate: handleRate,
+  });
 
   if (isLoading) {
     return (
@@ -125,14 +111,11 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
         {session.currentCard && (
           <div
             key={session.currentCard.id}
-            className={cn(
-              "study-enter flex w-full max-w-3xl flex-col gap-6 will-change-transform",
-              exitingRating && "study-card-exit"
-            )}
+            className="study-enter flex w-full max-w-3xl flex-col gap-6 will-change-transform"
           >
             <StudyCard
               card={session.currentCard}
-              isRevealed={session.answerResult?.isRevealed === true}
+              isRevealed={isAnswerRevealed}
               wasCorrect={session.answerResult?.wasCorrect}
             />
             {session.submitError && (
@@ -146,8 +129,8 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
             <StudyAnswerPanel
               card={session.currentCard}
               answerResult={session.answerResult}
-              isSubmitting={session.isSubmitting || isRatingTransitioning}
-              pendingRating={exitingRating ?? session.pendingRating}
+              isSubmitting={session.isSubmitting}
+              pendingRating={session.pendingRating}
               onRevealPlainAnswer={session.revealPlainAnswer}
               onTypedSubmit={session.submitTypedAnswer}
               onChoiceSelect={session.selectChoice}
@@ -159,7 +142,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
       </main>
 
       <footer className="px-4 pb-6">
-        <StudyActionBar />
+        <StudyActionBar shortcutItems={shortcutItems} />
       </footer>
     </div>
   );

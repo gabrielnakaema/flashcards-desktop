@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@/test-utils";
+import { render, screen, waitFor, within } from "@/test-utils";
 import type { CardWithSchedule, ReviewLog } from "@/types/card";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
@@ -239,6 +239,105 @@ describe("StudyScreen", () => {
       screen.getByRole("button", { name: /^again$/i })
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^easy$/i })).toBeInTheDocument();
+  });
+
+  it("reveals an unrevealed plain-card answer with Space", async () => {
+    const { user } = setup([makePlainCard()]);
+
+    expect(await screen.findByText("What is gravity?")).toBeInTheDocument();
+    await user.keyboard("[Space]");
+
+    expect(screen.getByText("A force")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /^again$/i })
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    ["1", "again"],
+    ["2", "hard"],
+    ["3", "good"],
+    ["4", "easy"],
+  ] as const)(
+    "submits the %s rating shortcut after reveal",
+    async (shortcut, rating) => {
+      const { user } = setup([makePlainCard()]);
+
+      expect(await screen.findByText("What is gravity?")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /show answer/i }));
+      await user.keyboard(shortcut);
+
+      await waitFor(() => {
+        expect(mockSubmitReview).toHaveBeenCalledWith(
+          expect.objectContaining({
+            cardId: "plain-1",
+            rating,
+          })
+        );
+      });
+    }
+  );
+
+  it("selects a single-letter multiple-choice shortcut case-insensitively", async () => {
+    const { user } = setup([makeChoiceCard()]);
+
+    expect(await screen.findByText("Largest planet?")).toBeInTheDocument();
+    await user.keyboard("B");
+
+    expect(screen.getByText("Correct")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /jupiter/i })).toBeDisabled();
+  });
+
+  it("keeps rating shortcuts active after clicking a choice button", async () => {
+    const { user } = setup([makeChoiceCard()]);
+
+    expect(await screen.findByText("Largest planet?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /jupiter/i }));
+    await user.keyboard("4");
+
+    await waitFor(() => {
+      expect(mockSubmitReview).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cardId: "choice-1",
+          rating: "easy",
+        })
+      );
+    });
+  });
+
+  it("ignores study shortcuts while the typed-answer input is focused", async () => {
+    const { user } = setup([makeTypedCard()]);
+
+    const input = await screen.findByLabelText("Your answer");
+    await user.click(input);
+    await user.keyboard("1");
+
+    expect(input).toHaveValue("1");
+    expect(screen.queryByText("Accepted answer")).not.toBeInTheDocument();
+    expect(mockSubmitReview).not.toHaveBeenCalled();
+  });
+
+  it("opens keyboard shortcut help from the bottom action bar", async () => {
+    const { user } = setup([makePlainCard()]);
+
+    expect(await screen.findByText("What is gravity?")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: /keyboard shortcuts/i })
+    );
+
+    const shortcutList = screen.getByRole("list", {
+      name: /available keyboard shortcuts/i,
+    });
+
+    expect(within(shortcutList).getByText("Show answer")).toBeInTheDocument();
+    expect(within(shortcutList).getByText("Space")).toBeInTheDocument();
+  });
+
+  it("does not render shortcut helper text inside the answer panel", async () => {
+    setup([makePlainCard()]);
+
+    expect(await screen.findByText("What is gravity?")).toBeInTheDocument();
+    expect(screen.queryByText("Shortcut keys")).not.toBeInTheDocument();
   });
 
   it("marks I don't know as incorrect and supports rating submission", async () => {

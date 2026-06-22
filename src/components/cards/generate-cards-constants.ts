@@ -1,4 +1,4 @@
-export const DEFAULT_SYSTEM_PROMPT = `You generate study-ready flashcards for a spaced repetition app.£
+export const DEFAULT_SYSTEM_PROMPT = `You generate study-ready flashcards for a spaced repetition app.
 
 Create concise, accurate cards that test one idea at a time. Prefer clear language over trivia-style wording. Mix card types only when the requested topic benefits from it.
 

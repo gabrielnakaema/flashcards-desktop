@@ -1,4 +1,6 @@
 import { useListDecks } from "@/hooks/decks/use-list-decks";
+import { Layers } from "lucide-react";
+import { CreateDeckDialog } from "./create-deck-dialog";
 import { DeckCard } from "./deck-card";
 
 export const DeckList = () => {
@@ -16,10 +18,21 @@ export const DeckList = () => {
 
   if (decks?.length === 0) {
     return (
-      <section className="w-full flex flex-col gap-4 pt-4">
-        <p className="text-muted-foreground">
-          No decks found. Create a deck to get started.
-        </p>
+      <section className="w-full flex flex-col gap-4 flex-1 items-center justify-center">
+        <div className="h-24 w-24 min-h-24 min-w-24 shadow-sm bg-muted/20 rounded-full p-4 flex items-center justify-center">
+          <Layers className="size-8 text-foreground" />
+        </div>
+
+        <div className="flex flex-col gap-1 items-center justify-center">
+          <h3 className="text-2xl font-medium text-foreground">
+            Ready to start?
+          </h3>
+          <p className="text-base font-medium text-muted-foreground">
+            Create your first deck to get started!
+          </p>
+        </div>
+
+        <CreateDeckDialog />
       </section>
     );
   }

@@ -72,6 +72,7 @@ export const StudyAnswerPanel = ({
         <Button
           type="button"
           size="lg"
+          aria-keyshortcuts="Space"
           onClick={onRevealPlainAnswer}
           className="transition-transform duration-200 hover:-translate-y-0.5"
         >
@@ -101,6 +102,9 @@ export const StudyAnswerPanel = ({
                 key={choice.id}
                 type="button"
                 variant="outline"
+                aria-keyshortcuts={
+                  choice.id.trim().length === 1 ? choice.id.trim() : undefined
+                }
                 disabled={isRevealed}
                 onClick={() => onChoiceSelect(choice.id)}
                 style={{ "--study-stagger": index } as CSSProperties}
@@ -175,8 +179,7 @@ export const StudyAnswerPanel = ({
       )}
 
       {!isRevealed && (
-        <div className="study-enter flex items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">Shortcut keys</p>
+        <div className="study-enter flex items-center justify-end gap-3">
           <Button type="button" variant="ghost" size="sm" onClick={onDontKnow}>
             I don't know
           </Button>
