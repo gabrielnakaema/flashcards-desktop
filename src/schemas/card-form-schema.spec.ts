@@ -57,7 +57,7 @@ describe("cardFormSchema", () => {
       });
       expect(result.success).toBe(false);
       expect(result.error?.issues[0].message).toMatch(
-        /tag at position 2 is empty/i
+        /tag at position 2 is empty/i,
       );
     });
 
@@ -68,7 +68,7 @@ describe("cardFormSchema", () => {
       });
       expect(result.success).toBe(false);
       expect(result.error?.issues[0].message).toMatch(
-        /tag at position 1 is empty/i
+        /tag at position 1 is empty/i,
       );
     });
 
@@ -79,7 +79,7 @@ describe("cardFormSchema", () => {
       });
       expect(result.success).toBe(false);
       expect(result.error?.issues[0].message).toMatch(
-        /tag at position 2 is empty/i
+        /tag at position 2 is empty/i,
       );
     });
   });
@@ -129,7 +129,7 @@ describe("cardFormSchema", () => {
       });
       expect(result.success).toBe(false);
       const msg = result.error?.issues.find((i) =>
-        i.message.match(/at least two choices/i)
+        i.message.match(/at least two choices/i),
       );
       expect(msg).toBeDefined();
     });
@@ -144,7 +144,7 @@ describe("cardFormSchema", () => {
       });
       expect(result.success).toBe(false);
       const msg = result.error?.issues.find((i) =>
-        i.message.match(/choice text is required/i)
+        i.message.match(/choice text is required/i),
       );
       expect(msg).toBeDefined();
     });
@@ -156,7 +156,7 @@ describe("cardFormSchema", () => {
       });
       expect(result.success).toBe(false);
       const msg = result.error?.issues.find((i) =>
-        i.message.match(/select the correct choice/i)
+        i.message.match(/select the correct choice/i),
       );
       expect(msg).toBeDefined();
     });
@@ -168,7 +168,7 @@ describe("cardFormSchema", () => {
       });
       expect(result.success).toBe(false);
       const msg = result.error?.issues.find((i) =>
-        i.message.match(/correct choice must match one of the options/i)
+        i.message.match(/correct choice must match one of the options/i),
       );
       expect(msg).toBeDefined();
     });
@@ -214,16 +214,12 @@ describe("nextChoiceId", () => {
     expect(nextChoiceId([])).toBe("a");
   });
 
-  it("returns 'a' when no choices exist", () => {
-    expect(nextChoiceId([])).toBe("a");
-  });
-
   it("returns 'c' when a and b are already used", () => {
     expect(
       nextChoiceId([
         { id: "a", text: "one" },
         { id: "b", text: "two" },
-      ])
+      ]),
     ).toBe("c");
   });
 
@@ -415,7 +411,7 @@ describe("formValuesToCreatePayload", () => {
     const payload = formValuesToCreatePayload("deck-1", values);
 
     expect(
-      (payload.content as Record<string, unknown>)?.aliases
+      (payload.content as Record<string, unknown>)?.aliases,
     ).toBeUndefined();
   });
 });

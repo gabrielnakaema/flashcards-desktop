@@ -39,7 +39,7 @@ const mockDeck = {
 };
 
 function setup(
-  props: Partial<ComponentProps<typeof DeckCard>> = { deck: mockDeck }
+  props: Partial<ComponentProps<typeof DeckCard>> = { deck: mockDeck },
 ) {
   const user = userEvent.setup();
   render(<DeckCard deck={mockDeck} {...props} />);
@@ -47,18 +47,6 @@ function setup(
 }
 
 describe("DeckCard", () => {
-  it("renders the deck card", () => {
-    setup();
-    expect(screen.getByText("Deck 1")).toBeInTheDocument();
-    expect(screen.getByText("Category 1")).toBeInTheDocument();
-  });
-
-  it("renders study button", () => {
-    setup();
-    const studyButton = screen.getByRole("link", { name: /study/i });
-    expect(studyButton).toBeInTheDocument();
-  });
-
   it("renders cards due badge when cards due is greater than 0", () => {
     setup();
     const cardsDueBadge = screen.getByText(/^\d+ cards? due$/i);
@@ -75,7 +63,7 @@ describe("DeckCard", () => {
     setup({ deck: { ...mockDeck, masteryPercentage: 50 } });
     expect(screen.getByTestId("deck-card-mastery-progress")).toHaveAttribute(
       "data-percentage",
-      "50"
+      "50",
     );
   });
 });

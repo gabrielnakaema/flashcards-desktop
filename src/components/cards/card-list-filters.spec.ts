@@ -127,7 +127,7 @@ describe("normalizeCardListFilters", () => {
         difficulty: "easy",
         type: "multiple_choice",
         search: "gravity",
-      })
+      }),
     ).toEqual({
       search: "gravity",
       type: "multiple_choice",
@@ -144,13 +144,13 @@ describe("normalizeCardListFilters", () => {
 
   it("falls back to default type for invalid values", () => {
     expect(
-      normalizeCardListFilters({ type: "invalid" as Card["type"] })
+      normalizeCardListFilters({ type: "invalid" as Card["type"] }),
     ).toEqual(DEFAULT_CARD_LIST_FILTERS);
   });
 
   it("falls back to default difficulty for invalid values", () => {
     expect(
-      normalizeCardListFilters({ difficulty: "impossible" as "easy" })
+      normalizeCardListFilters({ difficulty: "impossible" as "easy" }),
     ).toEqual(DEFAULT_CARD_LIST_FILTERS);
   });
 
@@ -199,25 +199,28 @@ describe("hasActiveCardListFilters", () => {
 
   it("returns true when search has non-whitespace content", () => {
     expect(
-      hasActiveCardListFilters({ ...DEFAULT_CARD_LIST_FILTERS, search: "test" })
+      hasActiveCardListFilters({
+        ...DEFAULT_CARD_LIST_FILTERS,
+        search: "test",
+      }),
     ).toBe(true);
   });
 
   it("returns false when search is only whitespace", () => {
     expect(
-      hasActiveCardListFilters({ ...DEFAULT_CARD_LIST_FILTERS, search: "   " })
+      hasActiveCardListFilters({ ...DEFAULT_CARD_LIST_FILTERS, search: "   " }),
     ).toBe(false);
   });
 
   it("returns true when type or difficulty differ from defaults", () => {
     expect(
-      hasActiveCardListFilters({ ...DEFAULT_CARD_LIST_FILTERS, type: "plain" })
+      hasActiveCardListFilters({ ...DEFAULT_CARD_LIST_FILTERS, type: "plain" }),
     ).toBe(true);
     expect(
       hasActiveCardListFilters({
         ...DEFAULT_CARD_LIST_FILTERS,
         difficulty: "hard",
-      })
+      }),
     ).toBe(true);
   });
 });
@@ -231,7 +234,7 @@ describe("filterCards", () => {
   it("filters by difficulty only", () => {
     const filtered = filterCards(
       mockCards,
-      normalizeCardListFilters({ difficulty: "easy" })
+      normalizeCardListFilters({ difficulty: "easy" }),
     );
 
     expect(cardIds(filtered)).toEqual(["card-1", "card-4", "card-5"]);
@@ -240,7 +243,7 @@ describe("filterCards", () => {
   it("filters by type only", () => {
     const filtered = filterCards(
       mockCards,
-      normalizeCardListFilters({ type: "multiple_choice" })
+      normalizeCardListFilters({ type: "multiple_choice" }),
     );
 
     expect(cardIds(filtered)).toEqual(["card-1", "card-2", "card-3"]);
@@ -249,69 +252,68 @@ describe("filterCards", () => {
   it("filters by plain and typed_answer types", () => {
     expect(
       cardIds(
-        filterCards(mockCards, normalizeCardListFilters({ type: "plain" }))
-      )
+        filterCards(mockCards, normalizeCardListFilters({ type: "plain" })),
+      ),
     ).toEqual(["card-4"]);
 
     expect(
       cardIds(
         filterCards(
           mockCards,
-          normalizeCardListFilters({ type: "typed_answer" })
-        )
-      )
+          normalizeCardListFilters({ type: "typed_answer" }),
+        ),
+      ),
     ).toEqual(["card-5"]);
   });
 
   it("filters by search text in front", () => {
     const filtered = filterCards(
       mockCards,
-      normalizeCardListFilters({ search: "second front" })
+      normalizeCardListFilters({ search: "second front" }),
     );
 
     expect(cardIds(filtered)).toEqual(["card-2"]);
   });
 
-  it("filters by search text in back", () => {
-    const filtered = filterCards(
-      mockCards,
-      normalizeCardListFilters({ search: "fourth back" })
-    );
-
-    expect(cardIds(filtered)).toEqual(["card-4"]);
-  });
-
-  it("filters by search text in hint", () => {
-    const filtered = filterCards(
-      mockCards,
-      normalizeCardListFilters({ search: "fifth hint" })
-    );
-
-    expect(cardIds(filtered)).toEqual(["card-5"]);
-  });
-
-  it("filters by search text in explanation", () => {
-    const filtered = filterCards(
-      mockCards,
-      normalizeCardListFilters({ search: "second explanation" })
-    );
-
-    expect(cardIds(filtered)).toEqual(["card-2"]);
-  });
-
-  it("filters by search text in source excerpt", () => {
-    const filtered = filterCards(
-      mockCards,
-      normalizeCardListFilters({ search: "third card source excerpt" })
-    );
-
-    expect(cardIds(filtered)).toEqual(["card-3"]);
+  it("filters by search text in secondary text fields", () => {
+    expect(
+      cardIds(
+        filterCards(
+          mockCards,
+          normalizeCardListFilters({ search: "fourth back" }),
+        ),
+      ),
+    ).toEqual(["card-4"]);
+    expect(
+      cardIds(
+        filterCards(
+          mockCards,
+          normalizeCardListFilters({ search: "fifth hint" }),
+        ),
+      ),
+    ).toEqual(["card-5"]);
+    expect(
+      cardIds(
+        filterCards(
+          mockCards,
+          normalizeCardListFilters({ search: "second explanation" }),
+        ),
+      ),
+    ).toEqual(["card-2"]);
+    expect(
+      cardIds(
+        filterCards(
+          mockCards,
+          normalizeCardListFilters({ search: "third card source excerpt" }),
+        ),
+      ),
+    ).toEqual(["card-3"]);
   });
 
   it("filters by search text in tags", () => {
     const filtered = filterCards(
       mockCards,
-      normalizeCardListFilters({ search: "chapter-1" })
+      normalizeCardListFilters({ search: "chapter-1" }),
     );
 
     expect(cardIds(filtered)).toEqual(["card-4"]);
@@ -320,7 +322,7 @@ describe("filterCards", () => {
   it("matches search case-insensitively", () => {
     const filtered = filterCards(
       mockCards,
-      normalizeCardListFilters({ search: "SPECIFIC TEXT" })
+      normalizeCardListFilters({ search: "SPECIFIC TEXT" }),
     );
 
     expect(cardIds(filtered)).toEqual(["card-1"]);
@@ -329,7 +331,7 @@ describe("filterCards", () => {
   it("ignores leading and trailing whitespace in search", () => {
     const filtered = filterCards(
       mockCards,
-      normalizeCardListFilters({ search: "  second front  " })
+      normalizeCardListFilters({ search: "  second front  " }),
     );
 
     expect(cardIds(filtered)).toEqual(["card-2"]);
@@ -338,7 +340,7 @@ describe("filterCards", () => {
   it("returns all cards when search is only whitespace", () => {
     const filtered = filterCards(
       mockCards,
-      normalizeCardListFilters({ search: "   " })
+      normalizeCardListFilters({ search: "   " }),
     );
 
     expect(cardIds(filtered)).toEqual(cardIds(mockCards));
@@ -347,7 +349,7 @@ describe("filterCards", () => {
   it("returns no cards when search matches nothing", () => {
     const filtered = filterCards(
       mockCards,
-      normalizeCardListFilters({ search: "does-not-exist" })
+      normalizeCardListFilters({ search: "does-not-exist" }),
     );
 
     expect(filtered).toEqual([]);

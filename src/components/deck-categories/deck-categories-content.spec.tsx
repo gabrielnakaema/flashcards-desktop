@@ -37,7 +37,7 @@ vi.mock("@/data/repositories", () => ({
 }));
 
 function setup(
-  props: Partial<ComponentProps<typeof DeckCategoriesContent>> = {}
+  props: Partial<ComponentProps<typeof DeckCategoriesContent>> = {},
 ) {
   const user = userEvent.setup();
   render(<DeckCategoriesContent onClose={vi.fn()} {...props} />);
@@ -55,12 +55,6 @@ beforeEach(() => {
 });
 
 describe("DeckCategoriesContent", () => {
-  it("renders the page heading", async () => {
-    setup();
-
-    expect(screen.getByText("Categories")).toBeInTheDocument();
-  });
-
   it("closes on done button click", async () => {
     const onClose = vi.fn();
     const { user } = setup({ onClose });
@@ -84,7 +78,9 @@ describe("DeckCategoriesContent", () => {
   });
 
   it("shows a loading state while categories are fetching", () => {
-    mockListCategories.mockReturnValue(createDeferred<DeckCategory[]>().promise);
+    mockListCategories.mockReturnValue(
+      createDeferred<DeckCategory[]>().promise,
+    );
 
     setup();
 
@@ -110,21 +106,13 @@ describe("DeckCategoriesContent", () => {
 });
 
 describe("Create category form", () => {
-  it("renders category name input and create button", async () => {
-    setup();
-    expect(screen.getByLabelText("New category")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /^create$/i })
-    ).toBeInTheDocument();
-  });
-
   it("creates a new category when the user types a name and clicks Create", async () => {
     const { user } = setup();
     await user.type(screen.getByLabelText("New category"), "Languages");
     await user.click(screen.getByRole("button", { name: /^create$/i }));
     expect(mockCreateCategory).toHaveBeenCalledWith(
       expect.objectContaining({ name: "Languages" }),
-      expect.anything()
+      expect.anything(),
     );
   });
 

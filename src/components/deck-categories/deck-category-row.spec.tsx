@@ -38,10 +38,10 @@ function setup(props: Partial<typeof category> = {}) {
 
 async function confirmDelete(
   user: ReturnType<typeof userEvent.setup>,
-  categoryName: string
+  categoryName: string,
 ) {
   await user.click(
-    await screen.findByRole("button", { name: `Delete ${categoryName}` })
+    await screen.findByRole("button", { name: `Delete ${categoryName}` }),
   );
 }
 
@@ -76,10 +76,10 @@ describe("DeckCategoryRow", () => {
 
     expect(screen.getByLabelText("Name")).toHaveValue("Languages");
     expect(
-      screen.getByRole("button", { name: /cancel editing languages/i })
+      screen.getByRole("button", { name: /cancel editing languages/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /update languages/i })
+      screen.getByRole("button", { name: /update languages/i }),
     ).toBeInTheDocument();
   });
 
@@ -99,7 +99,7 @@ describe("DeckCategoryRow", () => {
           id: "cat-1",
           name: "World Languages",
         },
-        expect.anything()
+        expect.anything(),
       );
       expect(screen.queryByLabelText("Name")).not.toBeInTheDocument();
     });
@@ -119,7 +119,7 @@ describe("DeckCategoryRow", () => {
           id: "cat-1",
           name: "World Languages",
         },
-        expect.anything()
+        expect.anything(),
       );
     });
   });
@@ -148,7 +148,7 @@ describe("DeckCategoryRow", () => {
     await waitFor(() => {
       expect(screen.getByLabelText("Name")).toBeDisabled();
       expect(
-        screen.getByRole("button", { name: /update languages/i })
+        screen.getByRole("button", { name: /update languages/i }),
       ).toBeDisabled();
     });
 
@@ -163,7 +163,7 @@ describe("DeckCategoryRow", () => {
 
     await user.click(screen.getByRole("button", { name: /edit languages/i }));
     await user.click(
-      screen.getByRole("button", { name: /cancel editing languages/i })
+      screen.getByRole("button", { name: /cancel editing languages/i }),
     );
 
     await waitFor(() => {
@@ -180,7 +180,7 @@ describe("DeckCategoryRow", () => {
     await waitFor(() => {
       expect(mockDeleteCategory).toHaveBeenCalledWith(
         "cat-1",
-        expect.anything()
+        expect.anything(),
       );
     });
   });
@@ -192,12 +192,12 @@ describe("DeckCategoryRow", () => {
 
     await user.click(screen.getByRole("button", { name: /delete languages/i }));
     await user.click(
-      await screen.findByRole("button", { name: "Delete Languages" })
+      await screen.findByRole("button", { name: "Delete Languages" }),
     );
 
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: "Delete Languages" })
+        screen.getByRole("button", { name: "Delete Languages" }),
       ).toBeDisabled();
     });
 
@@ -212,21 +212,29 @@ describe("DeckCategoryRow", () => {
 
     await user.click(screen.getByRole("button", { name: /delete languages/i }));
     await user.click(
-      screen.getByRole("button", { name: /^cancel deleting languages$/i })
+      screen.getByRole("button", { name: /^cancel deleting languages$/i }),
     );
 
     expect(mockDeleteCategory).not.toHaveBeenCalled();
   });
 
-  it("shows an error when deletion fails", async () => {
-    mockDeleteCategory.mockRejectedValue(new Error("FK constraint"));
+  it("shows the formatted repository error when deletion fails", async () => {
+    mockDeleteCategory.mockRejectedValue(
+      new Error(
+        "This category has decks. Move or delete those decks before deleting the category.",
+      ),
+    );
     const { user } = setup();
 
     await user.click(screen.getByRole("button", { name: /delete languages/i }));
     await confirmDelete(user, "Languages");
 
     await waitFor(() => {
-      expect(screen.getByText(/FK constraint/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "This category has decks. Move or delete those decks before deleting the category.",
+        ),
+      ).toBeInTheDocument();
     });
   });
 });

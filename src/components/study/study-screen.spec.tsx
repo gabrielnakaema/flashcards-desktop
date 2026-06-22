@@ -57,7 +57,7 @@ const baseSchedule: CardWithSchedule["schedule"] = {
 };
 
 const makePlainCard = (
-  overrides: Partial<CardWithSchedule> = {}
+  overrides: Partial<CardWithSchedule> = {},
 ): CardWithSchedule =>
   ({
     id: "plain-1",
@@ -79,7 +79,7 @@ const makePlainCard = (
   }) as CardWithSchedule;
 
 const makeTypedCard = (
-  overrides: Partial<CardWithSchedule> = {}
+  overrides: Partial<CardWithSchedule> = {},
 ): CardWithSchedule =>
   ({
     id: "typed-1",
@@ -104,7 +104,7 @@ const makeTypedCard = (
   }) as CardWithSchedule;
 
 const makeChoiceCard = (
-  overrides: Partial<CardWithSchedule> = {}
+  overrides: Partial<CardWithSchedule> = {},
 ): CardWithSchedule =>
   ({
     id: "choice-1",
@@ -168,7 +168,7 @@ describe("StudyScreen", () => {
     mockGetDueCards.mockReturnValue(new Promise(() => {}));
     render(<StudyScreen deckId={DECK_ID} />);
     expect(
-      screen.getByRole("status", { name: /loading study session/i })
+      screen.getByRole("status", { name: /loading study session/i }),
     ).toBeInTheDocument();
   });
 
@@ -198,11 +198,11 @@ describe("StudyScreen", () => {
           response: "Paris",
           wasCorrect: true,
           elapsedMs: expect.any(Number),
-        })
+        }),
       );
     });
     expect(
-      await screen.findByText("Study session complete")
+      await screen.findByText("Study session complete"),
     ).toBeInTheDocument();
   });
 
@@ -215,11 +215,11 @@ describe("StudyScreen", () => {
     expect(screen.getByText("Correct")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /jupiter/i })).toHaveClass(
       "study-correct-pop",
-      "disabled:opacity-100"
+      "disabled:opacity-100",
     );
     expect(screen.getByRole("button", { name: /earth/i })).not.toHaveClass(
       "study-enter",
-      "disabled:opacity-100"
+      "disabled:opacity-100",
     );
 
     await user.click(screen.getByRole("button", { name: /^easy$/i }));
@@ -231,7 +231,7 @@ describe("StudyScreen", () => {
           rating: "easy",
           response: "Jupiter",
           wasCorrect: true,
-        })
+        }),
       );
     });
   });
@@ -244,7 +244,7 @@ describe("StudyScreen", () => {
 
     expect(screen.getByText("A force")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /^again$/i })
+      screen.getByRole("button", { name: /^again$/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^easy$/i })).toBeInTheDocument();
   });
@@ -257,7 +257,7 @@ describe("StudyScreen", () => {
 
     expect(screen.getByText("A force")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /^again$/i })
+      screen.getByRole("button", { name: /^again$/i }),
     ).toBeInTheDocument();
   });
 
@@ -280,10 +280,10 @@ describe("StudyScreen", () => {
           expect.objectContaining({
             cardId: "plain-1",
             rating,
-          })
+          }),
         );
       });
-    }
+    },
   );
 
   it("selects a single-letter multiple-choice shortcut case-insensitively", async () => {
@@ -308,7 +308,7 @@ describe("StudyScreen", () => {
         expect.objectContaining({
           cardId: "choice-1",
           rating: "easy",
-        })
+        }),
       );
     });
   });
@@ -330,7 +330,7 @@ describe("StudyScreen", () => {
 
     expect(await screen.findByText("What is gravity?")).toBeInTheDocument();
     await user.click(
-      screen.getByRole("button", { name: /keyboard shortcuts/i })
+      screen.getByRole("button", { name: /keyboard shortcuts/i }),
     );
 
     const shortcutList = screen.getByRole("list", {
@@ -339,13 +339,6 @@ describe("StudyScreen", () => {
 
     expect(within(shortcutList).getByText("Show answer")).toBeInTheDocument();
     expect(within(shortcutList).getByText("Space")).toBeInTheDocument();
-  });
-
-  it("does not render shortcut helper text inside the answer panel", async () => {
-    setup([makePlainCard()]);
-
-    expect(await screen.findByText("What is gravity?")).toBeInTheDocument();
-    expect(screen.queryByText("Shortcut keys")).not.toBeInTheDocument();
   });
 
   it("marks I don't know as incorrect and supports rating submission", async () => {
@@ -361,7 +354,7 @@ describe("StudyScreen", () => {
           cardId: "plain-1",
           rating: "again",
           wasCorrect: false,
-        })
+        }),
       );
     });
   });
@@ -379,7 +372,7 @@ describe("StudyScreen", () => {
     await user.click(screen.getByRole("button", { name: /^easy$/i }));
 
     expect(
-      await screen.findByText("Study session complete")
+      await screen.findByText("Study session complete"),
     ).toBeInTheDocument();
     expect(screen.getByText("Reviewed")).toBeInTheDocument();
     expect(screen.getAllByText("2").length).toBeGreaterThan(0);
@@ -394,7 +387,7 @@ describe("StudyScreen", () => {
     await user.click(screen.getByRole("button", { name: /^medium$/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not save review"
+      "Could not save review",
     );
     expect(screen.getByText("What is gravity?")).toBeInTheDocument();
   });

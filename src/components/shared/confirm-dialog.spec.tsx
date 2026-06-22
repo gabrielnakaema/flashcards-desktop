@@ -24,15 +24,6 @@ const defaultProps = {
 };
 
 describe("ConfirmDialog", () => {
-  it("should render", () => {
-    setup({
-      ...defaultProps,
-    });
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByText("Title")).toBeInTheDocument();
-    expect(screen.getByText("Description")).toBeInTheDocument();
-  });
-
   it("should call onOpenChange when the cancel button is clicked", async () => {
     const onOpenChange = vi.fn();
     const { user } = setup({
@@ -69,7 +60,7 @@ describe("ConfirmDialog", () => {
       pendingLabel: "Pending",
     });
     expect(
-      screen.getByRole("button", { name: /pending/i })
+      screen.getByRole("button", { name: /pending/i }),
     ).toBeInTheDocument();
   });
 

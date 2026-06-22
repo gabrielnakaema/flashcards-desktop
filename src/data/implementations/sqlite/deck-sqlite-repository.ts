@@ -16,6 +16,18 @@ import { formatZodError } from "@/utils/format-zod-error";
 import { getDb } from "./db";
 import type { SqlClient } from "./sql-client";
 
+const DELETE_CATEGORY_WITH_DECKS_MESSAGE =
+  "This category has decks. Move or delete those decks before deleting the category.";
+
+const isSqliteForeignKeyViolation = (error: unknown): boolean => {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return (
+    message.includes("SQLITE_CONSTRAINT_FOREIGNKEY") ||
+    message.toLowerCase().includes("foreign key constraint failed")
+  );
+};
+
 export class DeckSqliteRepository implements DeckRepository {
   constructor(private readonly db?: SqlClient) {}
 
@@ -24,7 +36,7 @@ export class DeckSqliteRepository implements DeckRepository {
   }
 
   createCategory = async (
-    payload: CreateDeckCategoryPayload
+    payload: CreateDeckCategoryPayload,
   ): Promise<DeckCategory> => {
     const query =
       "INSERT INTO deck_categories (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING id, name";
@@ -33,7 +45,7 @@ export class DeckSqliteRepository implements DeckRepository {
     const params = [id, payload.name, timestamp, timestamp];
     const [category] = await this.dbClient.select<DeckCategory[]>(
       query,
-      params
+      params,
     );
     return category;
   };
@@ -71,7 +83,7 @@ export class DeckSqliteRepository implements DeckRepository {
   };
 
   updateCategory = async (
-    payload: UpdateDeckCategoryPayload
+    payload: UpdateDeckCategoryPayload,
   ): Promise<DeckCategory> => {
     const timestamp = new Date().toISOString();
     const query =
@@ -79,13 +91,13 @@ export class DeckSqliteRepository implements DeckRepository {
     const params = [payload.name, timestamp, payload.id];
     const [category] = await this.dbClient.select<DeckCategory[]>(
       query,
-      params
+      params,
     );
 
     const result = toDeckCategory(category);
     if (!result.success) {
       throw new Error(
-        `Failed to parse category: ${formatZodError(result.error!)}`
+        `Failed to parse category: ${formatZodError(result.error!)}`,
       );
     }
 
@@ -94,7 +106,15 @@ export class DeckSqliteRepository implements DeckRepository {
 
   deleteCategory = async (id: string): Promise<void> => {
     const query = "DELETE FROM deck_categories WHERE id = $1";
-    await this.dbClient.execute(query, [id]);
+    try {
+      await this.dbClient.execute(query, [id]);
+    } catch (error) {
+      if (isSqliteForeignKeyViolation(error)) {
+        throw new Error(DELETE_CATEGORY_WITH_DECKS_MESSAGE);
+      }
+
+      throw error;
+    }
   };
 
   listDeckWithStats = async (): Promise<DeckWithStats[]> => {
@@ -155,7 +175,7 @@ export class DeckSqliteRepository implements DeckRepository {
           id: deck.categoryId,
           name: deck.categoryName,
         },
-      })
+      }),
     );
     const success = results.every((result) => result.success);
 
