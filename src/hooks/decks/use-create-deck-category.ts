@@ -15,7 +15,8 @@ export const useCreateDeckCategory = () => {
   });
 
   return {
-    create: mutation.mutateAsync,
+    create: mutation.mutate,
+    asyncCreate: mutation.mutateAsync,
     isPending: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,

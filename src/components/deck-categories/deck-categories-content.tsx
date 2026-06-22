@@ -1,163 +1,126 @@
-import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Field } from "@/components/shared/field";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useDeleteDeckCategory } from "@/hooks/decks/use-delete-deck-category";
+import { useCreateDeckCategory } from "@/hooks/decks/use-create-deck-category";
 import { useListDeckCategories } from "@/hooks/decks/use-list-deck-categories";
-import type { DeckCategory } from "@/types/deck";
-import { Link } from "@tanstack/react-router";
-import { ArrowLeftIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { Layers, Loader2Icon, X } from "lucide-react";
 import { useState } from "react";
-import { CategoryFormDialog } from "./category-form-dialog";
+import { Input } from "../ui/input";
+import { DeckCategoryRow } from "./deck-category-row";
 
-export const DeckCategoriesContent = () => {
+interface DeckCategoriesContentProps {
+  onClose: () => void;
+}
+
+export const DeckCategoriesContent = ({
+  onClose,
+}: DeckCategoriesContentProps) => {
   const { data: categories, isLoading } = useListDeckCategories();
-  const { remove, isPending: isDeleting } = useDeleteDeckCategory();
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<
-    DeckCategory | undefined
-  >();
-  const [deletingCategory, setDeletingCategory] = useState<
-    DeckCategory | undefined
-  >();
-  const [deleteError, setDeleteError] = useState<string>();
+  const { create, isPending: isCreating } = useCreateDeckCategory();
+  const [name, setName] = useState("");
 
-  const handleConfirmDelete = async () => {
-    if (!deletingCategory) return;
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    setDeleteError(undefined);
-
-    try {
-      await remove(deletingCategory.id);
-      setDeletingCategory(undefined);
-    } catch {
-      setDeleteError(
-        "Could not delete this category. It may still be used by one or more decks."
-      );
+    if (isCreating) {
+      return;
     }
+
+    create({ name });
+    setName("");
   };
 
   return (
-    <div className="w-full flex flex-col gap-4 py-8 px-16">
-      <section className="w-full flex items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <Button variant="ghost" size="sm" className="w-fit -ml-2" asChild>
-            <Link to="/">
-              <ArrowLeftIcon className="size-4" />
-              Back to decks
-            </Link>
-          </Button>
-          <h1 className="text-3xl font-medium text-primary">Deck categories</h1>
-          <p className="text-foreground text-base">
-            Create, edit, and remove categories used when organizing decks.
+    <div className="w-full flex flex-col h-screen overflow-hidden">
+      <section className="w-full flex justify-between border-b border-border p-6">
+        <div className="flex flex-col">
+          <h3 className="text-xl font-medium text-foreground">Categories</h3>
+          <p className="text-sm text-muted-foreground">
+            Group your decks. Used across your library.
           </p>
         </div>
-
         <Button
-          variant="secondary"
-          size="lg"
-          onClick={() => setCreateOpen(true)}
+          variant="ghost"
+          size="sm"
+          className="w-fit -ml-2"
+          type="button"
+          onClick={onClose}
         >
-          <PlusIcon className="size-4" />
-          Create category
+          <X className="size-4" />
+          <span className="sr-only">Close</span>
         </Button>
       </section>
 
-      <section className="rounded-lg border border-border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="w-[140px] text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={2} className="text-muted-foreground">
-                  Loading categories...
-                </TableCell>
-              </TableRow>
-            ) : categories?.length ? (
-              categories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Edit ${category.name}`}
-                        onClick={() => setEditingCategory(category)}
-                      >
-                        <PencilIcon className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Delete ${category.name}`}
-                        disabled={isDeleting}
-                        onClick={() => {
-                          setDeleteError(undefined);
-                          setDeletingCategory(category);
-                        }}
-                      >
-                        <Trash2Icon className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={2} className="text-muted-foreground">
-                  No categories yet. Create one to get started.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <form
+        className="w-full flex items-end gap-2 p-6 border-b border-border"
+        onSubmit={handleSubmit}
+      >
+        <Field
+          label="New category"
+          htmlFor="category-name"
+          containerClassName="flex-1"
+        >
+          <Input
+            id="category-name"
+            placeholder="Enter category name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isCreating}
+            required
+          />
+        </Field>
+
+        <Button
+          type="submit"
+          disabled={isCreating}
+          className="min-w-20 w-fit"
+          variant="secondary"
+        >
+          {isCreating ? (
+            <Loader2Icon className="size-4 animate-spin" />
+          ) : (
+            "Create"
+          )}
+        </Button>
+      </form>
+
+      <section className="p-6 w-full flex flex-col gap-2 flex-1 overflow-y-auto">
+        <p className="text-xs text-muted-foreground">
+          {categories?.length === 1
+            ? "1 category"
+            : `${categories?.length} categories`}
+        </p>
+        {isLoading && (
+          <div>
+            <div className="text-muted-foreground">Loading categories...</div>
+          </div>
+        )}
+        {categories?.map((category) => (
+          <DeckCategoryRow key={category.id} category={category} />
+        ))}
+        {!isLoading && !categories?.length && (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="w-24 h-24 min-w-24 min-h-24 rounded-full bg-muted/50 flex items-center justify-center">
+              <Layers className="size-10 text-foreground" />
+            </div>
+
+            <div className="text-muted-foreground text-center mt-4">
+              There are no categories yet. <br /> Create one above to get
+              started!
+            </div>
+          </div>
+        )}
       </section>
 
-      <CategoryFormDialog
-        mode="create"
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-      />
-
-      <CategoryFormDialog
-        mode="edit"
-        category={editingCategory}
-        open={Boolean(editingCategory)}
-        onOpenChange={(open) => {
-          if (!open) setEditingCategory(undefined);
-        }}
-      />
-
-      <ConfirmDialog
-        open={Boolean(deletingCategory)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDeletingCategory(undefined);
-            setDeleteError(undefined);
-          }
-        }}
-        title={`Delete "${deletingCategory?.name}"?`}
-        description="This action cannot be undone. Decks using this category may prevent deletion."
-        confirmLabel="Delete"
-        pendingLabel="Deleting..."
-        cancelLabel="Cancel"
-        variant="destructive"
-        isPending={isDeleting}
-        error={deleteError}
-        onConfirm={handleConfirmDelete}
-      />
+      <section className="border-t border-border p-4">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={onClose}
+        >
+          Done
+        </Button>
+      </section>
     </div>
   );
 };

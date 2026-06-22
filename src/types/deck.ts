@@ -23,6 +23,7 @@ export type Deck = z.infer<typeof deckSchema>;
 const deckCategorySchema = z.object({
   id: z.string(),
   name: z.string(),
+  totalDecks: z.number().optional().default(0),
 });
 
 export type DeckCategory = z.infer<typeof deckCategorySchema>;

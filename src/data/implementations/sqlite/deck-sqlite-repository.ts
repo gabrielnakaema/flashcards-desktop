@@ -39,9 +39,24 @@ export class DeckSqliteRepository implements DeckRepository {
   };
 
   listCategories = async (): Promise<DeckCategory[]> => {
-    const query = "SELECT id, name FROM deck_categories";
+    const query = `SELECT 
+        id,
+        name,
+        (
+          SELECT COUNT (d.id)
+          FROM decks d
+          WHERE d.category = dc.id
+        ) AS totalDecks
+      FROM deck_categories dc
+    `;
 
-    const categories = await this.dbClient.select<DeckCategory[]>(query);
+    interface QueryResultItem {
+      id: string;
+      name: string;
+      totalDecks: number;
+    }
+
+    const categories = await this.dbClient.select<QueryResultItem[]>(query);
     const results = categories.map(toDeckCategory);
     const success = results.every((result) => result.success);
 

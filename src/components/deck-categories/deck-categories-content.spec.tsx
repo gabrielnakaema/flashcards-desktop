@@ -2,24 +2,26 @@ import { render, screen, waitFor } from "@/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DeckCategoriesContent } from "./deck-categories-content";
+import { ComponentProps } from "react";
+import type { DeckCategory } from "@/types/deck";
 
 const mockListCategories = vi.fn();
 const mockCreateCategory = vi.fn();
-const mockUpdateCategory = vi.fn();
-const mockDeleteCategory = vi.fn();
 
-vi.mock("@tanstack/react-router", () => ({
-  Link: ({
-    to,
-    children,
-    ...props
-  }: {
-    to: string;
-    children: React.ReactNode;
-  }) => (
-    <a href={to} {...props}>
-      {children}
-    </a>
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+
+  return { promise, resolve, reject };
+}
+
+vi.mock("./deck-category-row", () => ({
+  DeckCategoryRow: ({ category }: { category: DeckCategory }) => (
+    <div data-testid="deck-category-row">{category.name}</div>
   ),
 }));
 
@@ -27,8 +29,6 @@ vi.mock("@/data/repositories", () => ({
   deckRepository: {
     listCategories: (...args: unknown[]) => mockListCategories(...args),
     createCategory: (...args: unknown[]) => mockCreateCategory(...args),
-    updateCategory: (...args: unknown[]) => mockUpdateCategory(...args),
-    deleteCategory: (...args: unknown[]) => mockDeleteCategory(...args),
     listDeckWithStats: vi.fn().mockResolvedValue([]),
     createDeck: vi.fn(),
     updateDeck: vi.fn(),
@@ -36,37 +36,43 @@ vi.mock("@/data/repositories", () => ({
   },
 }));
 
-function setup() {
+function setup(
+  props: Partial<ComponentProps<typeof DeckCategoriesContent>> = {}
+) {
   const user = userEvent.setup();
-  render(<DeckCategoriesContent />);
+  render(<DeckCategoriesContent onClose={vi.fn()} {...props} />);
   return { user };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockListCategories.mockResolvedValue([]);
-  mockCreateCategory.mockResolvedValue({ id: "cat-1", name: "Languages" });
-  mockUpdateCategory.mockResolvedValue({
+  mockCreateCategory.mockResolvedValue({
     id: "cat-1",
-    name: "World Languages",
+    name: "Languages",
+    totalDecks: 1,
   });
-  mockDeleteCategory.mockResolvedValue(undefined);
 });
 
-async function confirmDelete(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(await screen.findByRole("button", { name: /^delete$/i }));
-}
-
 describe("DeckCategoriesContent", () => {
-  it("renders the page heading and back link", async () => {
+  it("renders the page heading", async () => {
     setup();
 
-    expect(
-      screen.getByRole("heading", { name: /deck categories/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /back to decks/i })
-    ).toHaveAttribute("href", "/");
+    expect(screen.getByText("Categories")).toBeInTheDocument();
+  });
+
+  it("closes on done button click", async () => {
+    const onClose = vi.fn();
+    const { user } = setup({ onClose });
+    await user.click(screen.getByRole("button", { name: /done/i }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("renders close button and can close the content", async () => {
+    const onClose = vi.fn();
+    const { user } = setup({ onClose });
+    await user.click(screen.getByRole("button", { name: /close/i }));
+    expect(onClose).toHaveBeenCalled();
   });
 
   it("shows an empty state when there are no categories", async () => {
@@ -77,10 +83,19 @@ describe("DeckCategoriesContent", () => {
     });
   });
 
-  it("lists categories in the table", async () => {
+  it("shows a loading state while categories are fetching", () => {
+    mockListCategories.mockReturnValue(createDeferred<DeckCategory[]>().promise);
+
+    setup();
+
+    expect(screen.getByText(/loading categories/i)).toBeInTheDocument();
+  });
+
+  it("lists categories", async () => {
     mockListCategories.mockResolvedValue([
-      { id: "cat-1", name: "Languages" },
-      { id: "cat-2", name: "Math" },
+      { id: "cat-1", name: "Languages", totalDecks: 1 },
+      { id: "cat-2", name: "Math", totalDecks: 0 },
+      { id: "cat-3", name: "Science", totalDecks: 2 },
     ]);
 
     setup();
@@ -88,86 +103,44 @@ describe("DeckCategoriesContent", () => {
     await waitFor(() => {
       expect(screen.getByText("Languages")).toBeInTheDocument();
       expect(screen.getByText("Math")).toBeInTheDocument();
+      expect(screen.getByText("Science")).toBeInTheDocument();
+      expect(screen.getAllByTestId("deck-category-row")).toHaveLength(3);
     });
   });
+});
 
-  it("opens the create dialog when Create category is clicked", async () => {
-    const { user } = setup();
-
-    await user.click(screen.getByRole("button", { name: /create category/i }));
-
+describe("Create category form", () => {
+  it("renders category name input and create button", async () => {
+    setup();
+    expect(screen.getByLabelText("New category")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /create category/i })
+      screen.getByRole("button", { name: /^create$/i })
     ).toBeInTheDocument();
   });
 
-  it("opens the edit dialog when the edit action is clicked", async () => {
-    mockListCategories.mockResolvedValue([{ id: "cat-1", name: "Languages" }]);
+  it("creates a new category when the user types a name and clicks Create", async () => {
     const { user } = setup();
-
-    await waitFor(() => {
-      expect(screen.getByText("Languages")).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole("button", { name: /edit languages/i }));
-
-    expect(
-      screen.getByRole("heading", { name: /edit category/i })
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText("Name")).toHaveValue("Languages");
+    await user.type(screen.getByLabelText("New category"), "Languages");
+    await user.click(screen.getByRole("button", { name: /^create$/i }));
+    expect(mockCreateCategory).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Languages" }),
+      expect.anything()
+    );
   });
 
-  it("deletes a category when the user confirms", async () => {
-    mockListCategories.mockResolvedValue([{ id: "cat-1", name: "Languages" }]);
+  it("clears the category name input after creating a category", async () => {
     const { user } = setup();
+    const nameInput = screen.getByLabelText("New category");
 
-    await waitFor(() => {
-      expect(screen.getByText("Languages")).toBeInTheDocument();
-    });
+    await user.type(nameInput, "Languages");
+    await user.click(screen.getByRole("button", { name: /^create$/i }));
 
-    await user.click(screen.getByRole("button", { name: /delete languages/i }));
-    await confirmDelete(user);
-
-    await waitFor(() => {
-      expect(mockDeleteCategory).toHaveBeenCalledWith(
-        "cat-1",
-        expect.anything()
-      );
-    });
+    expect(nameInput).toHaveValue("");
   });
 
-  it("does not delete a category when the user cancels", async () => {
-    mockListCategories.mockResolvedValue([{ id: "cat-1", name: "Languages" }]);
+  it("does not create a new category when the user clicks Create and the input is empty", async () => {
     const { user } = setup();
-
-    await waitFor(() => {
-      expect(screen.getByText("Languages")).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole("button", { name: /delete languages/i }));
-    await user.click(screen.getByRole("button", { name: /^cancel$/i }));
-
-    expect(mockDeleteCategory).not.toHaveBeenCalled();
-  });
-
-  it("shows an error when deletion fails", async () => {
-    mockDeleteCategory.mockRejectedValue(new Error("FK constraint"));
-    mockListCategories.mockResolvedValue([{ id: "cat-1", name: "Languages" }]);
-    const { user } = setup();
-
-    await waitFor(() => {
-      expect(screen.getByText("Languages")).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole("button", { name: /delete languages/i }));
-    await confirmDelete(user);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          /could not delete this category\. it may still be used by one or more decks\./i
-        )
-      ).toBeInTheDocument();
-    });
+    await user.click(screen.getByRole("button", { name: /^create$/i }));
+    expect(mockCreateCategory).not.toHaveBeenCalled();
   });
 });

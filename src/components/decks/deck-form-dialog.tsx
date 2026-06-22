@@ -13,7 +13,10 @@ import { Input } from "@/components/ui/input";
 import { useCreateDeckCategory } from "@/hooks/decks/use-create-deck-category";
 import { useListDeckCategories } from "@/hooks/decks/use-list-deck-categories";
 import { useUpdateDeck } from "@/hooks/decks/use-update-deck";
-import { createDeckSchema, type CreateDeckForm } from "@/schemas/create-deck-schema";
+import {
+  createDeckSchema,
+  type CreateDeckForm,
+} from "@/schemas/create-deck-schema";
 import type { DeckWithStats } from "@/types/deck";
 import { deckRepository } from "@/data/repositories";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,7 +42,7 @@ export const DeckFormDialog = ({
   const isEdit = mode === "edit";
 
   const { data: categories } = useListDeckCategories();
-  const { create: createCategory, isPending: isCreatingCategory } =
+  const { asyncCreate: createCategory, isPending: isCreatingCategory } =
     useCreateDeckCategory();
   const { update, isPending: isUpdating } = useUpdateDeck();
 
@@ -82,9 +85,18 @@ export const DeckFormDialog = ({
 
     try {
       if (isEdit && deck) {
-        await update({ id: deck.id, title: values.title, tags, categoryId: values.categoryId });
+        await update({
+          id: deck.id,
+          title: values.title,
+          tags,
+          categoryId: values.categoryId,
+        });
       } else {
-        await createMutation.mutateAsync({ title: values.title, tags, categoryId: values.categoryId });
+        await createMutation.mutateAsync({
+          title: values.title,
+          tags,
+          categoryId: values.categoryId,
+        });
       }
       onOpenChange(false);
     } catch (err) {
