@@ -213,6 +213,14 @@ describe("StudyScreen", () => {
     await user.click(screen.getByRole("button", { name: /jupiter/i }));
 
     expect(screen.getByText("Correct")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /jupiter/i })).toHaveClass(
+      "study-correct-pop",
+      "disabled:opacity-100"
+    );
+    expect(screen.getByRole("button", { name: /earth/i })).not.toHaveClass(
+      "study-enter",
+      "disabled:opacity-100"
+    );
 
     await user.click(screen.getByRole("button", { name: /^easy$/i }));
 

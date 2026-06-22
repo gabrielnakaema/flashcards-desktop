@@ -109,10 +109,11 @@ export const StudyAnswerPanel = ({
                 onClick={() => onChoiceSelect(choice.id)}
                 style={{ "--study-stagger": index } as CSSProperties}
                 className={cn(
-                  "study-enter h-auto justify-start whitespace-normal py-3 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-md",
+                  "h-auto justify-start whitespace-normal py-3 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-md",
+                  !isRevealed && "study-enter",
                   isRevealed &&
                     isCorrect &&
-                    "study-correct-pop border-green-500/50 bg-green-500/10 text-green-100 shadow-green-500/10",
+                    "study-correct-pop border-green-500 text-green-500 disabled:opacity-100",
                   isRevealed &&
                     isSelected &&
                     !isCorrect &&
@@ -122,7 +123,7 @@ export const StudyAnswerPanel = ({
                 <span className="mr-2 font-bold uppercase">{choice.id}.</span>
                 <span className="flex-1">{choice.text}</span>
                 {isRevealed && isCorrect && (
-                  <CheckCircle2Icon className="ml-auto size-4 text-green-200" />
+                  <CheckCircle2Icon className="ml-auto size-4 text-green-500" />
                 )}
                 {isRevealed && isSelected && !isCorrect && (
                   <XCircleIcon className="ml-auto size-4 text-red-200" />
