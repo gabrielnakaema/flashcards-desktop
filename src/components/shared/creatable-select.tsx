@@ -65,13 +65,13 @@ export const CreatableSelect = ({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between font-normal"
+          className="w-full justify-between font-normal rounded-sm border border-input bg-zinc-900 px-3.5 py-3 text-[0.9375rem] text-foreground h-fit min-h-12 hover:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary focus:shadow-sm"
         >
-          {selectedLabel ?? placeholder}
+          {selectedLabel ?? <span className="text-muted-foreground">{placeholder}</span>}
           <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
+      <PopoverContent className="w-(--radix-popover-trigger-width) p-0 rounded-sm border-none shadow-none bg-zinc-900">
         <Command>
           <CommandInput
             placeholder={placeholder}

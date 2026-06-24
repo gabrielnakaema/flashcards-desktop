@@ -9,7 +9,7 @@ import { SettingsProvider } from "./components/settings/settings-context";
 
 const queryClient = new QueryClient();
 
-const router = createRouter({ routeTree });
+const router = createRouter({ routeTree, defaultViewTransition: true });
 
 declare module "@tanstack/react-router" {
   interface Register {

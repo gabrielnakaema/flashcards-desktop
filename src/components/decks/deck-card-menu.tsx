@@ -11,14 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { DeckFormDialog } from "./deck-form-dialog";
 
 interface DeckCardMenuProps {
   deck: DeckWithStats;
 }
 
 export const DeckCardMenu = ({ deck }: DeckCardMenuProps) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const {
@@ -27,7 +25,6 @@ export const DeckCardMenu = ({ deck }: DeckCardMenuProps) => {
     error: deleteError,
   } = useDeleteDeck({
     onSuccess: () => {
-      setIsEditing(false);
       setIsDeleting(false);
     },
   });
@@ -47,9 +44,11 @@ export const DeckCardMenu = ({ deck }: DeckCardMenuProps) => {
               Manage cards
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsEditing(true)}>
-            <PencilIcon />
-            Edit
+          <DropdownMenuItem asChild>
+            <Link to="/decks/$deckId/edit" params={{ deckId: deck.id }}>
+              <PencilIcon />
+              Edit
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
@@ -61,13 +60,6 @@ export const DeckCardMenu = ({ deck }: DeckCardMenuProps) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <DeckFormDialog
-        mode="edit"
-        deck={deck}
-        open={isEditing}
-        onOpenChange={setIsEditing}
-      />
 
       <ConfirmDialog
         open={isDeleting}

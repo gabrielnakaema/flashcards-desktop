@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createDeckSchema } from "./create-deck-schema";
+import { deckFormSchema } from "./deck-form.schema";
 
-describe("createDeckSchema", () => {
+describe("deckFormSchema", () => {
   describe("title", () => {
     it("accepts a non-empty title", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         categoryId: "cat-1",
       });
@@ -12,7 +12,7 @@ describe("createDeckSchema", () => {
     });
 
     it("rejects an empty title", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "",
         categoryId: "cat-1",
       });
@@ -23,7 +23,7 @@ describe("createDeckSchema", () => {
 
   describe("categoryId", () => {
     it("accepts a non-empty categoryId", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         categoryId: "cat-42",
       });
@@ -31,7 +31,7 @@ describe("createDeckSchema", () => {
     });
 
     it("rejects an empty categoryId", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         categoryId: "",
       });
@@ -42,7 +42,7 @@ describe("createDeckSchema", () => {
 
   describe("tags", () => {
     it("is optional — passes when tags is omitted", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         categoryId: "cat-1",
       });
@@ -50,7 +50,7 @@ describe("createDeckSchema", () => {
     });
 
     it("accepts an empty string for tags", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         tags: "",
         categoryId: "cat-1",
@@ -59,7 +59,7 @@ describe("createDeckSchema", () => {
     });
 
     it("accepts a single tag", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         tags: "math",
         categoryId: "cat-1",
@@ -68,7 +68,7 @@ describe("createDeckSchema", () => {
     });
 
     it("accepts multiple comma-separated tags", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         tags: "math, science, history",
         categoryId: "cat-1",
@@ -77,7 +77,7 @@ describe("createDeckSchema", () => {
     });
 
     it("rejects a trailing comma", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         tags: "math,",
         categoryId: "cat-1",
@@ -89,7 +89,7 @@ describe("createDeckSchema", () => {
     });
 
     it("rejects a leading comma", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         tags: ",math",
         categoryId: "cat-1",
@@ -101,7 +101,7 @@ describe("createDeckSchema", () => {
     });
 
     it("rejects consecutive commas", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         tags: "math,,science",
         categoryId: "cat-1",
@@ -113,7 +113,7 @@ describe("createDeckSchema", () => {
     });
 
     it("reports errors for every empty tag position", () => {
-      const result = createDeckSchema.safeParse({
+      const result = deckFormSchema.safeParse({
         title: "My Deck",
         tags: ",,",
         categoryId: "cat-1",

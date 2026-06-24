@@ -16,10 +16,10 @@ const tagsSchema = z
     });
   });
 
-export const createDeckSchema = z.object({
+export const deckFormSchema = z.object({
   title: z.string().min(1),
   tags: tagsSchema,
   categoryId: z.string().min(1),
 });
 
-export type CreateDeckForm = z.infer<typeof createDeckSchema>;
+export type DeckFormValues = z.infer<typeof deckFormSchema>;

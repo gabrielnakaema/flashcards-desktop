@@ -1,5 +1,5 @@
 import { useCardStats } from "@/hooks/cards/use-card-stats";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Plus } from "lucide-react";
 import { DeckList } from "../decks/deck-list";
 import { CaughtUpBanner } from "./caught-up-banner";
 import { DueCardsBanner } from "./due-cards-banner";
@@ -10,6 +10,7 @@ import {
 } from "./home-page-content.utils";
 import { NoCardsPrompt } from "./no-cards-prompt";
 import { NoDecksPrompt } from "./no-decks-prompt";
+import { Link } from "@tanstack/react-router";
 
 export const HomePageContent = () => {
   const { data, isLoading, error } = useCardStats();
@@ -60,9 +61,19 @@ export const HomePageContent = () => {
 
       {!!data?.deckCount && (
         <section className="w-full flex flex-col gap-2">
-          <h2 className="text-xs tracking-widest uppercase text-muted-foreground font-mono">
-            DECKS
-          </h2>
+          <div className="flex items-center justify-between w-full1">
+            <h2 className="text-xs tracking-widest uppercase text-muted-foreground font-mono">
+              DECKS
+            </h2>
+            <Link
+              to="/decks/create"
+              className="text-xs text-muted-foreground tracking-widest hover:text-foreground transition-colors font-mono flex items-center gap-1 hover:underline"
+            >
+              <Plus className="size-3" />
+              NEW DECK
+            </Link>
+          </div>
+
           <DeckList />
         </section>
       )}
