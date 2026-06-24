@@ -180,6 +180,7 @@ export const useStudySession = (deckId: string) => {
       cards[0]?.id === reviewedCard.id ? cards.slice(1) : cards
     );
     setAnswerResult(null);
+    const statsSnapshot = stats;
     setStats((currentStats) =>
       getUpdatedStats(currentStats, rating, reviewedAnswer, null)
     );
@@ -208,18 +209,7 @@ export const useStudySession = (deckId: string) => {
           ? cards
           : [reviewedCard, ...cards]
       );
-      setStats((currentStats) => ({
-        reviewed: Math.max(0, currentStats.reviewed - 1),
-        correct:
-          reviewedAnswer.wasCorrect === true
-            ? Math.max(0, currentStats.correct - 1)
-            : currentStats.correct,
-        again:
-          rating === "again"
-            ? Math.max(0, currentStats.again - 1)
-            : currentStats.again,
-        nextDueAt: currentStats.nextDueAt,
-      }));
+      setStats(statsSnapshot);
       setAnswerResult(reviewedAnswer);
       setSubmitError((err as Error).message);
       setPendingRating(null);
