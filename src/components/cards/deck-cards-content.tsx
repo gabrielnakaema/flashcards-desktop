@@ -1,10 +1,8 @@
 import { DevStudyTools } from "@/components/dev/dev-study-tools";
 import { useDeckDetails } from "@/hooks/decks/use-deck-details";
 import { useSettings } from "@/hooks/settings/use-settings";
-import { Link } from "@tanstack/react-router";
-import { ArrowLeftIcon, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +12,7 @@ import {
 } from "../ui/dialog";
 import { CardForm } from "./card-form";
 import type { CardListFilters } from "./card-list-filters";
+import { DeckCardsHeader } from "./deck-cards-header";
 import { DeckCardsList } from "./deck-cards-list";
 import { GenerateCardsForm } from "./generate-cards-form";
 
@@ -36,50 +35,36 @@ export const DeckCardsContent = ({
 
   if (isFetching) {
     return (
-      <div className="w-full flex flex-col items-center justify-center min-h-[70vh] gap-4 py-8 px-16">
-        <Loader2 className="size-10 animate-spin" />
+      <div className="flex min-h-[70vh] w-full flex-1 flex-col items-center justify-center gap-4 bg-zinc-950 px-16 py-8">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col lg:flex-row items-stretch flex-1 overflow-hidden">
-      <main className="w-full min-w-0 flex flex-col gap-8 py-8 px-6 lg:px-16 overflow-auto">
-        <section className="w-full flex flex-col gap-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex flex-col gap-2">
-              <Button variant="ghost" size="lg" className="w-fit" asChild>
-                <Link to="/">
-                  <ArrowLeftIcon className="size-4" />
-                  Back to decks
-                </Link>
-              </Button>
-
-              <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-medium text-foreground">
-                  {deck?.title}
-                </h1>
-                <p className="text-xs bg-blue-500/20 text-blue-500 rounded-md px-2 py-1 capitalize font-medium w-fit">
-                  {deck?.category.name}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <DeckCardsList
+    <div className="flex w-full flex-1 flex-col overflow-hidden bg-zinc-950 lg:flex-row">
+      <main className="flex min-w-0 flex-1 flex-col gap-8 overflow-auto px-6 py-8 lg:px-16">
+        {deck && (
+          <DeckCardsHeader
             deckId={deckId}
-            filters={cardFilters}
-            onFiltersChange={onCardFiltersChange}
+            deckTitle={deck.title}
+            categoryName={deck.category.name ?? "Uncategorized"}
+            deckTags={deck.tags}
             onCreateCard={() => setIsCreateDialogOpen(true)}
           />
-        </section>
+        )}
+
+        <DeckCardsList
+          deckId={deckId}
+          filters={cardFilters}
+          onFiltersChange={onCardFiltersChange}
+          onCreateCard={() => setIsCreateDialogOpen(true)}
+        />
       </main>
 
-      <aside className="w-full lg:max-w-md p-6 lg:p-8 border-t lg:border-t-0 lg:border-l border-border bg-muted/20 h-full overflow-auto ">
+      <aside className="h-full w-full overflow-auto border-t border-border bg-zinc-950/80 p-6 lg:max-w-md lg:border-t-0 lg:border-l lg:p-8">
         <div className="flex flex-col gap-4 lg:sticky lg:top-8">
-          <GenerateCardsForm deck={deck!} />
+          {deck && <GenerateCardsForm deck={deck} />}
         </div>
       </aside>
 

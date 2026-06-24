@@ -5,20 +5,11 @@ import { Card } from "@/types/card";
 import { CardForm } from "./card-form";
 import { ConfirmDialog } from "../shared/confirm-dialog";
 import { useDeleteCard } from "@/hooks/cards/use-delete-card";
-import { Loader2Icon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Field } from "../shared/field";
-import { Select } from "../shared/select";
 import {
-  CARD_TYPE_FILTER_OPTIONS,
   DEFAULT_CARD_LIST_FILTERS,
-  DIFFICULTY_FILTER_OPTIONS,
   type CardListFilters,
   filterCards,
   hasActiveCardListFilters,
-  isCardTypeFilter,
-  isDifficultyFilter,
 } from "./card-list-filters";
 import {
   Dialog,
@@ -27,6 +18,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { CardListEmptyState } from "./card-list-empty-state";
+import { DeckCardsToolbar } from "./deck-cards-toolbar";
 
 interface DeckCardsListProps {
   deckId: string;
@@ -92,155 +85,46 @@ export const DeckCardsList = ({
   };
 
   return (
-    <div className="w-full flex flex-col gap-6">
-      <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-xl font-medium text-foreground">Flashcards</h2>
-            <p className="text-sm text-muted-foreground">
-              {cards.length
-                ? `${filteredCards.length} of ${cards.length} cards shown`
-                : "Create cards manually or generate drafts from the sidebar."}
-            </p>
-          </div>
+    <div className="flex w-full flex-col gap-6">
+      <DeckCardsToolbar
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+        hasFilters={hasFilters}
+        onClearFilters={handleClearFilters}
+        totalCards={cards.length}
+        filteredCount={filteredCards.length}
+      />
 
-          {onCreateCard && (
-            <Button type="button" onClick={onCreateCard} className="w-fit">
-              <PlusIcon className="size-4" />
-              Create flashcard
-            </Button>
-          )}
-        </div>
-
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_180px_auto] lg:items-center">
-          <Field
-            label="Search flashcards"
-            htmlFor="card-search"
-            labelClassName="sr-only"
-          >
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="card-search"
-                value={searchValue}
-                onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Search front, back, hints, explanations, or tags"
-                className="pl-9"
-              />
-            </div>
-          </Field>
-
-          <Field
-            label="Filter by card type"
-            htmlFor="card-type-filter"
-            labelClassName="sr-only"
-          >
-            <Select
-              id="card-type-filter"
-              value={filters.type}
-              onChange={(type) => {
-                if (isCardTypeFilter(type)) {
-                  onFiltersChange({ type });
-                }
-              }}
-              options={[...CARD_TYPE_FILTER_OPTIONS]}
-              className="w-full"
-            />
-          </Field>
-
-          <Field
-            label="Filter by difficulty"
-            htmlFor="card-difficulty-filter"
-            labelClassName="sr-only"
-          >
-            <Select
-              id="card-difficulty-filter"
-              value={filters.difficulty}
-              onChange={(difficulty) => {
-                if (isDifficultyFilter(difficulty)) {
-                  onFiltersChange({ difficulty });
-                }
-              }}
-              options={[...DIFFICULTY_FILTER_OPTIONS]}
-              className="w-full"
-            />
-          </Field>
-
-          {hasFilters && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleClearFilters}
-              className="w-fit"
-            >
-              <XIcon className="size-4" />
-              Clear filters
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {isFetching && (
-        <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border p-8 text-sm text-muted-foreground">
-          <Loader2Icon className="size-4 animate-spin" />
-          Loading flashcards...
-        </div>
-      )}
+      {isFetching && <CardListEmptyState variant="loading" />}
 
       {isError && (
-        <div
-          role="alert"
-          className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
-        >
-          {(error as Error).message}
-        </div>
+        <CardListEmptyState
+          variant="error"
+          errorMessage={(error as Error).message}
+        />
       )}
 
       {!isFetching && !isError && !cards.length && (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border p-10 text-center">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-lg font-medium text-foreground">
-              No flashcards yet
-            </h3>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Add your first card manually or use the generator to draft a batch
-              from your study material.
-            </p>
-          </div>
-          {onCreateCard && (
-            <Button type="button" onClick={onCreateCard}>
-              <PlusIcon className="size-4" />
-              Create first flashcard
-            </Button>
-          )}
-        </div>
+        <CardListEmptyState
+          variant="no-cards"
+          onCreateCard={onCreateCard}
+        />
       )}
 
       {!isFetching &&
         !isError &&
         Boolean(cards.length) &&
         !filteredCards.length && (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border p-10 text-center">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-lg font-medium text-foreground">
-                No cards match your filters
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Try a different search term, type, or difficulty.
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClearFilters}
-            >
-              Clear filters
-            </Button>
-          </div>
+          <CardListEmptyState
+            variant="no-results"
+            onClearFilters={handleClearFilters}
+          />
         )}
 
       {!isFetching && !isError && Boolean(filteredCards.length) && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {filteredCards.map((card) => (
             <CardListItem
               key={card.id}

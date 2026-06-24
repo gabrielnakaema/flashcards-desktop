@@ -15,6 +15,7 @@ interface AppSelectProps {
   disabled?: boolean;
   className?: string;
   id?: string;
+  "aria-label"?: string;
 }
 
 export const AppSelect = ({
@@ -25,6 +26,7 @@ export const AppSelect = ({
   disabled = false,
   className = "",
   id,
+  "aria-label": ariaLabel,
 }: AppSelectProps) => {
   return (
     <SelectPrimitive value={value} onValueChange={onChange} disabled={disabled}>
@@ -34,6 +36,7 @@ export const AppSelect = ({
           className
         )}
         id={id}
+        aria-label={ariaLabel}
       >
         <SelectValue placeholder={placeholder} className={cn("bg-zinc-900")} />
       </SelectTrigger>

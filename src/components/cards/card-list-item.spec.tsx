@@ -66,8 +66,7 @@ describe("CardListItem", () => {
     setup();
     expect(screen.getByText(/due/i)).toBeInTheDocument();
     expect(screen.getByText("Review")).toBeInTheDocument();
-    expect(screen.getByText("Interval: 3 days")).toBeInTheDocument();
-    expect(screen.getByText(/last reviewed/i)).toBeInTheDocument();
+    expect(screen.getByText(/3 days interval/i)).toBeInTheDocument();
   });
 
   it("renders card back if card.type is plain", () => {
@@ -107,7 +106,7 @@ describe("CardListItem", () => {
     expect(screen.queryByText("Specific back text")).not.toBeInTheDocument();
   });
 
-  it("renders card choices if card.type is multiple_choice", () => {
+  it("renders all multiple choice options", () => {
     setup({
       card: {
         ...card,
@@ -123,20 +122,10 @@ describe("CardListItem", () => {
     });
     expect(screen.getByText("Earth")).toBeInTheDocument();
     expect(screen.getByText("Jupiter")).toBeInTheDocument();
+    expect(screen.getByText("Correct")).toBeInTheDocument();
   });
 
-  it("renders card accepted answer if card.type is typed_answer", () => {
-    setup({
-      card: {
-        ...card,
-        type: "typed_answer",
-        content: { acceptedAnswer: "Paris" },
-      },
-    });
-    expect(screen.getByText("Paris")).toBeInTheDocument();
-  });
-
-  it("renders card aliases if card.type is typed_answer", () => {
+  it("renders card accepted answer and aliases if card.type is typed_answer", () => {
     setup({
       card: {
         ...card,
@@ -144,12 +133,9 @@ describe("CardListItem", () => {
         content: { acceptedAnswer: "Paris", aliases: ["paris", "PARIS"] },
       },
     });
-
-    expect(
-      screen.getByText("paris, PARIS", {
-        exact: false,
-      })
-    ).toBeInTheDocument();
+    expect(screen.getByText("Paris")).toBeInTheDocument();
+    expect(screen.getByText("paris")).toBeInTheDocument();
+    expect(screen.getByText("PARIS")).toBeInTheDocument();
   });
 
   it("calls onEdit when the edit button is clicked", async () => {

@@ -105,9 +105,13 @@ describe("DeckCardsContent", () => {
     it("renders the flashcard workspace actions", async () => {
       setup();
       expect(
-        await screen.findByRole("button", { name: /create flashcard/i })
+        await screen.findByRole("button", { name: /new card/i })
       ).toBeInTheDocument();
       expect(screen.getByText("Flashcards")).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Study" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: /edit deck/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -120,13 +124,11 @@ describe("DeckCardsContent", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("opens the create form when Create flashcard is clicked", async () => {
+    it("opens the create form when New card is clicked", async () => {
       const { user } = setup();
       await screen.findByText("Japanese N5");
 
-      await user.click(
-        screen.getByRole("button", { name: /create flashcard/i })
-      );
+      await user.click(screen.getByRole("button", { name: /new card/i }));
 
       expect(
         screen.getAllByText("Add a new flashcard to this deck.").length
@@ -137,9 +139,7 @@ describe("DeckCardsContent", () => {
       const { user } = setup();
       await screen.findByText("Japanese N5");
 
-      await user.click(
-        screen.getByRole("button", { name: /create flashcard/i })
-      );
+      await user.click(screen.getByRole("button", { name: /new card/i }));
 
       expect(
         screen.getAllByText("Add a new flashcard to this deck.").length
