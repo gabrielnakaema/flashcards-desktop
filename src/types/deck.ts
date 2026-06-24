@@ -59,6 +59,7 @@ const deckWithStatsSchema = z.object({
   cardsDue: z.number(),
   masteryPercentage: z.number(),
   totalCards: z.number(),
+  lastReviewedAt: z.string().nullable(),
 });
 
 export const toDeckWithStats = (data: unknown) => {

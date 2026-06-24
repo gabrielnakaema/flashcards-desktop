@@ -8,6 +8,17 @@ import type {
   UpdateCardPayload,
 } from "@/types/card";
 
+export type CardStats = {
+  cardsDueNow: number;
+  cardsReviewedToday: number;
+  totalCardsInDecks: number;
+  totalCardsReviewedThisWeek: number;
+  deckIdWithMostCardsDue: string;
+  mostCardsDueInDeck: number;
+  deckCount: number;
+  nextDueAt: string | null;
+};
+
 export interface CardRepository {
   createCard: (payload: CreateCardPayload) => Promise<Card>;
   bulkCreateCards: (payloads: CreateCardPayload[]) => Promise<Card[]>;
@@ -19,4 +30,5 @@ export interface CardRepository {
   getSchedule: (cardId: string) => Promise<CardSchedule>;
   submitReview: (payload: SubmitReviewPayload) => Promise<ReviewLog>;
   resetDeckStudyProgress: (deckId: string) => Promise<void>;
+  getStats: (date: Date) => Promise<CardStats>;
 }

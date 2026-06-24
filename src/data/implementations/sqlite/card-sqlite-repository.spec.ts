@@ -4,6 +4,7 @@ import {
   seedCard,
   seedCategory,
   seedDeck,
+  seedReviewLog,
 } from "./test/create-test-card-repository";
 import type { TestSqlClient } from "./test/test-sql-client";
 import type { CardSqliteRepository } from "./card-sqlite-repository";
@@ -570,6 +571,200 @@ describe("CardSqliteRepository", () => {
       expect(resetCard.tags).toEqual(["geography"]);
       expect(resetCard.isSuspended).toBe(true);
       expect(resetCard.schedule.state).toBe("new");
+    });
+  });
+
+  describe("getStats", () => {
+    it("returns all zeroes when there are no cards or reviews", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const stats = await ctx.repository.getStats(new Date());
+
+      expect(stats.cardsDueNow).toBe(0);
+      expect(stats.cardsReviewedToday).toBe(0);
+      expect(stats.totalCardsInDecks).toBe(0);
+      expect(stats.totalCardsReviewedThisWeek).toBe(0);
+      expect(stats.deckIdWithMostCardsDue).toBe("");
+      expect(stats.mostCardsDueInDeck).toBe(0);
+    });
+
+    it("counts cards with due_at in the past as due now", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      await seedCard(ctx.db, {
+        id: "past-due",
+        deckId: DECK_ID,
+        state: "review",
+        dueAt: "2000-01-01T00:00:00.000Z",
+      });
+      await seedCard(ctx.db, {
+        id: "future-due",
+        deckId: DECK_ID,
+        state: "review",
+        dueAt: "2099-01-01T00:00:00.000Z",
+      });
+
+      const stats = await ctx.repository.getStats(new Date());
+
+      expect(stats.cardsDueNow).toBe(1);
+    });
+
+    it("counts all cards regardless of schedule in totalCardsInDecks", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Card A",
+        back: "A",
+      });
+      await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Card B",
+        back: "B",
+      });
+
+      const stats = await ctx.repository.getStats(new Date());
+
+      expect(stats.totalCardsInDecks).toBe(2);
+    });
+
+    it("counts only reviews from today in cardsReviewedToday", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Q",
+        back: "A",
+      });
+
+      const today = new Date();
+      const todayIso = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        12,
+        0,
+        0
+      ).toISOString();
+      const lastWeekIso = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - 8,
+        12,
+        0,
+        0
+      ).toISOString();
+
+      await seedReviewLog(ctx.db, {
+        id: "log-today",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: todayIso,
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-last-week",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: lastWeekIso,
+      });
+
+      const stats = await ctx.repository.getStats(today);
+
+      expect(stats.cardsReviewedToday).toBe(1);
+    });
+
+    it("counts reviews within the week in totalCardsReviewedThisWeek", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Q",
+        back: "A",
+      });
+
+      const today = new Date();
+      const day = today.getDay();
+      const mondayOffset = (day + 6) % 7;
+
+      const thisWeekMonday = new Date(today);
+      thisWeekMonday.setDate(today.getDate() - mondayOffset);
+      thisWeekMonday.setHours(12, 0, 0, 0);
+
+      const lastWeekMonday = new Date(thisWeekMonday);
+      lastWeekMonday.setDate(thisWeekMonday.getDate() - 7);
+
+      await seedReviewLog(ctx.db, {
+        id: "log-this-week",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: thisWeekMonday.toISOString(),
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-last-week",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: lastWeekMonday.toISOString(),
+      });
+
+      const stats = await ctx.repository.getStats(today);
+
+      expect(stats.totalCardsReviewedThisWeek).toBe(1);
+    });
+
+    it("identifies the deck with the most cards due", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      await seedDeck(ctx.db, {
+        id: "deck-2",
+        categoryId: CATEGORY_ID,
+        title: "Deck 2",
+      });
+
+      await seedCard(ctx.db, {
+        id: "d1-card-1",
+        deckId: DECK_ID,
+        state: "review",
+        dueAt: "2000-01-01T00:00:00.000Z",
+      });
+      await seedCard(ctx.db, {
+        id: "d2-card-1",
+        deckId: "deck-2",
+        state: "review",
+        dueAt: "2000-01-01T00:00:00.000Z",
+      });
+      await seedCard(ctx.db, {
+        id: "d2-card-2",
+        deckId: "deck-2",
+        state: "review",
+        dueAt: "2000-01-01T00:00:00.000Z",
+      });
+
+      const stats = await ctx.repository.getStats(new Date());
+
+      expect(stats.deckIdWithMostCardsDue).toBe("deck-2");
+      expect(stats.mostCardsDueInDeck).toBe(2);
+    });
+
+    it("does not mutate the date argument", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const input = new Date("2024-06-15T14:30:00.000Z");
+      const originalTime = input.getTime();
+
+      await ctx.repository.getStats(input);
+
+      expect(input.getTime()).toBe(originalTime);
     });
   });
 });

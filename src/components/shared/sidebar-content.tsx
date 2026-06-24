@@ -26,7 +26,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           onClick={onNavigate}
           className="text-3xl font-bold tracking-tight text-white"
         >
-          Flashcards<span className="text-orange-400">.</span>
+          flashcards<span className="text-orange-400">.</span>
         </Link>
       </div>
 

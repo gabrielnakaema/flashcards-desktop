@@ -1,4 +1,4 @@
-import type { CardRepository } from "@/data/card-repository";
+import type { CardRepository, CardStats } from "@/data/card-repository";
 import {
   toCard,
   toCardSchedule,
@@ -121,14 +121,94 @@ const buildCardInsertStatements = (
   return { id, statements: [cardInsert, scheduleInsert] };
 };
 
-const parseCreateCardPayload = (payload: CreateCardPayload): CreateCardPayload => {
+const parseCreateCardPayload = (
+  payload: CreateCardPayload
+): CreateCardPayload => {
   const result = createCardPayloadSchema.safeParse(payload);
   if (!result.success) {
-    throw new Error(
-      `Invalid card payload: ${formatZodError(result.error)}`
-    );
+    throw new Error(`Invalid card payload: ${formatZodError(result.error)}`);
   }
   return result.data;
+};
+
+const getStartOfDay = (date: Date): Date => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const getEndOfDay = (date: Date): Date => {
+  const d = new Date(date);
+  d.setHours(23, 59, 59, 999);
+  return d;
+};
+
+const getWeekRange = (inputDate: Date): { start: Date; end: Date } => {
+  const date = new Date(inputDate);
+  const day = date.getDay();
+  const mondayIndex = (day + 6) % 7;
+  const start = new Date(date);
+  start.setDate(start.getDate() - mondayIndex);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(date);
+  end.setDate(end.getDate() + (6 - mondayIndex));
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+};
+
+const queryCount = async (
+  db: SqlClient,
+  sql: string,
+  params?: unknown[]
+): Promise<number> => {
+  const [row] = await db.select<{ count: number }[]>(sql, params);
+  return row?.count ?? 0;
+};
+
+const queryCardsDueNow = (db: SqlClient, endOfDay: string) =>
+  queryCount(
+    db,
+    `SELECT COUNT(card_id) AS count FROM card_schedules
+     WHERE due_at IS NOT NULL AND datetime(due_at) <= datetime($1)`,
+    [endOfDay]
+  );
+
+const queryReviewedInRange = (db: SqlClient, start: string, end: string) =>
+  queryCount(
+    db,
+    `SELECT COUNT(id) AS count FROM review_logs
+     WHERE datetime(reviewed_at) >= datetime($1) AND datetime(reviewed_at) <= datetime($2)`,
+    [start, end]
+  );
+
+const queryTotalCards = (db: SqlClient) =>
+  queryCount(db, `SELECT COUNT(id) AS count FROM cards`);
+
+const queryDeckCount = (db: SqlClient) =>
+  queryCount(db, `SELECT COUNT(*) AS count FROM decks`);
+
+const queryDeckWithMostCardsDue = async (
+  db: SqlClient,
+  endOfDay: string
+): Promise<{ deckId: string; count: number }> => {
+  const [row] = await db.select<{ deck_id: string; count: number }[]>(
+    `SELECT c.deck_id AS deck_id, COUNT(cs.card_id) AS count
+     FROM card_schedules cs
+     JOIN cards c ON cs.card_id = c.id
+     WHERE cs.due_at IS NOT NULL AND datetime(cs.due_at) <= datetime($1)
+     GROUP BY c.deck_id
+     ORDER BY COUNT(cs.card_id) DESC
+     LIMIT 1`,
+    [endOfDay]
+  );
+  return { deckId: row?.deck_id ?? "", count: row?.count ?? 0 };
+};
+
+const queryNextDueAt = async (db: SqlClient): Promise<string | null> => {
+  const [row] = await db.select<{ nextDueAt: string | null }[]>(
+    `SELECT MIN(datetime(due_at)) AS nextDueAt FROM card_schedules WHERE due_at IS NOT NULL`
+  );
+  return row?.nextDueAt ?? null;
 };
 
 export class CardSqliteRepository implements CardRepository {
@@ -165,7 +245,10 @@ export class CardSqliteRepository implements CardRepository {
     const statements: string[] = [];
 
     for (const payload of payloads) {
-      const result = buildCardInsertStatements(parseCreateCardPayload(payload), add);
+      const result = buildCardInsertStatements(
+        parseCreateCardPayload(payload),
+        add
+      );
       cardIds.push(result.id);
       statements.push(...result.statements);
     }
@@ -414,5 +497,44 @@ export class CardSqliteRepository implements CardRepository {
       ].join(";\n"),
       values
     );
+  };
+
+  getStats = async (date: Date): Promise<CardStats> => {
+    const endOfDay = getEndOfDay(date).toISOString();
+    const startOfDay = getStartOfDay(date).toISOString();
+    const { start: startOfWeek, end: endOfWeek } = getWeekRange(date);
+
+    const [
+      cardsDueNow,
+      cardsReviewedToday,
+      totalCardsInDecks,
+      totalCardsReviewedThisWeek,
+      deckWithMostDue,
+      deckCount,
+      nextDueAt,
+    ] = await Promise.all([
+      queryCardsDueNow(this.dbClient, endOfDay),
+      queryReviewedInRange(this.dbClient, startOfDay, endOfDay),
+      queryTotalCards(this.dbClient),
+      queryReviewedInRange(
+        this.dbClient,
+        startOfWeek.toISOString(),
+        endOfWeek.toISOString()
+      ),
+      queryDeckWithMostCardsDue(this.dbClient, endOfDay),
+      queryDeckCount(this.dbClient),
+      queryNextDueAt(this.dbClient),
+    ]);
+
+    return {
+      cardsDueNow,
+      cardsReviewedToday,
+      totalCardsInDecks,
+      totalCardsReviewedThisWeek,
+      deckIdWithMostCardsDue: deckWithMostDue.deckId,
+      mostCardsDueInDeck: deckWithMostDue.count,
+      deckCount,
+      nextDueAt,
+    };
   };
 }

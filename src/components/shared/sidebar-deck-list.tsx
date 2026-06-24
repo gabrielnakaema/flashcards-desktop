@@ -1,14 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { DeckWithStats } from "@/types/deck";
+import { getDeckColor } from "@/utils/deck-colors";
 import { Link } from "@tanstack/react-router";
-
-const sidebarDeckColors = [
-  "bg-orange-400",
-  "bg-emerald-500",
-  "bg-blue-500",
-  "bg-red-400",
-  "bg-yellow-400",
-];
 
 interface SidebarDeckListProps {
   decks: DeckWithStats[];
@@ -37,7 +30,7 @@ export const SidebarDeckList = ({
         <SidebarDeckLink
           key={deck.id}
           deck={deck}
-          colorClassName={sidebarDeckColors[index % sidebarDeckColors.length]}
+          colorClassName={getDeckColor(index)}
           isActive={pathname === `/decks/${deck.id}/cards`}
           onNavigate={onNavigate}
         />
@@ -79,13 +72,13 @@ const SidebarDeckLink = ({
       aria-current={isActive ? "page" : undefined}
       className={cn(
         "flex items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-100",
-        isActive && "bg-white/10 text-white",
+        isActive && "bg-white/10 text-white"
       )}
     >
       <span
         className={cn(
           "h-1.5 min-h-1.5 w-1.5 min-w-1.5 rounded-[1px]",
-          colorClassName,
+          colorClassName
         )}
       />
       <span className="min-w-0 flex-1 truncate text-sm font-normal">

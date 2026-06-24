@@ -15,7 +15,7 @@ function RootLayout() {
 
   if (isStudyRoute) {
     return (
-      <div className="h-screen bg-background text-foreground flex flex-col overflow-hidden">
+      <div className="h-screen bg-zinc-950 text-foreground flex flex-col overflow-hidden">
         <main className="flex-1 flex flex-col overflow-hidden">
           <Outlet />
         </main>
@@ -25,7 +25,7 @@ function RootLayout() {
   }
 
   return (
-    <div className="h-screen bg-background text-foreground flex overflow-hidden">
+    <div className="h-screen bg-zinc-950 text-foreground flex overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden pt-14 md:pt-0">
         <Outlet />

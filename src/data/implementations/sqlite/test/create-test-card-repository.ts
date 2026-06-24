@@ -36,6 +36,14 @@ interface SeedCardOptions {
   isSuspended?: boolean;
 }
 
+interface SeedReviewLogOptions {
+  id: string;
+  cardId: string;
+  deckId: string;
+  reviewedAt: string;
+  rating?: string;
+}
+
 export const seedCategory = async (
   db: TestSqlClient,
   category: SeedCategoryOptions
@@ -85,5 +93,18 @@ export const seedCard = async (db: TestSqlClient, card: SeedCardOptions) => {
       timestamp,
       timestamp,
     ]
+  );
+};
+
+export const seedReviewLog = async (
+  db: TestSqlClient,
+  log: SeedReviewLogOptions
+) => {
+  await db.execute(
+    `INSERT INTO review_logs (
+      id, card_id, deck_id, rating, response, was_correct,
+      reviewed_at, previous_due_at, next_due_at, elapsed_ms
+    ) VALUES ($1, $2, $3, $4, NULL, NULL, $5, NULL, NULL, NULL)`,
+    [log.id, log.cardId, log.deckId, log.rating ?? "good", log.reviewedAt]
   );
 };

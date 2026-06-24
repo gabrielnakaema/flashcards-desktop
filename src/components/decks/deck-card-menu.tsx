@@ -36,7 +36,7 @@ export const DeckCardMenu = ({ deck }: DeckCardMenuProps) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="lg">
+          <Button variant="secondary" size="sm" className="rounded-sm p-2">
             <MenuIcon />
           </Button>
         </DropdownMenuTrigger>

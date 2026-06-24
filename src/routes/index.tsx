@@ -1,10 +1,10 @@
-import { DecksContent } from "@/components/decks/decks-content";
+import { HomePageContent } from "@/components/home/home-page-content";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  component: DecksPage,
+  component: HomePage,
 });
 
-function DecksPage() {
-  return <DecksContent />;
+function HomePage() {
+  return <HomePageContent />;
 }

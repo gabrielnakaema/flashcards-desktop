@@ -36,7 +36,7 @@ export class DeckSqliteRepository implements DeckRepository {
   }
 
   createCategory = async (
-    payload: CreateDeckCategoryPayload,
+    payload: CreateDeckCategoryPayload
   ): Promise<DeckCategory> => {
     const query =
       "INSERT INTO deck_categories (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING id, name";
@@ -45,7 +45,7 @@ export class DeckSqliteRepository implements DeckRepository {
     const params = [id, payload.name, timestamp, timestamp];
     const [category] = await this.dbClient.select<DeckCategory[]>(
       query,
-      params,
+      params
     );
     return category;
   };
@@ -83,7 +83,7 @@ export class DeckSqliteRepository implements DeckRepository {
   };
 
   updateCategory = async (
-    payload: UpdateDeckCategoryPayload,
+    payload: UpdateDeckCategoryPayload
   ): Promise<DeckCategory> => {
     const timestamp = new Date().toISOString();
     const query =
@@ -91,13 +91,13 @@ export class DeckSqliteRepository implements DeckRepository {
     const params = [payload.name, timestamp, payload.id];
     const [category] = await this.dbClient.select<DeckCategory[]>(
       query,
-      params,
+      params
     );
 
     const result = toDeckCategory(category);
     if (!result.success) {
       throw new Error(
-        `Failed to parse category: ${formatZodError(result.error!)}`,
+        `Failed to parse category: ${formatZodError(result.error!)}`
       );
     }
 
@@ -127,6 +127,7 @@ export class DeckSqliteRepository implements DeckRepository {
         d.category as categoryId,
         dc.name AS categoryName,
         COUNT(c.id) AS totalCards,
+        MAX(cs.last_reviewed_at) AS lastReviewedAt,
         COALESCE(SUM(
           CASE WHEN c.is_suspended = 0
             AND cs.due_at IS NOT NULL
@@ -161,6 +162,7 @@ export class DeckSqliteRepository implements DeckRepository {
       totalCards: number;
       cardsDue: number;
       masteryPercentage: number;
+      lastReviewedAt: string | null;
     }
 
     const decks = await this.dbClient.select<QueryResultItem[]>(query, [
@@ -175,7 +177,7 @@ export class DeckSqliteRepository implements DeckRepository {
           id: deck.categoryId,
           name: deck.categoryName,
         },
-      }),
+      })
     );
     const success = results.every((result) => result.success);
 

@@ -5,7 +5,13 @@ import { DeckCard } from "./deck-card";
 import { ComponentProps } from "react";
 
 vi.mock("./deck-card-mastery-progress", () => ({
-  DeckCardMasteryProgress: ({ percentage }: { percentage: number }) => (
+  DeckCardMasteryProgress: ({
+    percentage,
+  }: {
+    percentage: number;
+    lastReviewedAt: string | null;
+    backgroundColor: string;
+  }) => (
     <div
       data-testid="deck-card-mastery-progress"
       data-percentage={percentage}
@@ -36,34 +42,36 @@ const mockDeck = {
   cardsDue: 10,
   masteryPercentage: 50,
   totalCards: 20,
+  lastReviewedAt: null,
 };
 
-function setup(
-  props: Partial<ComponentProps<typeof DeckCard>> = { deck: mockDeck },
-) {
+const defaultProps: ComponentProps<typeof DeckCard> = {
+  deck: mockDeck,
+  deckColorClassName: "bg-orange-400",
+};
+
+function setup(props: Partial<ComponentProps<typeof DeckCard>> = {}) {
   const user = userEvent.setup();
-  render(<DeckCard deck={mockDeck} {...props} />);
+  render(<DeckCard {...defaultProps} {...props} />);
   return { user };
 }
 
 describe("DeckCard", () => {
   it("renders cards due badge when cards due is greater than 0", () => {
     setup();
-    const cardsDueBadge = screen.getByText(/^\d+ cards? due$/i);
-    expect(cardsDueBadge).toBeInTheDocument();
+    expect(screen.getByText(/^\d+ due$/i)).toBeInTheDocument();
   });
 
-  it("renders caught up badge when cards due is 0", () => {
+  it("hides the due badge when cards due is 0", () => {
     setup({ deck: { ...mockDeck, cardsDue: 0 } });
-    const caughtUpBadge = screen.getByText("Caught up!");
-    expect(caughtUpBadge).toBeInTheDocument();
+    expect(screen.queryByText(/due/i)).not.toBeInTheDocument();
   });
 
   it("passes mastery percentage to DeckCardMasteryProgress", () => {
     setup({ deck: { ...mockDeck, masteryPercentage: 50 } });
     expect(screen.getByTestId("deck-card-mastery-progress")).toHaveAttribute(
       "data-percentage",
-      "50",
+      "50"
     );
   });
 });
