@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as DecksCreateRouteImport } from './routes/decks/create'
 import { Route as DecksDeckIdStudyRouteImport } from './routes/decks/$deckId/study'
+import { Route as DecksDeckIdGenerateRouteImport } from './routes/decks/$deckId/generate'
 import { Route as DecksDeckIdEditRouteImport } from './routes/decks/$deckId/edit'
 import { Route as DecksDeckIdCardsRouteImport } from './routes/decks/$deckId/cards'
 
@@ -36,6 +37,11 @@ const DecksDeckIdStudyRoute = DecksDeckIdStudyRouteImport.update({
   path: '/decks/$deckId/study',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DecksDeckIdGenerateRoute = DecksDeckIdGenerateRouteImport.update({
+  id: '/decks/$deckId/generate',
+  path: '/decks/$deckId/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DecksDeckIdEditRoute = DecksDeckIdEditRouteImport.update({
   id: '/decks/$deckId/edit',
   path: '/decks/$deckId/edit',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof SettingsIndexRoute
   '/decks/$deckId/cards': typeof DecksDeckIdCardsRoute
   '/decks/$deckId/edit': typeof DecksDeckIdEditRoute
+  '/decks/$deckId/generate': typeof DecksDeckIdGenerateRoute
   '/decks/$deckId/study': typeof DecksDeckIdStudyRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsIndexRoute
   '/decks/$deckId/cards': typeof DecksDeckIdCardsRoute
   '/decks/$deckId/edit': typeof DecksDeckIdEditRoute
+  '/decks/$deckId/generate': typeof DecksDeckIdGenerateRoute
   '/decks/$deckId/study': typeof DecksDeckIdStudyRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/settings/': typeof SettingsIndexRoute
   '/decks/$deckId/cards': typeof DecksDeckIdCardsRoute
   '/decks/$deckId/edit': typeof DecksDeckIdEditRoute
+  '/decks/$deckId/generate': typeof DecksDeckIdGenerateRoute
   '/decks/$deckId/study': typeof DecksDeckIdStudyRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/decks/$deckId/cards'
     | '/decks/$deckId/edit'
+    | '/decks/$deckId/generate'
     | '/decks/$deckId/study'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/decks/$deckId/cards'
     | '/decks/$deckId/edit'
+    | '/decks/$deckId/generate'
     | '/decks/$deckId/study'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/decks/$deckId/cards'
     | '/decks/$deckId/edit'
+    | '/decks/$deckId/generate'
     | '/decks/$deckId/study'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   SettingsIndexRoute: typeof SettingsIndexRoute
   DecksDeckIdCardsRoute: typeof DecksDeckIdCardsRoute
   DecksDeckIdEditRoute: typeof DecksDeckIdEditRoute
+  DecksDeckIdGenerateRoute: typeof DecksDeckIdGenerateRoute
   DecksDeckIdStudyRoute: typeof DecksDeckIdStudyRoute
 }
 
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DecksDeckIdStudyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/decks/$deckId/generate': {
+      id: '/decks/$deckId/generate'
+      path: '/decks/$deckId/generate'
+      fullPath: '/decks/$deckId/generate'
+      preLoaderRoute: typeof DecksDeckIdGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/decks/$deckId/edit': {
       id: '/decks/$deckId/edit'
       path: '/decks/$deckId/edit'
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsIndexRoute: SettingsIndexRoute,
   DecksDeckIdCardsRoute: DecksDeckIdCardsRoute,
   DecksDeckIdEditRoute: DecksDeckIdEditRoute,
+  DecksDeckIdGenerateRoute: DecksDeckIdGenerateRoute,
   DecksDeckIdStudyRoute: DecksDeckIdStudyRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,8 +1,7 @@
-import { Field } from "@/components/shared/field";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/shared/select";
-import { Textarea } from "@/components/ui/textarea";
+import { AppInput } from "@/components/shared/app-input";
+import { AppSelect } from "@/components/shared/app-select";
+import { AppTextarea } from "@/components/shared/app-textarea";
+import { cn } from "@/lib/utils";
 import { nextChoiceId, type CardFormValues } from "@/schemas/card-form-schema";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
@@ -18,6 +17,42 @@ export const DIFFICULTY_OPTIONS = [
   { value: "medium", label: "Medium" },
   { value: "hard", label: "Hard" },
 ] as const;
+
+const FIELD_LABEL_CLASS =
+  "text-[11px] font-mono tracking-wide text-muted-foreground uppercase";
+
+const FIELD_CONTAINER_CLASS = "flex flex-col gap-2";
+
+const SECONDARY_BUTTON_CLASS =
+  "rounded-sm border border-border bg-zinc-950 px-3 py-2 text-xs font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono disabled:cursor-not-allowed disabled:opacity-50";
+
+interface CardFormFieldProps {
+  label: string;
+  htmlFor?: string;
+  error?: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+const CardFormField = ({
+  label,
+  htmlFor,
+  error,
+  children,
+  className,
+}: CardFormFieldProps) => (
+  <div className={cn(FIELD_CONTAINER_CLASS, className)}>
+    <label htmlFor={htmlFor} className={FIELD_LABEL_CLASS}>
+      {label}
+    </label>
+    {children}
+    {error && (
+      <p id={`${htmlFor}-error`} className="text-xs text-red-500">
+        {error}
+      </p>
+    )}
+  </div>
+);
 
 interface CardFormFieldsProps {
   disableTypeSelect?: boolean;
@@ -42,52 +77,50 @@ export const CardFormFields = ({
   });
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       <Controller
         control={control}
         name="type"
         render={({ field, fieldState: { error } }) => (
-          <Field label="Type" htmlFor="card-type" error={error?.message}>
-            <Select
+          <CardFormField label="Type" htmlFor="card-type" error={error?.message}>
+            <AppSelect
               value={field.value}
               onChange={field.onChange}
               disabled={disableTypeSelect}
-              options={CARD_TYPE_OPTIONS.map((o) => ({
-                label: o.label,
-                value: o.value,
+              options={CARD_TYPE_OPTIONS.map((option) => ({
+                label: option.label,
+                value: option.value,
               }))}
-              className="w-full"
               id="card-type"
+              aria-label="Type"
             />
-          </Field>
+          </CardFormField>
         )}
       />
 
-      <Field label="Front" htmlFor="card-front" error={errors.front?.message}>
-        <Textarea
+      <CardFormField label="Front" htmlFor="card-front" error={errors.front?.message}>
+        <AppTextarea
           {...register("front")}
           id="card-front"
           placeholder="Question or prompt"
-          className="w-full"
           rows={4}
         />
-      </Field>
+      </CardFormField>
 
       {cardType === "plain" && (
-        <Field label="Back" htmlFor="card-back" error={errors.back?.message}>
-          <Textarea
+        <CardFormField label="Back" htmlFor="card-back" error={errors.back?.message}>
+          <AppTextarea
             {...register("back")}
             id="card-back"
             placeholder="Answer"
-            className="w-full"
             rows={4}
           />
-        </Field>
+        </CardFormField>
       )}
 
       {cardType === "multiple_choice" && (
         <>
-          <Field
+          <CardFormField
             label="Choices"
             htmlFor="card-choice-0"
             error={errors.choices?.message ?? errors.choices?.root?.message}
@@ -95,61 +128,64 @@ export const CardFormFields = ({
             <div className="flex flex-col gap-2">
               {fields.map((field, index) => (
                 <div key={field.id} className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground w-6">
+                  <span className="w-6 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
                     {choices[index]?.id ?? field.id}
                   </span>
-                  <Input
+                  <AppInput
                     {...register(`choices.${index}.text`)}
                     id={`card-choice-${index}`}
                     placeholder={`Choice ${index + 1}`}
-                    className="w-full"
                   />
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
-                    size="icon"
                     disabled={fields.length <= 2}
                     onClick={() => remove(index)}
                     aria-label={`Remove choice ${index + 1}`}
+                    className={cn(
+                      SECONDARY_BUTTON_CLASS,
+                      "inline-flex size-10 shrink-0 items-center justify-center p-0"
+                    )}
                   >
                     <Trash2Icon className="size-4" />
-                  </Button>
+                  </button>
                 </div>
               ))}
-              <Button
+              <button
                 type="button"
-                variant="outline"
-                className="w-fit"
                 onClick={() => append({ id: nextChoiceId(choices), text: "" })}
+                className={cn(
+                  SECONDARY_BUTTON_CLASS,
+                  "inline-flex w-fit items-center gap-2"
+                )}
               >
                 <PlusIcon className="size-4" />
                 Add choice
-              </Button>
+              </button>
             </div>
-          </Field>
+          </CardFormField>
 
           <Controller
             control={control}
             name="correctChoiceId"
             render={({ field, fieldState: { error } }) => (
-              <Field
+              <CardFormField
                 label="Correct choice"
                 htmlFor="card-correct-choice"
                 error={error?.message}
               >
-                <Select
+                <AppSelect
                   value={field.value ?? ""}
                   onChange={field.onChange}
                   options={choices
-                    .filter((c) => c.text.trim())
-                    .map((c) => ({
-                      label: c.id.toUpperCase() + ": " + c.text,
-                      value: c.id,
+                    .filter((choice) => choice.text.trim())
+                    .map((choice) => ({
+                      label: choice.id.toUpperCase() + ": " + choice.text,
+                      value: choice.id,
                     }))}
-                  className="w-full"
                   id="card-correct-choice"
+                  aria-label="Correct choice"
                 />
-              </Field>
+              </CardFormField>
             )}
           />
         </>
@@ -157,114 +193,110 @@ export const CardFormFields = ({
 
       {cardType === "typed_answer" && (
         <>
-          <Field
+          <CardFormField
             label="Accepted answer"
             htmlFor="card-accepted-answer"
             error={errors.acceptedAnswer?.message}
           >
-            <Input
+            <AppInput
               {...register("acceptedAnswer")}
               id="card-accepted-answer"
               placeholder="Primary accepted answer"
-              className="w-full"
             />
-          </Field>
+          </CardFormField>
 
-          <Field
+          <CardFormField
             label="Aliases"
             htmlFor="card-aliases"
             error={errors.aliases?.message}
           >
-            <Input
+            <AppInput
               {...register("aliases")}
               id="card-aliases"
               placeholder="e.g. sqlite, SQLite database"
-              className="w-full"
             />
-          </Field>
+          </CardFormField>
 
-          <Field label="Matching" htmlFor="card-case-sensitive">
-            <label className="flex items-center gap-2 text-sm">
+          <CardFormField label="Matching" htmlFor="card-case-sensitive">
+            <label className="flex items-center gap-2 text-sm text-foreground">
               <input
                 {...register("caseSensitive")}
                 id="card-case-sensitive"
                 type="checkbox"
-                className="size-4 rounded border border-input"
+                className="size-4 rounded-sm border border-input bg-zinc-900"
               />
               Case sensitive matching
             </label>
-          </Field>
+          </CardFormField>
         </>
       )}
 
-      <Field label="Hint" htmlFor="card-hint" error={errors.hint?.message}>
-        <Input
+      <CardFormField label="Hint" htmlFor="card-hint" error={errors.hint?.message}>
+        <AppInput
           {...register("hint")}
           id="card-hint"
           placeholder="Optional hint shown during review"
-          className="w-full"
         />
-      </Field>
+      </CardFormField>
 
-      <Field
+      <CardFormField
         label="Explanation"
         htmlFor="card-explanation"
         error={errors.explanation?.message}
       >
-        <Textarea
+        <AppTextarea
           {...register("explanation")}
           id="card-explanation"
           placeholder="Optional explanation shown after answering"
-          className="w-full"
           rows={3}
+          className="min-h-24"
         />
-      </Field>
+      </CardFormField>
 
-      <Field
+      <CardFormField
         label="Source excerpt"
         htmlFor="card-source-excerpt"
         error={errors.sourceExcerpt?.message}
       >
-        <Textarea
+        <AppTextarea
           {...register("sourceExcerpt")}
           id="card-source-excerpt"
           placeholder="Optional source text this card was derived from"
-          className="w-full"
           rows={3}
+          className="min-h-24"
         />
-      </Field>
+      </CardFormField>
 
       <Controller
         control={control}
         name="difficulty"
         render={({ field, fieldState: { error } }) => (
-          <Field
+          <CardFormField
             label="Difficulty"
             htmlFor="card-difficulty"
             error={error?.message}
           >
-            <Select
+            <AppSelect
               value={field.value ?? ""}
               onChange={field.onChange}
-              options={DIFFICULTY_OPTIONS.map((o) => ({
-                label: o.label,
-                value: o.value,
+              options={DIFFICULTY_OPTIONS.map((option) => ({
+                label: option.label,
+                value: option.value,
               }))}
-              className="w-full"
               id="card-difficulty"
+              aria-label="Difficulty"
             />
-          </Field>
+          </CardFormField>
         )}
       />
 
-      <Field label="Tags" htmlFor="card-tags" error={errors.tags?.message}>
-        <Input
+      <CardFormField label="Tags" htmlFor="card-tags" error={errors.tags?.message}>
+        <AppInput
           {...register("tags")}
           id="card-tags"
           placeholder="e.g. vocabulary, chapter-1"
-          className="w-full"
         />
-      </Field>
-    </>
+      </CardFormField>
+    </div>
   );
 };

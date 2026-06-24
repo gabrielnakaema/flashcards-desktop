@@ -112,6 +112,7 @@ describe("DeckCardsContent", () => {
       expect(
         screen.getByRole("link", { name: /edit deck/i })
       ).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: /generate/i })).toBeInTheDocument();
     });
   });
 
@@ -154,15 +155,6 @@ describe("DeckCardsContent", () => {
           screen.queryAllByText("Add a new flashcard to this deck.")
         ).toHaveLength(0);
       });
-    });
-  });
-
-  describe("sidebar", () => {
-    it("renders the Generate flashcards section", async () => {
-      setup();
-      expect(
-        await screen.findByText("Generate flashcards")
-      ).toBeInTheDocument();
     });
   });
 });

@@ -44,6 +44,10 @@ describe("DeckCardsHeader", () => {
       "href",
       "/decks/$deckId/edit"
     );
+    expect(screen.getByRole("link", { name: /generate/i })).toHaveAttribute(
+      "href",
+      "/decks/$deckId/generate"
+    );
   });
 
   it("calls onCreateCard when New card is clicked", async () => {

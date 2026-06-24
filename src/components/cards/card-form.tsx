@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { useCreateCard } from "@/hooks/cards/use-create-card";
 import { useUpdateCard } from "@/hooks/cards/use-update-card";
 import {
@@ -20,9 +19,15 @@ interface CardFormProps {
   deckId: string;
   card?: Card;
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export const CardForm = ({ deckId, card, onSuccess }: CardFormProps) => {
+export const CardForm = ({
+  deckId,
+  card,
+  onSuccess,
+  onCancel,
+}: CardFormProps) => {
   const isEdit = Boolean(card);
   const { create, isPending: isCreating } = useCreateCard();
   const { update, isPending: isUpdating } = useUpdateCard();
@@ -67,36 +72,58 @@ export const CardForm = ({ deckId, card, onSuccess }: CardFormProps) => {
 
   return (
     <FormProvider {...form}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col gap-4 py-4"
-      >
-        <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-medium text-foreground">{title}</h2>
-          <p className="text-muted-foreground text-sm">{description}</p>
-        </div>
+      <div className="flex h-full min-h-0 flex-col">
+        <header className="shrink-0 border-b border-border px-6 py-4">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            {title}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        </header>
 
-        <CardFormFields disableTypeSelect={isEdit} />
-
-        <p
-          className="text-sm text-red-500"
-          role="alert"
-          id="card-form-error"
-          aria-atomic="true"
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex min-h-0 flex-1 flex-col"
         >
-          {errors.root?.message ?? ""}
-        </p>
+          <div className="min-h-0 flex-1 overflow-y-auto p-6">
+            <CardFormFields disableTypeSelect={isEdit} />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button type="submit" size="lg" disabled={isPending}>
-            {isPending ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              submitLabel
+            {errors.root?.message && (
+              <p
+                className="mt-4 text-sm text-red-500"
+                role="alert"
+                id="card-form-error"
+                aria-atomic="true"
+              >
+                {errors.root.message}
+              </p>
             )}
-          </Button>
-        </div>
-      </form>
+          </div>
+
+          <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border p-6">
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="rounded-sm border border-border bg-zinc-950 px-4 py-2 text-sm font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono"
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={isPending}
+              aria-busy={isPending}
+              className="inline-flex min-w-24 items-center justify-center rounded-sm border border-orange-400 bg-orange-400 px-4 py-2 text-sm font-medium tracking-tight text-zinc-950 transition-colors hover:border-orange-500 hover:bg-orange-500 font-mono disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isPending ? (
+                <Loader2Icon className="size-4 animate-spin" />
+              ) : (
+                submitLabel
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </FormProvider>
   );
 };

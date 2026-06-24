@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, PencilIcon, PlusIcon } from "lucide-react";
+import { ChevronLeft, PencilIcon, PlusIcon, Sparkles } from "lucide-react";
 
 interface DeckCardsHeaderProps {
   deckId: string;
@@ -61,6 +61,14 @@ export const DeckCardsHeader = ({
           >
             <PencilIcon className="size-3.5" />
             Edit deck
+          </Link>
+          <Link
+            to="/decks/$deckId/generate"
+            params={{ deckId }}
+            className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-zinc-950 px-4 py-2 text-sm font-medium tracking-tight text-foreground transition-colors hover:bg-zinc-900 font-mono"
+          >
+            <Sparkles className="size-3.5" />
+            Generate
           </Link>
           {onCreateCard && (
             <button
