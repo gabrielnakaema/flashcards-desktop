@@ -73,72 +73,43 @@ export const DeckForm = ({ deck, onSuccess, onCancel }: DeckFormProps) => {
       className="w-full max-w-sm flex flex-col gap-4"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="w-full flex flex-col gap-2">
-        <label
-          htmlFor="title"
-          className="text-[11px] text-muted-foreground font-mono tracking-wide"
-        >
-          TITLE
-        </label>
-        <AppInput
-          {...register("title")}
-          id="title"
-          placeholder="Enter title"
-        />
-        {errors.title && (
-          <p className="text-xs text-red-500">{errors.title.message}</p>
-        )}
-      </div>
+      <AppInput
+        {...register("title")}
+        id="title"
+        label="Title"
+        placeholder="Enter title"
+        error={errors.title?.message}
+      />
 
-      <div className="w-full flex flex-col gap-2">
-        <label
-          htmlFor="tags"
-          className="text-[11px] text-muted-foreground font-mono tracking-wide"
-        >
-          TAGS
-        </label>
-        <AppInput
-          {...register("tags")}
-          id="tags"
-          placeholder="e.g. math, science, history"
-        />
-        {errors.tags && (
-          <p className="text-xs text-red-500">{errors.tags.message}</p>
-        )}
-      </div>
+      <AppInput
+        {...register("tags")}
+        id="tags"
+        label="Tags"
+        placeholder="e.g. math, science, history"
+        error={errors.tags?.message}
+      />
 
-      <div className="w-full flex flex-col gap-2">
-        <label
-          htmlFor="category"
-          className="text-[11px] text-muted-foreground font-mono tracking-wide"
-        >
-          CATEGORY
-        </label>
-        <Controller
-          control={control}
-          name="categoryId"
-          render={({ field, fieldState: { error } }) => (
-            <>
-              <CreatableSelect
-                id="category"
-                placeholder="Select category"
-                emptyMessage="No categories found. Create a new category."
-                options={categoryOptions}
-                value={field.value}
-                onChange={(value) => field.onChange(value)}
-                onCreate={async (query) => {
-                  const result = await createCategory({ name: query });
-                  field.onChange(result.id);
-                }}
-                isLoading={isCreatingCategory}
-              />
-              {error && (
-                <p className="text-xs text-red-500">{error.message}</p>
-              )}
-            </>
-          )}
-        />
-      </div>
+      <Controller
+        control={control}
+        name="categoryId"
+        render={({ field, fieldState: { error } }) => (
+          <CreatableSelect
+            id="category"
+            label="Category"
+            placeholder="Select category"
+            emptyMessage="No categories found. Create a new category."
+            options={categoryOptions}
+            value={field.value}
+            onChange={(value) => field.onChange(value)}
+            onCreate={async (query) => {
+              const result = await createCategory({ name: query });
+              field.onChange(result.id);
+            }}
+            isLoading={isCreatingCategory}
+            error={error?.message}
+          />
+        )}
+      />
 
       <div className="w-full flex items-center justify-end gap-2 pt-6 border-t border-border">
         <button

@@ -130,70 +130,45 @@ const DeckGenerateCardsForm = ({
             onSubmit={handleSubmit(onSubmit)}
           >
             <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-6">
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="prompt"
-                  className="text-[11px] font-mono tracking-wide text-muted-foreground"
-                >
-                  SOURCE / TOPIC
-                </label>
-                <AppTextarea
-                  id="prompt"
-                  rows={5}
-                  placeholder="Paste study material or describe what to generate"
-                  className="min-h-28"
-                  {...register("prompt")}
-                />
-                {errors.prompt?.message && (
-                  <p className="text-xs text-red-500">
-                    {errors.prompt.message}
-                  </p>
+              <AppTextarea
+                id="prompt"
+                label="Source / Topic"
+                rows={5}
+                placeholder="Paste study material or describe what to generate"
+                className="min-h-28"
+                error={errors.prompt?.message}
+                {...register("prompt")}
+              />
+
+              <AppInput
+                id="target-deck"
+                label="Target Deck"
+                value={deck.title}
+                readOnly
+                aria-readonly="true"
+                className="cursor-default text-muted-foreground"
+              />
+
+              <Controller
+                control={control}
+                name="provider"
+                render={({ field }) => (
+                  <AppSelect
+                    id="provider"
+                    label="Provider"
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={getLlmProviderOptions()}
+                  />
                 )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="target-deck"
-                  className="text-[11px] font-mono tracking-wide text-muted-foreground"
-                >
-                  TARGET DECK
-                </label>
-                <AppInput
-                  id="target-deck"
-                  value={deck.title}
-                  readOnly
-                  aria-readonly="true"
-                  className="cursor-default text-muted-foreground"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="provider"
-                  className="text-[11px] font-mono tracking-wide text-muted-foreground"
-                >
-                  PROVIDER
-                </label>
-                <Controller
-                  control={control}
-                  name="provider"
-                  render={({ field }) => (
-                    <AppSelect
-                      id="provider"
-                      value={field.value}
-                      onChange={field.onChange}
-                      options={getLlmProviderOptions()}
-                    />
-                  )}
-                />
-              </div>
+              />
 
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="model"
-                  className="text-[11px] font-mono tracking-wide text-muted-foreground"
+                  className="text-[11px] font-mono tracking-wide text-muted-foreground uppercase"
                 >
-                  MODEL
+                  Model
                 </label>
                 <div className="flex gap-2">
                   <Controller
@@ -229,47 +204,25 @@ const DeckGenerateCardsForm = ({
                 )}
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="api-key"
-                  className="text-[11px] font-mono tracking-wide text-muted-foreground"
-                >
-                  API KEY
-                </label>
-                <AppInput
-                  {...register("apiKey")}
-                  id="api-key"
-                  type="password"
-                  placeholder="Enter API key"
-                  autoComplete="off"
-                />
-                {errors.apiKey?.message && (
-                  <p className="text-xs text-red-500">
-                    {errors.apiKey.message}
-                  </p>
-                )}
-              </div>
+              <AppInput
+                {...register("apiKey")}
+                id="api-key"
+                label="API Key"
+                type="password"
+                placeholder="Enter API key"
+                autoComplete="off"
+                error={errors.apiKey?.message}
+              />
 
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="system-prompt"
-                  className="text-[11px] font-mono tracking-wide text-muted-foreground"
-                >
-                  SYSTEM PROMPT
-                </label>
-                <AppTextarea
-                  id="system-prompt"
-                  rows={8}
-                  placeholder="Enter system prompt"
-                  className="min-h-40"
-                  {...register("systemPrompt")}
-                />
-                {errors.systemPrompt?.message && (
-                  <p className="text-xs text-red-500">
-                    {errors.systemPrompt.message}
-                  </p>
-                )}
-              </div>
+              <AppTextarea
+                id="system-prompt"
+                label="System Prompt"
+                rows={8}
+                placeholder="Enter system prompt"
+                className="min-h-40"
+                error={errors.systemPrompt?.message}
+                {...register("systemPrompt")}
+              />
 
               {errorMessage && (
                 <p className="text-sm text-red-500" role="alert">

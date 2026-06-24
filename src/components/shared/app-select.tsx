@@ -7,6 +7,9 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
+const LABEL_CLASS =
+  "text-[11px] font-mono tracking-wide text-muted-foreground uppercase";
+
 interface AppSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -16,6 +19,9 @@ interface AppSelectProps {
   className?: string;
   id?: string;
   "aria-label"?: string;
+  label?: string;
+  error?: string;
+  containerClassName?: string;
 }
 
 export const AppSelect = ({
@@ -27,8 +33,14 @@ export const AppSelect = ({
   className = "",
   id,
   "aria-label": ariaLabel,
+  label,
+  error,
+  containerClassName,
 }: AppSelectProps) => {
-  return (
+  const errorId = id && error ? `${id}-error` : undefined;
+  const hasWrapper = label !== undefined || error !== undefined;
+
+  const selectEl = (
     <SelectPrimitive value={value} onValueChange={onChange} disabled={disabled}>
       <SelectTrigger
         className={cn(
@@ -37,6 +49,8 @@ export const AppSelect = ({
         )}
         id={id}
         aria-label={ariaLabel}
+        aria-describedby={errorId}
+        aria-invalid={error ? true : undefined}
       >
         <SelectValue placeholder={placeholder} className={cn("bg-zinc-900")} />
       </SelectTrigger>
@@ -52,5 +66,23 @@ export const AppSelect = ({
         ))}
       </SelectContent>
     </SelectPrimitive>
+  );
+
+  if (!hasWrapper) return selectEl;
+
+  return (
+    <div className={cn("flex flex-col gap-2", containerClassName)}>
+      {label && (
+        <label htmlFor={id} className={LABEL_CLASS}>
+          {label}
+        </label>
+      )}
+      {selectEl}
+      {error && errorId && (
+        <p id={errorId} role="alert" className="text-xs text-red-500">
+          {error}
+        </p>
+      )}
+    </div>
   );
 };

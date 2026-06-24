@@ -21,8 +21,6 @@ export const DIFFICULTY_OPTIONS = [
 const FIELD_LABEL_CLASS =
   "text-[11px] font-mono tracking-wide text-muted-foreground uppercase";
 
-const FIELD_CONTAINER_CLASS = "flex flex-col gap-2";
-
 const SECONDARY_BUTTON_CLASS =
   "rounded-sm border border-border bg-zinc-950 px-3 py-2 text-xs font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -41,7 +39,7 @@ const CardFormField = ({
   children,
   className,
 }: CardFormFieldProps) => (
-  <div className={cn(FIELD_CONTAINER_CLASS, className)}>
+  <div className={cn("flex flex-col gap-2", className)}>
     <label htmlFor={htmlFor} className={FIELD_LABEL_CLASS}>
       {label}
     </label>
@@ -82,40 +80,40 @@ export const CardFormFields = ({
         control={control}
         name="type"
         render={({ field, fieldState: { error } }) => (
-          <CardFormField label="Type" htmlFor="card-type" error={error?.message}>
-            <AppSelect
-              value={field.value}
-              onChange={field.onChange}
-              disabled={disableTypeSelect}
-              options={CARD_TYPE_OPTIONS.map((option) => ({
-                label: option.label,
-                value: option.value,
-              }))}
-              id="card-type"
-              aria-label="Type"
-            />
-          </CardFormField>
+          <AppSelect
+            id="card-type"
+            label="Type"
+            value={field.value}
+            onChange={field.onChange}
+            disabled={disableTypeSelect}
+            options={CARD_TYPE_OPTIONS.map((option) => ({
+              label: option.label,
+              value: option.value,
+            }))}
+            aria-label="Type"
+            error={error?.message}
+          />
         )}
       />
 
-      <CardFormField label="Front" htmlFor="card-front" error={errors.front?.message}>
-        <AppTextarea
-          {...register("front")}
-          id="card-front"
-          placeholder="Question or prompt"
-          rows={4}
-        />
-      </CardFormField>
+      <AppTextarea
+        {...register("front")}
+        id="card-front"
+        label="Front"
+        placeholder="Question or prompt"
+        rows={4}
+        error={errors.front?.message}
+      />
 
       {cardType === "plain" && (
-        <CardFormField label="Back" htmlFor="card-back" error={errors.back?.message}>
-          <AppTextarea
-            {...register("back")}
-            id="card-back"
-            placeholder="Answer"
-            rows={4}
-          />
-        </CardFormField>
+        <AppTextarea
+          {...register("back")}
+          id="card-back"
+          label="Back"
+          placeholder="Answer"
+          rows={4}
+          error={errors.back?.message}
+        />
       )}
 
       {cardType === "multiple_choice" && (
@@ -168,24 +166,20 @@ export const CardFormFields = ({
             control={control}
             name="correctChoiceId"
             render={({ field, fieldState: { error } }) => (
-              <CardFormField
+              <AppSelect
+                id="card-correct-choice"
                 label="Correct choice"
-                htmlFor="card-correct-choice"
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                options={choices
+                  .filter((choice) => choice.text.trim())
+                  .map((choice) => ({
+                    label: choice.id.toUpperCase() + ": " + choice.text,
+                    value: choice.id,
+                  }))}
+                aria-label="Correct choice"
                 error={error?.message}
-              >
-                <AppSelect
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                  options={choices
-                    .filter((choice) => choice.text.trim())
-                    .map((choice) => ({
-                      label: choice.id.toUpperCase() + ": " + choice.text,
-                      value: choice.id,
-                    }))}
-                  id="card-correct-choice"
-                  aria-label="Correct choice"
-                />
-              </CardFormField>
+              />
             )}
           />
         </>
@@ -193,29 +187,21 @@ export const CardFormFields = ({
 
       {cardType === "typed_answer" && (
         <>
-          <CardFormField
+          <AppInput
+            {...register("acceptedAnswer")}
+            id="card-accepted-answer"
             label="Accepted answer"
-            htmlFor="card-accepted-answer"
+            placeholder="Primary accepted answer"
             error={errors.acceptedAnswer?.message}
-          >
-            <AppInput
-              {...register("acceptedAnswer")}
-              id="card-accepted-answer"
-              placeholder="Primary accepted answer"
-            />
-          </CardFormField>
+          />
 
-          <CardFormField
+          <AppInput
+            {...register("aliases")}
+            id="card-aliases"
             label="Aliases"
-            htmlFor="card-aliases"
+            placeholder="e.g. sqlite, SQLite database"
             error={errors.aliases?.message}
-          >
-            <AppInput
-              {...register("aliases")}
-              id="card-aliases"
-              placeholder="e.g. sqlite, SQLite database"
-            />
-          </CardFormField>
+          />
 
           <CardFormField label="Matching" htmlFor="card-case-sensitive">
             <label className="flex items-center gap-2 text-sm text-foreground">
@@ -231,72 +217,60 @@ export const CardFormFields = ({
         </>
       )}
 
-      <CardFormField label="Hint" htmlFor="card-hint" error={errors.hint?.message}>
-        <AppInput
-          {...register("hint")}
-          id="card-hint"
-          placeholder="Optional hint shown during review"
-        />
-      </CardFormField>
+      <AppInput
+        {...register("hint")}
+        id="card-hint"
+        label="Hint"
+        placeholder="Optional hint shown during review"
+        error={errors.hint?.message}
+      />
 
-      <CardFormField
+      <AppTextarea
+        {...register("explanation")}
+        id="card-explanation"
         label="Explanation"
-        htmlFor="card-explanation"
+        placeholder="Optional explanation shown after answering"
+        rows={3}
+        className="min-h-24"
         error={errors.explanation?.message}
-      >
-        <AppTextarea
-          {...register("explanation")}
-          id="card-explanation"
-          placeholder="Optional explanation shown after answering"
-          rows={3}
-          className="min-h-24"
-        />
-      </CardFormField>
+      />
 
-      <CardFormField
-        label="Source excerpt"
-        htmlFor="card-source-excerpt"
+      <AppTextarea
+        {...register("sourceExcerpt")}
+        id="card-source-excerpt"
+          label="Source excerpt"
+        placeholder="Optional source text this card was derived from"
+        rows={3}
+        className="min-h-24"
         error={errors.sourceExcerpt?.message}
-      >
-        <AppTextarea
-          {...register("sourceExcerpt")}
-          id="card-source-excerpt"
-          placeholder="Optional source text this card was derived from"
-          rows={3}
-          className="min-h-24"
-        />
-      </CardFormField>
+      />
 
       <Controller
         control={control}
         name="difficulty"
         render={({ field, fieldState: { error } }) => (
-          <CardFormField
+          <AppSelect
+            id="card-difficulty"
             label="Difficulty"
-            htmlFor="card-difficulty"
+            value={field.value ?? ""}
+            onChange={field.onChange}
+            options={DIFFICULTY_OPTIONS.map((option) => ({
+              label: option.label,
+              value: option.value,
+            }))}
+            aria-label="Difficulty"
             error={error?.message}
-          >
-            <AppSelect
-              value={field.value ?? ""}
-              onChange={field.onChange}
-              options={DIFFICULTY_OPTIONS.map((option) => ({
-                label: option.label,
-                value: option.value,
-              }))}
-              id="card-difficulty"
-              aria-label="Difficulty"
-            />
-          </CardFormField>
+          />
         )}
       />
 
-      <CardFormField label="Tags" htmlFor="card-tags" error={errors.tags?.message}>
-        <AppInput
-          {...register("tags")}
-          id="card-tags"
-          placeholder="e.g. vocabulary, chapter-1"
-        />
-      </CardFormField>
+      <AppInput
+        {...register("tags")}
+        id="card-tags"
+        label="Tags"
+        placeholder="e.g. vocabulary, chapter-1"
+        error={errors.tags?.message}
+      />
     </div>
   );
 };

@@ -1,28 +1,80 @@
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { ComponentProps } from "react";
 import { render, screen } from "@/test-utils";
 import { CreatableSelect } from "./creatable-select";
 
 const SCIENCE = { value: "cat-1", label: "Science" };
 const MATH = { value: "cat-2", label: "Math" };
 
-const defaultProps = {
+const defaultProps: ComponentProps<typeof CreatableSelect> = {
   options: [SCIENCE, MATH],
   value: "",
   onChange: vi.fn(),
   onCreate: vi.fn().mockResolvedValue(undefined),
-  placeholder: undefined as string | undefined,
+  placeholder: undefined,
 };
 
-function setup(
-  props: Partial<typeof defaultProps> & { emptyMessage?: string } = {}
-) {
+function setup(props: Partial<ComponentProps<typeof CreatableSelect>> = {}) {
   const user = userEvent.setup();
   render(<CreatableSelect {...defaultProps} {...props} />);
   return { user };
 }
 
 describe("CreatableSelect", () => {
+  describe("label", () => {
+    it("renders a visible label when the label prop is provided", () => {
+      setup({ id: "category", label: "Category" });
+      expect(screen.getByText(/category/i)).toBeInTheDocument();
+    });
+
+    it("associates the label with the combobox via htmlFor", () => {
+      setup({ id: "category", label: "Category" });
+      expect(screen.getByLabelText(/category/i)).toBeInTheDocument();
+    });
+
+    it("does not render a label when label prop is omitted", () => {
+      setup({ id: "category" });
+      expect(screen.queryByRole("label")).toBeNull();
+    });
+  });
+
+  describe("error", () => {
+    it("renders the error message when error prop is provided", () => {
+      setup({ id: "category", error: "Category is required" });
+      expect(screen.getByText("Category is required")).toBeInTheDocument();
+    });
+
+    it("assigns the correct id to the error paragraph", () => {
+      setup({ id: "category", error: "Required" });
+      expect(screen.getByText("Required")).toHaveAttribute(
+        "id",
+        "category-error"
+      );
+    });
+
+    it("sets aria-describedby on the combobox pointing to the error", () => {
+      setup({ id: "category", error: "Required" });
+      expect(screen.getByRole("combobox")).toHaveAttribute(
+        "aria-describedby",
+        "category-error"
+      );
+    });
+
+    it("sets aria-invalid on the combobox when error is present", () => {
+      setup({ id: "category", error: "Required" });
+      expect(screen.getByRole("combobox")).toHaveAttribute(
+        "aria-invalid",
+        "true"
+      );
+    });
+
+    it("does not render an error when error prop is omitted", () => {
+      setup({ id: "category", label: "Category" });
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+  });
+
   describe("closed state", () => {
     it("renders a combobox button", () => {
       setup();
