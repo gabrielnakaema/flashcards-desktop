@@ -85,7 +85,7 @@ const DeckGenerateCardsForm = ({
     reset,
   } = useGenerateCards();
 
-  const generatedCards = data ?? [];
+  const generatedCards = data;
   const errorMessage = getErrorMessage(error);
   const modelListErrorMessage = getErrorMessage(modelListQuery.error);
 
@@ -262,6 +262,7 @@ const DeckGenerateCardsForm = ({
             layout="studio"
             cards={generatedCards}
             deck={deck}
+            isGenerating={isGenerating}
             onSave={(count) => {
               setSavedCount(count);
               reset();

@@ -27,12 +27,23 @@ const makeOpenAiCard = () => ({
   tags: ["physics"],
 });
 
-const makeResponse = (payload: unknown): Response => {
-  return {
-    ok: true,
-    json: async () => payload,
-  } as Response;
-};
+const makeSecondOpenAiCard = () => ({
+  ...makeOpenAiCard(),
+  front: "What is inertia?",
+  back: "Resistance to a change in motion.",
+});
+
+const makeStreamResponse = (outputText: string): Response =>
+  new Response(
+    `data: ${JSON.stringify({
+      type: "response.output_text.delta",
+      delta: outputText,
+    })}\n\ndata: ${JSON.stringify({ type: "response.completed" })}\n\n`,
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
 
 beforeEach(() => {
   mockTauriFetch.mockReset();
@@ -56,10 +67,9 @@ describe("openAiLlmProvider", () => {
   });
 
   it("requests structured outputs and returns generated cards", async () => {
-    const payload = {
-      output_text: JSON.stringify({ cards: [makeOpenAiCard()] }),
-    };
-    mockTauriFetch.mockResolvedValue(makeResponse(payload));
+    mockTauriFetch.mockResolvedValue(
+      makeStreamResponse(JSON.stringify({ cards: [makeOpenAiCard()] }))
+    );
 
     const cards = await openAiLlmProvider.generateCards({
       apiKey: "sk-test",
@@ -83,6 +93,7 @@ describe("openAiLlmProvider", () => {
     const body = JSON.parse(request.body as string);
 
     expect(body.model).toBe("gpt-test");
+    expect(body.stream).toBe(true);
     expect(body.text.format.type).toBe("json_schema");
     expect(body.text.format.strict).toBe(true);
     expect(body.text.format.schema.required).toEqual(["cards"]);
@@ -98,13 +109,109 @@ describe("openAiLlmProvider", () => {
     ]);
   });
 
+  it("emits cards as complete objects arrive in the response stream", async () => {
+    let streamController: ReadableStreamDefaultController<Uint8Array>;
+    const stream = new ReadableStream<Uint8Array>({
+      start: (controller) => {
+        streamController = controller;
+      },
+    });
+    mockTauriFetch.mockResolvedValue(
+      new Response(stream, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      })
+    );
+
+    const onCardGenerated = vi.fn();
+    const generation = openAiLlmProvider.generateCards({
+      apiKey: "sk-test",
+      model: "gpt-test",
+      systemPrompt: "System prompt",
+      prompt: "Generate cards",
+      onCardGenerated,
+    });
+    const firstDelta = `{"cards":[${JSON.stringify(makeOpenAiCard())},`;
+
+    streamController!.enqueue(
+      new TextEncoder().encode(
+        `data: ${JSON.stringify({
+          type: "response.output_text.delta",
+          delta: firstDelta,
+        })}\n\n`
+      )
+    );
+
+    await vi.waitFor(() => {
+      expect(onCardGenerated).toHaveBeenCalledTimes(1);
+    });
+    expect(onCardGenerated).toHaveBeenCalledWith(
+      expect.objectContaining({ front: "What is gravity?" })
+    );
+
+    streamController!.enqueue(
+      new TextEncoder().encode(
+        `data: ${JSON.stringify({
+          type: "response.output_text.delta",
+          delta: `${JSON.stringify(makeSecondOpenAiCard())}]}`,
+        })}\n\ndata: ${JSON.stringify({
+          type: "response.completed",
+        })}\n\n`
+      )
+    );
+    streamController!.close();
+
+    const cards = await generation;
+
+    expect(onCardGenerated).toHaveBeenCalledTimes(2);
+    expect(cards.map((card) => card.front)).toEqual([
+      "What is gravity?",
+      "What is inertia?",
+    ]);
+  });
+
+  it("cancels the response reader when a stream event fails", async () => {
+    const cancel = vi.fn();
+    const stream = new ReadableStream<Uint8Array>({
+      start: (controller) => {
+        controller.enqueue(
+          new TextEncoder().encode(
+            `data: ${JSON.stringify({
+              type: "response.failed",
+              response: { error: { message: "Generation failed." } },
+            })}\n\n`
+          )
+        );
+      },
+      cancel,
+    });
+    mockTauriFetch.mockResolvedValue(
+      new Response(stream, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      })
+    );
+
+    await expect(
+      openAiLlmProvider.generateCards({
+        apiKey: "sk-test",
+        model: "gpt-test",
+        systemPrompt: "System prompt",
+        prompt: "Generate cards",
+      })
+    ).rejects.toThrow("Generation failed.");
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+
   it("rejects invalid generated card data", async () => {
-    const payload = {
-      output_text: JSON.stringify({
-        cards: [{ ...makeOpenAiCard(), back: null }],
-      }),
-    };
-    mockTauriFetch.mockResolvedValue(makeResponse(payload));
+    mockTauriFetch.mockResolvedValue(
+      makeStreamResponse(
+        JSON.stringify({
+          cards: [{ ...makeOpenAiCard(), back: null }],
+        })
+      )
+    );
 
     await expect(
       openAiLlmProvider.generateCards({

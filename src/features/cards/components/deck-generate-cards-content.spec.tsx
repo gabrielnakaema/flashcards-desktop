@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@/test-utils";
+import { act, render, screen, waitFor } from "@/test-utils";
 import type { Deck } from "@/features/decks";
 import { DeckGenerateCardsContent } from "./deck-generate-cards-content";
 
@@ -139,6 +139,109 @@ describe("DeckGenerateCardsContent", () => {
     expect(await screen.findByText("What is gravity?")).toBeVisible();
     expect(screen.getByText("A force that attracts mass.")).toBeVisible();
     expect(screen.getByText("1 of 1 drafts selected.")).toBeVisible();
+  });
+
+  it("previews cards before generation finishes", async () => {
+    let finishGeneration: ((cards: unknown[]) => void) | undefined;
+    const streamedCard = {
+      type: "plain",
+      front: "Streamed question",
+      back: "Streamed answer",
+    };
+    mockGenerateCards.mockImplementation(
+      ({
+        onCardGenerated,
+      }: {
+        onCardGenerated?: (card: typeof streamedCard) => void;
+      }) => {
+        onCardGenerated?.(streamedCard);
+        return new Promise((resolve) => {
+          finishGeneration = resolve;
+        });
+      }
+    );
+    const { user } = setup();
+
+    await user.type(screen.getByLabelText(/api key/i), "sk-test");
+    await user.click(screen.getByRole("button", { name: /\+ generate cards/i }));
+
+    expect(await screen.findByText("Streamed question")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /generating/i })
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("progressbar", { name: /generating card 2/i })
+    ).toBeVisible();
+    expect(screen.getByText("Composing card 2")).toBeVisible();
+    expect(screen.getByText("Streamed question").closest("tr")).toHaveClass(
+      "generated-card-enter"
+    );
+
+    finishGeneration?.([streamedCard]);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /\+ generate cards/i })
+      ).toBeEnabled();
+    });
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it("keeps discarded drafts removed as later cards stream in", async () => {
+    let emitCard: ((card: { type: "plain"; front: string; back: string }) => void)
+      | undefined;
+    let finishGeneration:
+      | ((cards: { type: "plain"; front: string; back: string }[]) => void)
+      | undefined;
+    const cards = ["First", "Discarded", "Third", "Fourth"].map((front) => ({
+      type: "plain" as const,
+      front,
+      back: `${front} answer`,
+    }));
+    mockGenerateCards.mockImplementation(
+      ({
+        onCardGenerated,
+      }: {
+        onCardGenerated?: (card: (typeof cards)[number]) => void;
+      }) => {
+        emitCard = onCardGenerated;
+        cards.slice(0, 3).forEach((card) => onCardGenerated?.(card));
+        return new Promise((resolve) => {
+          finishGeneration = resolve;
+        });
+      }
+    );
+    const { user } = setup();
+
+    await user.type(screen.getByLabelText(/api key/i), "sk-test");
+    await user.click(screen.getByRole("button", { name: /\+ generate cards/i }));
+    await screen.findByText("Discarded");
+
+    await user.click(screen.getAllByRole("button", { name: "Discard" })[1]);
+    act(() => emitCard?.(cards[3]));
+
+    expect(await screen.findByText("Fourth")).toBeVisible();
+    expect(screen.queryByText("Discarded")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Third")).toHaveLength(1);
+
+    act(() => finishGeneration?.(cards));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /save selected cards/i })
+      ).toBeEnabled();
+    });
+    await user.click(
+      screen.getByRole("button", { name: /save selected cards/i })
+    );
+
+    await waitFor(() => {
+      expect(mockBulkCreateCards).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      mockBulkCreateCards.mock.calls[0][0].map(
+        (card: { front: string }) => card.front
+      )
+    ).toEqual(["First", "Third", "Fourth"]);
   });
 
   it("saves approved generated cards after edits", async () => {

@@ -6,20 +6,22 @@ import {
   CardFormValues,
   formValuesToCreatePayload,
 } from "@/features/cards/schemas/card-form-schema";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBulkCreateCards } from "@/features/cards/hooks/use-bulk-create-cards";
 import { getErrorMessage } from "@/shared/utils/handle-error";
 import { Deck } from "@/features/decks";
-import { Sparkles } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { CardFormFields } from "./card-form-fields";
+import "./review-cards-motion.css";
 
 interface ReviewCardsPanelProps {
   cards: GeneratedCard[];
   deck: Deck;
   onSave?: (count: number) => void;
   layout?: "studio" | "panel";
+  isGenerating?: boolean;
 }
 
 interface GeneratedCardDraft {
@@ -85,14 +87,22 @@ const generatedCardToFormValues = (card: GeneratedCard): CardFormValues => {
   return base;
 };
 
+const getGeneratedCardDraftId = (index: number): string =>
+  `generated-card-${index}`;
+
 const generatedCardToDraft = (
   card: GeneratedCard,
   index: number
 ): GeneratedCardDraft => ({
-  id: `generated-card-${index}`,
+  id: getGeneratedCardDraftId(index),
   approved: true,
   values: generatedCardToFormValues(card),
 });
+
+const areGeneratedCardsEqual = (
+  first: GeneratedCard,
+  second: GeneratedCard
+): boolean => JSON.stringify(first) === JSON.stringify(second);
 
 const getDraftAnswerSummary = (values: CardFormValues): string => {
   if (values.type === "plain") {
@@ -168,11 +178,13 @@ export const ReviewCardsPanel = ({
   deck,
   onSave,
   layout = "panel",
+  isGenerating = false,
 }: ReviewCardsPanelProps) => {
   const isStudioLayout = layout === "studio";
   const [drafts, setDrafts] = useState<GeneratedCardDraft[]>([]);
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const previousCardsRef = useRef<GeneratedCard[]>([]);
 
   const {
     bulkCreate,
@@ -183,9 +195,43 @@ export const ReviewCardsPanel = ({
   const errorMessage = validationError ?? getErrorMessage(createError);
 
   useEffect(() => {
-    setDrafts(cards.map(generatedCardToDraft));
-    setEditingDraftId(null);
-    setValidationError(null);
+    const previousCards = previousCardsRef.current;
+    const extendsPreviousCards =
+      cards.length >= previousCards.length &&
+      previousCards.every((card, index) =>
+        areGeneratedCardsEqual(card, cards[index])
+      );
+
+    setDrafts((current) => {
+      if (!extendsPreviousCards) {
+        return cards.map(generatedCardToDraft);
+      }
+
+      const currentById = new Map(current.map((draft) => [draft.id, draft]));
+
+      return cards.flatMap((card, index) => {
+        const existingDraft = currentById.get(getGeneratedCardDraftId(index));
+
+        if (existingDraft) {
+          return [existingDraft];
+        }
+
+        return index < previousCards.length
+          ? []
+          : [generatedCardToDraft(card, index)];
+      });
+    });
+    setEditingDraftId((current) =>
+      extendsPreviousCards &&
+      current &&
+      cards.some((_, index) => getGeneratedCardDraftId(index) === current)
+        ? current
+        : null
+    );
+    if (!extendsPreviousCards) {
+      setValidationError(null);
+    }
+    previousCardsRef.current = cards;
   }, [cards]);
 
   const commitDraftValues = useCallback(
@@ -277,7 +323,7 @@ export const ReviewCardsPanel = ({
     <section
       aria-label="Generated cards preview"
       aria-labelledby={
-        !isStudioLayout || hasDrafts
+        !isStudioLayout || hasDrafts || isGenerating
           ? "review-generated-cards-heading"
           : undefined
       }
@@ -303,14 +349,22 @@ export const ReviewCardsPanel = ({
         </header>
       )}
 
-      {isStudioLayout && hasDrafts && (
+      {isStudioLayout && (hasDrafts || isGenerating) && (
         <header className="shrink-0 border-b border-border/60 pb-4">
-          <h2
-            id="review-generated-cards-heading"
-            className="text-xs font-mono uppercase tracking-widest text-muted-foreground"
-          >
-            Generated drafts
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2
+              id="review-generated-cards-heading"
+              className="text-xs font-mono uppercase tracking-widest text-muted-foreground"
+            >
+              Generated drafts
+            </h2>
+            {isGenerating && (
+              <span className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-primary">
+                <Loader2 className="size-3 animate-spin" />
+                Streaming
+              </span>
+            )}
+          </div>
         </header>
       )}
 
@@ -332,7 +386,7 @@ export const ReviewCardsPanel = ({
             onBack={() => setEditingDraftId(null)}
           />
         </div>
-      ) : !hasDrafts ? (
+      ) : !hasDrafts && !isGenerating ? (
         <div
           className={cn(
             "flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center",
@@ -415,7 +469,10 @@ export const ReviewCardsPanel = ({
                 </thead>
                 <tbody className="divide-y divide-border/60">
                   {drafts.map((draft, index) => (
-                    <tr key={draft.id} className="align-top">
+                    <tr
+                      key={draft.id}
+                      className="generated-card-enter align-top"
+                    >
                       <td className="px-3 py-3">
                         <input
                           type="checkbox"
@@ -462,6 +519,42 @@ export const ReviewCardsPanel = ({
                       </td>
                     </tr>
                   ))}
+                  {isGenerating && (
+                    <tr className="generated-card-loading">
+                      <td colSpan={5} className="px-3 py-4">
+                        <div
+                          className="flex flex-col gap-3"
+                          role="status"
+                          aria-live="polite"
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex min-w-0 items-center gap-3">
+                              <span className="generated-card-loading-icon flex size-8 shrink-0 items-center justify-center rounded-sm border border-primary/20 bg-primary/5 text-primary">
+                                <Sparkles className="size-4" />
+                              </span>
+                              <div className="min-w-0">
+                                <p className="text-sm text-foreground">
+                                  Composing card {drafts.length + 1}
+                                </p>
+                                <p className="truncate text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                                  Waiting for the next complete draft
+                                </p>
+                              </div>
+                            </div>
+                            <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+                          </div>
+
+                          <div
+                            className="generated-card-progress h-1 overflow-hidden rounded-full bg-white/5"
+                            role="progressbar"
+                            aria-label={`Generating card ${drafts.length + 1}`}
+                          >
+                            <span className="generated-card-progress-beam block h-full w-1/3 rounded-full bg-primary" />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -470,8 +563,8 @@ export const ReviewCardsPanel = ({
           <div className="mt-auto flex justify-end border-t border-border/60 pt-4">
             <AppButton
               type="button"
-              disabled={isCreating}
-              aria-busy={isCreating}
+              disabled={isCreating || isGenerating}
+              aria-busy={isCreating || isGenerating}
               onClick={handleSave}
             >
               {saveButtonLabel}

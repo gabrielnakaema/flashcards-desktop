@@ -6,6 +6,7 @@ export interface GenerateCardsRequest {
   model: string;
   systemPrompt: string;
   prompt: string;
+  onCardGenerated?: (card: GeneratedCard) => void;
 }
 
 export interface ListLlmModelsRequest {

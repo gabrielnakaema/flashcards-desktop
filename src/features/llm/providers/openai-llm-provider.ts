@@ -1,4 +1,9 @@
-import { generatedCardsResponseSchema, type LlmModelOption } from "@/features/llm/types";
+import {
+  generatedCardSchema,
+  generatedCardsResponseSchema,
+  type GeneratedCard,
+  type LlmModelOption,
+} from "@/features/llm/types";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import type { LlmProvider } from "./llm-provider";
 
@@ -149,60 +154,229 @@ const parseOpenAiModels = (payload: unknown): LlmModelOption[] => {
     .sort((first, second) => first.label.localeCompare(second.label));
 }; */
 
-const getRecordArray = (
-  value: Record<string, unknown>,
-  key: string
-): Record<string, unknown>[] => {
-  const candidate = value[key];
-
-  if (!Array.isArray(candidate)) {
-    return [];
-  }
-
-  return candidate.filter(isRecord);
-};
-
-const readOutputTextContent = (
-  value: Record<string, unknown>
-): string | null => {
-  if (typeof value.text === "string") {
-    return value.text;
-  }
-
-  return null;
-};
-
-const extractOutputText = (payload: unknown): string => {
-  if (!isRecord(payload)) {
-    throw new Error("OpenAI returned an invalid response.");
-  }
-
-  if (typeof payload.output_text === "string") {
-    return payload.output_text;
-  }
-
-  const output = getRecordArray(payload, "output");
-
-  for (const item of output) {
-    const content = getRecordArray(item, "content");
-
-    for (const contentItem of content) {
-      const text = readOutputTextContent(contentItem);
-
-      if (text) {
-        return text;
-      }
-    }
-  }
-
-  throw new Error("OpenAI response did not include generated text.");
-};
-
 const parseJson = (text: string): unknown => {
   try {
     return JSON.parse(text);
   } catch {
     throw new Error("OpenAI returned a response that was not valid JSON.");
+  }
+};
+
+const getOpenAiStreamError = (event: Record<string, unknown>): string | null => {
+  if (isRecord(event.error) && typeof event.error.message === "string") {
+    return event.error.message;
+  }
+
+  if (
+    isRecord(event.response) &&
+    isRecord(event.response.error) &&
+    typeof event.response.error.message === "string"
+  ) {
+    return event.response.error.message;
+  }
+
+  if (typeof event.message === "string") {
+    return event.message;
+  }
+
+  return null;
+};
+
+const extractCompleteCardJson = (text: string): string[] => {
+  const cardsPropertyMatch = /"cards"\s*:/.exec(text);
+
+  if (!cardsPropertyMatch) {
+    return [];
+  }
+
+  const arrayStart = text.indexOf(
+    "[",
+    cardsPropertyMatch.index + cardsPropertyMatch[0].length
+  );
+
+  if (arrayStart === -1) {
+    return [];
+  }
+
+  const cards: string[] = [];
+  let objectStart = -1;
+  let objectDepth = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let index = arrayStart + 1; index < text.length; index += 1) {
+    const character = text[index];
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (character === "\\") {
+        isEscaped = true;
+      } else if (character === '"') {
+        inString = false;
+      }
+
+      continue;
+    }
+
+    if (character === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (character === "]" && objectDepth === 0) {
+      break;
+    }
+
+    if (character === "{") {
+      if (objectDepth === 0) {
+        objectStart = index;
+      }
+
+      objectDepth += 1;
+      continue;
+    }
+
+    if (character === "}" && objectDepth > 0) {
+      objectDepth -= 1;
+
+      if (objectDepth === 0 && objectStart !== -1) {
+        cards.push(text.slice(objectStart, index + 1));
+        objectStart = -1;
+      }
+    }
+  }
+
+  return cards;
+};
+
+const emitNewCards = (
+  outputText: string,
+  emittedCardCount: number,
+  onCardGenerated?: (card: GeneratedCard) => void
+): number => {
+  if (!onCardGenerated) {
+    return emittedCardCount;
+  }
+
+  const completeCards = extractCompleteCardJson(outputText);
+
+  for (const cardJson of completeCards.slice(emittedCardCount)) {
+    const result = generatedCardSchema.safeParse(parseJson(cardJson));
+
+    if (!result.success) {
+      throw new Error("OpenAI returned invalid flashcard data.");
+    }
+
+    onCardGenerated(result.data);
+    emittedCardCount += 1;
+  }
+
+  return emittedCardCount;
+};
+
+const parseSseEvent = (frame: string): Record<string, unknown> | null => {
+  const dataLine = frame
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("data:"));
+
+  if (!dataLine) {
+    return null;
+  }
+
+  const data = dataLine.slice(5).trimStart();
+
+  if (!data || data === "[DONE]") {
+    return null;
+  }
+
+  const event = parseJson(data);
+
+  if (!isRecord(event)) {
+    throw new Error("OpenAI returned an invalid streaming event.");
+  }
+
+  return event;
+};
+
+const streamOpenAiCards = async (
+  response: Response,
+  onCardGenerated?: (card: GeneratedCard) => void
+): Promise<GeneratedCard[]> => {
+  if (!response.body) {
+    throw new Error("OpenAI response did not include a readable stream.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let streamBuffer = "";
+  let outputText = "";
+  let emittedCardCount = 0;
+  let streamFinished = false;
+
+  const handleFrame = (frame: string) => {
+    const event = parseSseEvent(frame);
+
+    if (!event || typeof event.type !== "string") {
+      return;
+    }
+
+    if (
+      event.type === "error" ||
+      event.type === "response.failed" ||
+      event.type === "response.incomplete"
+    ) {
+      throw new Error(
+        getOpenAiStreamError(event) ?? "OpenAI failed to generate flashcards."
+      );
+    }
+
+    if (
+      event.type === "response.output_text.delta" &&
+      typeof event.delta === "string"
+    ) {
+      outputText += event.delta;
+      emittedCardCount = emitNewCards(
+        outputText,
+        emittedCardCount,
+        onCardGenerated
+      );
+    }
+  };
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      streamBuffer += decoder.decode(value, { stream: !done });
+
+      const frames = streamBuffer.split(/\r?\n\r?\n/);
+      streamBuffer = frames.pop() ?? "";
+      for (const frame of frames) {
+        handleFrame(frame);
+      }
+
+      if (done) {
+        streamFinished = true;
+        break;
+      }
+    }
+
+    if (streamBuffer.trim()) {
+      handleFrame(streamBuffer);
+    }
+
+    const result = generatedCardsResponseSchema.safeParse(parseJson(outputText));
+
+    if (!result.success) {
+      throw new Error("OpenAI returned invalid flashcard data.");
+    }
+
+    return result.data.cards;
+  } finally {
+    if (!streamFinished) {
+      await reader.cancel().catch(() => undefined);
+    }
+    reader.releaseLock();
   }
 };
 
@@ -238,6 +412,7 @@ const buildOpenAiRequestBody = (
 ): Record<string, unknown> => {
   return {
     model,
+    stream: true,
     input: [
       {
         role: "system",
@@ -277,7 +452,13 @@ export const openAiLlmProvider: LlmProvider = {
 
     return OPENAI_MODEL_OPTIONS;
   },
-  generateCards: async ({ apiKey, model, systemPrompt, prompt }) => {
+  generateCards: async ({
+    apiKey,
+    model,
+    systemPrompt,
+    prompt,
+    onCardGenerated,
+  }) => {
     const body = buildOpenAiRequestBody(model, systemPrompt, prompt);
 
     const response = await tauriFetch(OPENAI_RESPONSES_URL, {
@@ -293,15 +474,6 @@ export const openAiLlmProvider: LlmProvider = {
       throw new Error(await readOpenAiError(response));
     }
 
-    const payload = (await response.json()) as unknown;
-    const outputText = extractOutputText(payload);
-    const parsedJson = parseJson(outputText);
-    const result = generatedCardsResponseSchema.safeParse(parsedJson);
-
-    if (!result.success) {
-      throw new Error("OpenAI returned invalid flashcard data.");
-    }
-
-    return result.data.cards;
+    return streamOpenAiCards(response, onCardGenerated);
   },
 };
