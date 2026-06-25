@@ -3,9 +3,9 @@ import { getDeckColor } from "@/shared/utils/deck-colors";
 import { DeckCard } from "./deck-card";
 
 export const DeckList = () => {
-  const { data: decks, isFetching } = useListDecks();
+  const { data: decks, isLoading } = useListDecks();
 
-  if (isFetching) {
+  if (isLoading) {
     return (
       <section className="w-full grid grid-cols-[repeat(auto-fit,minmax(300px,350px))] gap-6">
         {Array.from({ length: 10 }).map((_, index) => (
