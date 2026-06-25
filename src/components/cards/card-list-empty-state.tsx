@@ -1,4 +1,5 @@
 import { Loader2Icon, PlusIcon } from "lucide-react";
+import { AppButton } from "@/components/shared/app-button";
 
 interface CardListEmptyStateProps {
   variant: "no-cards" | "no-results" | "loading" | "error";
@@ -45,13 +46,9 @@ export const CardListEmptyState = ({
           </p>
         </div>
         {onClearFilters && (
-          <button
-            type="button"
-            onClick={onClearFilters}
-            className="rounded-sm border border-border bg-zinc-950 px-4 py-2 text-sm font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono"
-          >
+          <AppButton type="button" variant="secondary" onClick={onClearFilters}>
             Clear filters
-          </button>
+          </AppButton>
         )}
       </div>
     );
@@ -69,14 +66,10 @@ export const CardListEmptyState = ({
         </p>
       </div>
       {onCreateCard && (
-        <button
-          type="button"
-          onClick={onCreateCard}
-          className="inline-flex items-center gap-1.5 rounded-sm border border-orange-400 bg-orange-400 px-4 py-2 text-sm font-medium tracking-tight text-zinc-950 transition-colors hover:border-orange-500 hover:bg-orange-500 font-mono"
-        >
+        <AppButton type="button" onClick={onCreateCard}>
           <PlusIcon className="size-3.5" />
           Create first flashcard
-        </button>
+        </AppButton>
       )}
     </div>
   );

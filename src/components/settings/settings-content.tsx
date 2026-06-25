@@ -4,6 +4,7 @@ import { getLlmProviderOptions } from "@/providers/llm-provider";
 import { AppSwitch } from "@/components/shared/app-switch";
 import { AppSelect } from "@/components/shared/app-select";
 import { AppInput } from "@/components/shared/app-input";
+import { AppButton } from "@/components/shared/app-button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   settingsFormSchema,
@@ -136,14 +137,14 @@ export const SettingsContent = () => {
                   )}
                 />
                 <div className="flex items-center gap-2">
-                  <button
+                  <AppButton
                     type="button"
+                    variant="secondary"
                     disabled={modelListQuery.isFetching}
                     onClick={() => void modelListQuery.refetch()}
-                    className="w-fit rounded-sm border border-border bg-zinc-950 text-muted-foreground px-4 py-2 text-sm font-medium tracking-tight hover:bg-zinc-900 transition-colors font-mono disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {modelListQuery.isFetching ? "Loading..." : "Load models"}
-                  </button>
+                  </AppButton>
                   {modelListErrorMessage && (
                     <p className="text-xs text-red-500" role="alert">
                       {modelListErrorMessage}
@@ -191,19 +192,16 @@ export const SettingsContent = () => {
               </div>
 
               <div className="flex justify-end gap-2 pt-1 border-t border-border">
-                <button
+                <AppButton
                   type="button"
+                  variant="secondary"
                   onClick={() => reset()}
-                  className="w-fit rounded-sm border border-border bg-zinc-950 text-muted-foreground px-4 py-2 text-sm font-medium tracking-tight hover:bg-zinc-900 transition-colors font-mono"
                 >
                   Reset
-                </button>
-                <button
-                  type="submit"
-                  className="w-fit rounded-sm border border-orange-400 bg-orange-400 text-zinc-950 px-4 py-2 text-sm font-medium tracking-tight hover:bg-orange-500 hover:border-orange-500 transition-colors font-mono"
-                >
+                </AppButton>
+                <AppButton type="submit">
                   Save
-                </button>
+                </AppButton>
               </div>
             </div>
           </div>

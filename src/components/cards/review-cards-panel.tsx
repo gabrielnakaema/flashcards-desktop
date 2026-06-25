@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { AppButton } from "@/components/shared/app-button";
 import { GeneratedCard } from "@/types/llm";
 import {
   cardFormSchema,
@@ -137,20 +138,21 @@ const DraftCardEditForm = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          <AppButton
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={onBack}
-            className="rounded-sm border border-border bg-zinc-950 px-3 py-2 text-xs font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono"
           >
             Back to table
-          </button>
-          <button
+          </AppButton>
+          <AppButton
             type="button"
+            size="sm"
             onClick={form.handleSubmit(onCommit)}
-            className="rounded-sm border border-orange-400 bg-orange-400 px-3 py-2 text-xs font-medium tracking-tight text-zinc-950 transition-colors hover:border-orange-500 hover:bg-orange-500 font-mono"
           >
             Save
-          </button>
+          </AppButton>
         </div>
       </div>
 
@@ -361,27 +363,30 @@ export const ReviewCardsPanel = ({
               </p>
 
               <div className="flex flex-wrap items-center gap-2">
-                <button
+                <AppButton
                   type="button"
+                  variant="secondary"
+                  size="xs"
                   onClick={selectAllDrafts}
-                  className="rounded-sm border border-border bg-zinc-950 px-3 py-1.5 text-xs font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono"
                 >
                   Select all
-                </button>
-                <button
+                </AppButton>
+                <AppButton
                   type="button"
+                  variant="secondary"
+                  size="xs"
                   onClick={clearDraftSelection}
-                  className="rounded-sm border border-border bg-zinc-950 px-3 py-1.5 text-xs font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono"
                 >
                   Clear selection
-                </button>
-                <button
+                </AppButton>
+                <AppButton
                   type="button"
+                  variant="secondary"
+                  size="xs"
                   onClick={discardSelectedDrafts}
-                  className="rounded-sm border border-border bg-zinc-950 px-3 py-1.5 text-xs font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono"
                 >
                   Discard selected
-                </button>
+                </AppButton>
                 <button
                   type="button"
                   onClick={discardAllDrafts}
@@ -437,13 +442,15 @@ export const ReviewCardsPanel = ({
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
-                          <button
+                          <AppButton
                             type="button"
+                            variant="secondary"
+                            size="xs"
+                            className="bg-zinc-900 px-2.5 py-1 text-foreground hover:bg-zinc-800"
                             onClick={() => setEditingDraftId(draft.id)}
-                            className="rounded-sm border border-border bg-zinc-900 px-2.5 py-1 text-xs font-medium tracking-tight text-foreground transition-colors hover:bg-zinc-800 font-mono"
                           >
                             Edit
-                          </button>
+                          </AppButton>
                           <button
                             type="button"
                             onClick={() => discardDraft(draft.id)}
@@ -461,15 +468,14 @@ export const ReviewCardsPanel = ({
           </div>
 
           <div className="mt-auto flex justify-end border-t border-border/60 pt-4">
-            <button
+            <AppButton
               type="button"
               disabled={isCreating}
               aria-busy={isCreating}
               onClick={handleSave}
-              className="rounded-sm border border-orange-400 bg-orange-400 px-4 py-2 text-sm font-medium tracking-tight text-zinc-950 transition-colors hover:border-orange-500 hover:bg-orange-500 font-mono disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saveButtonLabel}
-            </button>
+            </AppButton>
           </div>
         </>
       )}

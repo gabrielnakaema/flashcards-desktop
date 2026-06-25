@@ -14,6 +14,7 @@ import { Loader2Icon } from "lucide-react";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { CardFormFields } from "./card-form-fields";
+import { AppButton } from "@/components/shared/app-button";
 
 interface CardFormProps {
   deckId: string;
@@ -101,26 +102,26 @@ export const CardForm = ({
 
           <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border p-6">
             {onCancel && (
-              <button
+              <AppButton
                 type="button"
+                variant="secondary"
                 onClick={onCancel}
-                className="rounded-sm border border-border bg-zinc-950 px-4 py-2 text-sm font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono"
               >
                 Cancel
-              </button>
+              </AppButton>
             )}
-            <button
+            <AppButton
               type="submit"
               disabled={isPending}
               aria-busy={isPending}
-              className="inline-flex min-w-24 items-center justify-center rounded-sm border border-orange-400 bg-orange-400 px-4 py-2 text-sm font-medium tracking-tight text-zinc-950 transition-colors hover:border-orange-500 hover:bg-orange-500 font-mono disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-w-24"
             >
               {isPending ? (
                 <Loader2Icon className="size-4 animate-spin" />
               ) : (
                 submitLabel
               )}
-            </button>
+            </AppButton>
           </div>
         </form>
       </div>

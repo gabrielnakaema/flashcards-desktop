@@ -1,6 +1,7 @@
 import { AppInput } from "@/components/shared/app-input";
 import { AppSelect } from "@/components/shared/app-select";
 import { AppTextarea } from "@/components/shared/app-textarea";
+import { AppButton } from "@/components/shared/app-button";
 import { cn } from "@/lib/utils";
 import { nextChoiceId, type CardFormValues } from "@/schemas/card-form-schema";
 import { PlusIcon, Trash2Icon } from "lucide-react";
@@ -21,8 +22,6 @@ export const DIFFICULTY_OPTIONS = [
 const FIELD_LABEL_CLASS =
   "text-[11px] font-mono tracking-wide text-muted-foreground uppercase";
 
-const SECONDARY_BUTTON_CLASS =
-  "rounded-sm border border-border bg-zinc-950 px-3 py-2 text-xs font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono disabled:cursor-not-allowed disabled:opacity-50";
 
 interface CardFormFieldProps {
   label: string;
@@ -134,31 +133,29 @@ export const CardFormFields = ({
                     id={`card-choice-${index}`}
                     placeholder={`Choice ${index + 1}`}
                   />
-                  <button
+                  <AppButton
                     type="button"
+                    variant="secondary"
+                    size="sm"
                     disabled={fields.length <= 2}
                     onClick={() => remove(index)}
                     aria-label={`Remove choice ${index + 1}`}
-                    className={cn(
-                      SECONDARY_BUTTON_CLASS,
-                      "inline-flex size-10 shrink-0 items-center justify-center p-0"
-                    )}
+                    className="size-10 p-0"
                   >
                     <Trash2Icon className="size-4" />
-                  </button>
+                  </AppButton>
                 </div>
               ))}
-              <button
+              <AppButton
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => append({ id: nextChoiceId(choices), text: "" })}
-                className={cn(
-                  SECONDARY_BUTTON_CLASS,
-                  "inline-flex w-fit items-center gap-2"
-                )}
+                className="w-fit gap-2"
               >
                 <PlusIcon className="size-4" />
                 Add choice
-              </button>
+              </AppButton>
             </div>
           </CardFormField>
 

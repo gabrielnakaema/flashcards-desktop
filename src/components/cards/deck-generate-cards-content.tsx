@@ -1,4 +1,5 @@
 import { AppInput } from "@/components/shared/app-input";
+import { AppButton } from "@/components/shared/app-button";
 import { AppSelect } from "@/components/shared/app-select";
 import { AppTextarea } from "@/components/shared/app-textarea";
 import { useGenerateCards } from "@/hooks/cards/use-generate-cards";
@@ -185,14 +186,15 @@ const DeckGenerateCardsForm = ({
                       />
                     )}
                   />
-                  <button
+                  <AppButton
                     type="button"
+                    variant="secondary"
+                    size="sm"
                     disabled={modelListQuery.isFetching}
                     onClick={() => void modelListQuery.refetch()}
-                    className="shrink-0 rounded-sm border border-border bg-zinc-950 px-3 py-2 text-xs font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {modelListQuery.isFetching ? "..." : "Load"}
-                  </button>
+                  </AppButton>
                 </div>
                 {errors.model?.message && (
                   <p className="text-xs text-red-500">{errors.model.message}</p>
@@ -242,14 +244,15 @@ const DeckGenerateCardsForm = ({
             </div>
 
             <div className="shrink-0 border-t border-border p-6">
-              <button
+              <AppButton
                 type="submit"
+                size="lg"
                 disabled={isGenerating}
                 aria-busy={isGenerating}
-                className="w-full rounded-sm border border-orange-400 bg-orange-400 px-4 py-3 text-sm font-medium tracking-tight text-zinc-950 transition-colors hover:border-orange-500 hover:bg-orange-500 font-mono disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full"
               >
                 {isGenerating ? "Generating..." : "+ Generate cards"}
-              </button>
+              </AppButton>
             </div>
           </form>
         </aside>

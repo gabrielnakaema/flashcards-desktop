@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, PencilIcon, PlusIcon, Sparkles } from "lucide-react";
+import { AppButton } from "@/components/shared/app-button";
 
 interface DeckCardsHeaderProps {
   deckId: string;
@@ -47,38 +48,33 @@ export const DeckCardsHeader = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            to="/decks/$deckId/study"
-            params={{ deckId }}
-            className="inline-flex items-center justify-center rounded-sm border border-orange-400 bg-orange-400 px-4 py-2 text-sm font-medium tracking-tight text-zinc-950 transition-colors hover:border-orange-500 hover:bg-orange-500 font-mono"
-          >
-            Study
-          </Link>
-          <Link
-            to="/decks/$deckId/edit"
-            params={{ deckId }}
-            className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-zinc-950 px-4 py-2 text-sm font-medium tracking-tight text-muted-foreground transition-colors hover:bg-zinc-900 hover:text-foreground font-mono"
-          >
-            <PencilIcon className="size-3.5" />
-            Edit deck
-          </Link>
-          <Link
-            to="/decks/$deckId/generate"
-            params={{ deckId }}
-            className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-zinc-950 px-4 py-2 text-sm font-medium tracking-tight text-foreground transition-colors hover:bg-zinc-900 font-mono"
-          >
-            <Sparkles className="size-3.5" />
-            Generate
-          </Link>
+          <AppButton asChild>
+            <Link to="/decks/$deckId/study" params={{ deckId }}>
+              Study
+            </Link>
+          </AppButton>
+          <AppButton variant="secondary" asChild>
+            <Link to="/decks/$deckId/edit" params={{ deckId }}>
+              <PencilIcon className="size-3.5" />
+              Edit deck
+            </Link>
+          </AppButton>
+          <AppButton variant="secondary" asChild className="text-foreground">
+            <Link to="/decks/$deckId/generate" params={{ deckId }}>
+              <Sparkles className="size-3.5" />
+              Generate
+            </Link>
+          </AppButton>
           {onCreateCard && (
-            <button
+            <AppButton
               type="button"
+              variant="secondary"
+              className="text-foreground"
               onClick={onCreateCard}
-              className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-zinc-950 px-4 py-2 text-sm font-medium tracking-tight text-foreground transition-colors hover:bg-zinc-900 font-mono"
             >
               <PlusIcon className="size-3.5" />
               New card
-            </button>
+            </AppButton>
           )}
         </div>
       </div>

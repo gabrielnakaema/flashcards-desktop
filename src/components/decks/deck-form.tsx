@@ -2,6 +2,7 @@ import { deckFormSchema, DeckFormValues } from "@/schemas/deck-form.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { AppInput } from "@/components/shared/app-input";
+import { AppButton } from "@/components/shared/app-button";
 import { CreatableSelect } from "@/components/shared/creatable-select";
 import { useListDeckCategories } from "@/hooks/decks/use-list-deck-categories";
 import { useCreateDeckCategory } from "@/hooks/decks/use-create-deck-category";
@@ -59,7 +60,12 @@ export const DeckForm = ({ deck, onSuccess, onCancel }: DeckFormProps) => {
   const onSubmit = async (data: DeckFormValues) => {
     const tags = data.tags?.split(",").map((t) => t.trim()) ?? [];
     if (isEdit) {
-      await update({ id: deck.id, title: data.title, tags, categoryId: data.categoryId });
+      await update({
+        id: deck.id,
+        title: data.title,
+        tags,
+        categoryId: data.categoryId,
+      });
     } else {
       create({ title: data.title, tags, categoryId: data.categoryId });
     }
@@ -112,20 +118,12 @@ export const DeckForm = ({ deck, onSuccess, onCancel }: DeckFormProps) => {
       />
 
       <div className="w-full flex items-center justify-end gap-2 pt-6 border-t border-border">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="w-fit rounded-sm border border-border bg-zinc-950 text-muted-foreground px-4 py-2 text-sm font-medium tracking-tight hover:bg-zinc-900 transition-colors font-mono"
-        >
+        <AppButton type="button" variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-fit rounded-sm border border-orange-400 bg-orange-400 text-zinc-950 px-4 py-2 text-sm font-medium tracking-tight hover:bg-orange-500 hover:border-orange-500 transition-colors font-mono disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        </AppButton>
+        <AppButton type="submit" disabled={isPending}>
           {submitButtonLabel}
-        </button>
+        </AppButton>
       </div>
     </form>
   );
