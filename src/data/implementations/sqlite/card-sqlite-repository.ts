@@ -156,59 +156,34 @@ const getWeekRange = (inputDate: Date): { start: Date; end: Date } => {
   return { start, end };
 };
 
-const queryCount = async (
-  db: SqlClient,
-  sql: string,
-  params?: unknown[]
-): Promise<number> => {
-  const [row] = await db.select<{ count: number }[]>(sql, params);
-  return row?.count ?? 0;
-};
+const CARD_WITH_SCHEDULE_SELECT = `
+  SELECT
+    c.*,
+    cs.card_id, cs.state, cs.due_at, cs.interval_days,
+    cs.ease_factor, cs.repetition_count, cs.lapse_count,
+    cs.last_reviewed_at,
+    cs.created_at AS cs_created_at,
+    cs.updated_at AS cs_updated_at
+  FROM cards c
+  JOIN card_schedules cs ON c.id = cs.card_id`;
 
-const queryCardsDueNow = (db: SqlClient, endOfDay: string) =>
-  queryCount(
-    db,
-    `SELECT COUNT(card_id) AS count FROM card_schedules
-     WHERE due_at IS NOT NULL AND datetime(due_at) <= datetime($1)`,
-    [endOfDay]
-  );
-
-const queryReviewedInRange = (db: SqlClient, start: string, end: string) =>
-  queryCount(
-    db,
-    `SELECT COUNT(id) AS count FROM review_logs
-     WHERE datetime(reviewed_at) >= datetime($1) AND datetime(reviewed_at) <= datetime($2)`,
-    [start, end]
-  );
-
-const queryTotalCards = (db: SqlClient) =>
-  queryCount(db, `SELECT COUNT(id) AS count FROM cards`);
-
-const queryDeckCount = (db: SqlClient) =>
-  queryCount(db, `SELECT COUNT(*) AS count FROM decks`);
-
-const queryDeckWithMostCardsDue = async (
-  db: SqlClient,
-  endOfDay: string
-): Promise<{ deckId: string; count: number }> => {
-  const [row] = await db.select<{ deck_id: string; count: number }[]>(
-    `SELECT c.deck_id AS deck_id, COUNT(cs.card_id) AS count
-     FROM card_schedules cs
-     JOIN cards c ON cs.card_id = c.id
-     WHERE cs.due_at IS NOT NULL AND datetime(cs.due_at) <= datetime($1)
-     GROUP BY c.deck_id
-     ORDER BY COUNT(cs.card_id) DESC
-     LIMIT 1`,
-    [endOfDay]
-  );
-  return { deckId: row?.deck_id ?? "", count: row?.count ?? 0 };
-};
-
-const queryNextDueAt = async (db: SqlClient): Promise<string | null> => {
-  const [row] = await db.select<{ nextDueAt: string | null }[]>(
-    `SELECT MIN(datetime(due_at)) AS nextDueAt FROM card_schedules WHERE due_at IS NOT NULL`
-  );
-  return row?.nextDueAt ?? null;
+const rowToCardWithSchedule = (
+  row: Record<string, unknown>
+): CardWithSchedule => {
+  const card = parseCard(row);
+  const schedule = parseSchedule({
+    card_id: row.card_id,
+    state: row.state,
+    due_at: row.due_at,
+    interval_days: row.interval_days,
+    ease_factor: row.ease_factor,
+    repetition_count: row.repetition_count,
+    lapse_count: row.lapse_count,
+    last_reviewed_at: row.last_reviewed_at,
+    created_at: row.cs_created_at,
+    updated_at: row.cs_updated_at,
+  });
+  return { ...card, schedule };
 };
 
 export class CardSqliteRepository implements CardRepository {
@@ -258,67 +233,51 @@ export class CardSqliteRepository implements CardRepository {
       values
     );
 
-    const cards: Card[] = [];
-    for (const id of cardIds) {
-      cards.push(await this.getCard(id));
-    }
-    return cards;
+    const placeholders = cardIds.map((_, i) => `$${i + 1}`).join(", ");
+    const rows = await this.dbClient.select<Record<string, unknown>[]>(
+      `SELECT * FROM cards WHERE id IN (${placeholders})`,
+      cardIds
+    );
+    const cardMap = new Map(rows.map((r) => [r.id as string, parseCard(r)]));
+    return cardIds.map((id) => cardMap.get(id)!);
   };
 
   updateCard = async (payload: UpdateCardPayload): Promise<Card> => {
     const timestamp = now();
-
     const existing = await this.getCard(payload.id);
 
-    const updatedType = payload.type ?? existing.type;
-    const updatedFront = payload.front ?? existing.front;
-    const updatedBack =
-      payload.back !== undefined ? payload.back : existing.back;
-    const updatedContent =
-      payload.content !== undefined
-        ? JSON.stringify(payload.content)
-        : JSON.stringify(existing.content);
-    const updatedHint =
-      payload.hint !== undefined ? payload.hint : existing.hint;
-    const updatedExplanation =
-      payload.explanation !== undefined
-        ? payload.explanation
-        : existing.explanation;
-    const updatedSourceExcerpt =
-      payload.sourceExcerpt !== undefined
-        ? payload.sourceExcerpt
-        : existing.sourceExcerpt;
-    const updatedDifficulty =
-      payload.difficulty !== undefined
-        ? payload.difficulty
-        : existing.difficulty;
-    const updatedTags =
-      payload.tags !== undefined
-        ? JSON.stringify(payload.tags)
-        : JSON.stringify(existing.tags);
-
-    await this.dbClient.execute(
+    const [raw] = await this.dbClient.select<Record<string, unknown>[]>(
       `UPDATE cards SET
         type = $1, front = $2, back = $3, content = $4,
         hint = $5, explanation = $6, source_excerpt = $7,
         difficulty = $8, tags = $9, updated_at = $10
-      WHERE id = $11`,
+      WHERE id = $11
+      RETURNING *`,
       [
-        updatedType,
-        updatedFront,
-        updatedBack,
-        updatedContent,
-        updatedHint,
-        updatedExplanation,
-        updatedSourceExcerpt,
-        updatedDifficulty,
-        updatedTags,
+        payload.type ?? existing.type,
+        payload.front ?? existing.front,
+        payload.back !== undefined ? payload.back : existing.back,
+        payload.content !== undefined
+          ? JSON.stringify(payload.content)
+          : JSON.stringify(existing.content),
+        payload.hint !== undefined ? payload.hint : existing.hint,
+        payload.explanation !== undefined
+          ? payload.explanation
+          : existing.explanation,
+        payload.sourceExcerpt !== undefined
+          ? payload.sourceExcerpt
+          : existing.sourceExcerpt,
+        payload.difficulty !== undefined
+          ? payload.difficulty
+          : existing.difficulty,
+        payload.tags !== undefined
+          ? JSON.stringify(payload.tags)
+          : JSON.stringify(existing.tags),
         timestamp,
         payload.id,
       ]
     );
-
-    return this.getCard(payload.id);
+    return parseCard(raw);
   };
 
   deleteCard = async (id: string): Promise<void> => {
@@ -338,50 +297,19 @@ export class CardSqliteRepository implements CardRepository {
 
   listCardsByDeck = async (deckId: string): Promise<CardWithSchedule[]> => {
     const rows = await this.dbClient.select<Record<string, unknown>[]>(
-      `SELECT
-        c.*,
-        cs.card_id, cs.state, cs.due_at, cs.interval_days,
-        cs.ease_factor, cs.repetition_count, cs.lapse_count,
-        cs.last_reviewed_at,
-        cs.created_at AS cs_created_at,
-        cs.updated_at AS cs_updated_at
-      FROM cards c
-      JOIN card_schedules cs ON c.id = cs.card_id
+      `${CARD_WITH_SCHEDULE_SELECT}
       WHERE c.deck_id = $1
       ORDER BY c.created_at ASC`,
       [deckId]
     );
-    return rows.map((row) => {
-      const card = parseCard(row);
-      const schedule = parseSchedule({
-        card_id: row.card_id,
-        state: row.state,
-        due_at: row.due_at,
-        interval_days: row.interval_days,
-        ease_factor: row.ease_factor,
-        repetition_count: row.repetition_count,
-        lapse_count: row.lapse_count,
-        last_reviewed_at: row.last_reviewed_at,
-        created_at: row.cs_created_at,
-        updated_at: row.cs_updated_at,
-      });
-      return { ...card, schedule };
-    });
+    return rows.map(rowToCardWithSchedule);
   };
 
   getDueCards = async (deckId: string): Promise<CardWithSchedule[]> => {
     const timeNow = now();
 
     const rows = await this.dbClient.select<Record<string, unknown>[]>(
-      `SELECT
-        c.*,
-        cs.card_id, cs.state, cs.due_at, cs.interval_days,
-        cs.ease_factor, cs.repetition_count, cs.lapse_count,
-        cs.last_reviewed_at,
-        cs.created_at AS cs_created_at,
-        cs.updated_at AS cs_updated_at
-      FROM cards c
-      JOIN card_schedules cs ON c.id = cs.card_id
+      `${CARD_WITH_SCHEDULE_SELECT}
       WHERE c.deck_id = $1
         AND c.is_suspended = 0
         AND cs.due_at IS NOT NULL
@@ -390,22 +318,7 @@ export class CardSqliteRepository implements CardRepository {
       [deckId, timeNow]
     );
 
-    return rows.map((row) => {
-      const card = parseCard(row);
-      const schedule = parseSchedule({
-        card_id: row.card_id,
-        state: row.state,
-        due_at: row.due_at,
-        interval_days: row.interval_days,
-        ease_factor: row.ease_factor,
-        repetition_count: row.repetition_count,
-        lapse_count: row.lapse_count,
-        last_reviewed_at: row.last_reviewed_at,
-        created_at: row.cs_created_at,
-        updated_at: row.cs_updated_at,
-      });
-      return { ...card, schedule };
-    });
+    return rows.map(rowToCardWithSchedule);
   };
 
   getSchedule = async (cardId: string): Promise<CardSchedule> => {
@@ -504,37 +417,58 @@ export class CardSqliteRepository implements CardRepository {
     const startOfDay = getStartOfDay(date).toISOString();
     const { start: startOfWeek, end: endOfWeek } = getWeekRange(date);
 
-    const [
-      cardsDueNow,
-      cardsReviewedToday,
-      totalCardsInDecks,
-      totalCardsReviewedThisWeek,
-      deckWithMostDue,
-      deckCount,
-      nextDueAt,
-    ] = await Promise.all([
-      queryCardsDueNow(this.dbClient, endOfDay),
-      queryReviewedInRange(this.dbClient, startOfDay, endOfDay),
-      queryTotalCards(this.dbClient),
-      queryReviewedInRange(
-        this.dbClient,
-        startOfWeek.toISOString(),
-        endOfWeek.toISOString()
-      ),
-      queryDeckWithMostCardsDue(this.dbClient, endOfDay),
-      queryDeckCount(this.dbClient),
-      queryNextDueAt(this.dbClient),
-    ]);
+    const [row] = await this.dbClient.select<
+      {
+        cardsDueNow: number;
+        cardsReviewedToday: number;
+        totalCardsInDecks: number;
+        totalCardsReviewedThisWeek: number;
+        deckIdWithMostCardsDue: string;
+        mostCardsDueInDeck: number;
+        deckCount: number;
+        nextDueAt: string | null;
+      }[]
+    >(
+      `WITH
+        p(end_of_day, start_of_day, start_of_week, end_of_week) AS (
+          SELECT $1, $2, $3, $4
+        ),
+        due_by_deck AS (
+          SELECT c.deck_id, COUNT(*) AS n
+          FROM card_schedules cs
+          JOIN cards c ON cs.card_id = c.id
+          WHERE cs.due_at IS NOT NULL
+            AND datetime(cs.due_at) <= datetime((SELECT end_of_day FROM p))
+          GROUP BY c.deck_id
+        )
+      SELECT
+        COALESCE((SELECT COUNT(*) FROM card_schedules
+                  WHERE due_at IS NOT NULL
+                    AND datetime(due_at) <= datetime((SELECT end_of_day FROM p))), 0)     AS cardsDueNow,
+        COALESCE((SELECT COUNT(*) FROM review_logs
+                  WHERE datetime(reviewed_at) >= datetime((SELECT start_of_day FROM p))
+                    AND datetime(reviewed_at) <= datetime((SELECT end_of_day FROM p))), 0) AS cardsReviewedToday,
+        (SELECT COUNT(*) FROM cards)                                                       AS totalCardsInDecks,
+        COALESCE((SELECT COUNT(*) FROM review_logs
+                  WHERE datetime(reviewed_at) >= datetime((SELECT start_of_week FROM p))
+                    AND datetime(reviewed_at) <= datetime((SELECT end_of_week FROM p))), 0) AS totalCardsReviewedThisWeek,
+        COALESCE((SELECT deck_id FROM due_by_deck ORDER BY n DESC LIMIT 1), '')            AS deckIdWithMostCardsDue,
+        COALESCE((SELECT n FROM due_by_deck ORDER BY n DESC LIMIT 1), 0)                   AS mostCardsDueInDeck,
+        (SELECT COUNT(*) FROM decks)                                                       AS deckCount,
+        (SELECT MIN(datetime(due_at)) FROM card_schedules
+         WHERE due_at IS NOT NULL)                                                         AS nextDueAt`,
+      [endOfDay, startOfDay, startOfWeek.toISOString(), endOfWeek.toISOString()]
+    );
 
     return {
-      cardsDueNow,
-      cardsReviewedToday,
-      totalCardsInDecks,
-      totalCardsReviewedThisWeek,
-      deckIdWithMostCardsDue: deckWithMostDue.deckId,
-      mostCardsDueInDeck: deckWithMostDue.count,
-      deckCount,
-      nextDueAt,
+      cardsDueNow: row.cardsDueNow,
+      cardsReviewedToday: row.cardsReviewedToday,
+      totalCardsInDecks: row.totalCardsInDecks,
+      totalCardsReviewedThisWeek: row.totalCardsReviewedThisWeek,
+      deckIdWithMostCardsDue: row.deckIdWithMostCardsDue,
+      mostCardsDueInDeck: row.mostCardsDueInDeck,
+      deckCount: row.deckCount,
+      nextDueAt: row.nextDueAt,
     };
   };
 }

@@ -70,12 +70,9 @@ export class DeckSqliteRepository implements DeckRepository {
 
     const categories = await this.dbClient.select<QueryResultItem[]>(query);
     const results = categories.map(toDeckCategory);
-    const success = results.every((result) => result.success);
-
-    if (!success) {
-      const errors = results
-        .map((result) => formatZodError(result.error!))
-        .join("\n");
+    const failed = results.filter((r) => !r.success);
+    if (failed.length > 0) {
+      const errors = failed.map((r) => formatZodError(r.error!)).join("\n");
       throw new Error(`Failed to parse categories: ${errors}`);
     }
 
@@ -179,12 +176,9 @@ export class DeckSqliteRepository implements DeckRepository {
         },
       })
     );
-    const success = results.every((result) => result.success);
-
-    if (!success) {
-      const errors = results
-        .map((result) => formatZodError(result.error!))
-        .join("\n");
+    const failed = results.filter((r) => !r.success);
+    if (failed.length > 0) {
+      const errors = failed.map((r) => formatZodError(r.error!)).join("\n");
       throw new Error(`Failed to parse deck with stats: ${errors}`);
     }
 
@@ -192,52 +186,23 @@ export class DeckSqliteRepository implements DeckRepository {
   };
 
   createDeck = async (payload: CreateDeckPayload): Promise<Deck> => {
-    const query = `
-      INSERT INTO decks (id, title, tags, category, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, title, tags, category
-    `;
     const id = crypto.randomUUID();
     const timestamp = new Date().toISOString();
-    const params = [
-      id,
-      payload.title,
-      JSON.stringify(payload.tags),
-      payload.categoryId,
-      timestamp,
-      timestamp,
-    ];
-
-    const [deck] = await this.dbClient.select<Deck[]>(query, params);
-
-    const result = await this.getDeck(deck.id);
-
-    return result;
+    await this.dbClient.execute(
+      `INSERT INTO decks (id, title, tags, category, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [id, payload.title, JSON.stringify(payload.tags), payload.categoryId, timestamp, timestamp]
+    );
+    return this.getDeck(id);
   };
 
   updateDeck = async (payload: UpdateDeckPayload): Promise<Deck> => {
     const timestamp = new Date().toISOString();
-    const query = `
-      UPDATE decks SET title = $1, tags = $2, category = $3, updated_at = $4 WHERE id = $5
-      RETURNING id, title, tags, category
-    `;
-    const params = [
-      payload.title,
-      JSON.stringify(payload.tags),
-      payload.categoryId,
-      timestamp,
-      payload.id,
-    ];
-
-    interface QueryResultItem {
-      id: string;
-      title: string;
-      tags: string;
-      category: string;
-    }
-
-    const [deck] = await this.dbClient.select<QueryResultItem[]>(query, params);
-    const result = await this.getDeck(deck.id);
-    return result;
+    await this.dbClient.execute(
+      `UPDATE decks SET title = $1, tags = $2, category = $3, updated_at = $4 WHERE id = $5`,
+      [payload.title, JSON.stringify(payload.tags), payload.categoryId, timestamp, payload.id]
+    );
+    return this.getDeck(payload.id);
   };
 
   deleteDeck = async (id: string): Promise<void> => {
