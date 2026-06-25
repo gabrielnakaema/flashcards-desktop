@@ -3,84 +3,26 @@ import {
   gradeTypedAnswer,
   isCorrectChoice,
 } from "@/components/study/study-grading";
-import type {
-  CardState,
-  CardWithSchedule,
-  Rating,
-  ReviewLog,
-} from "@/types/card";
+import type { CardState, CardWithSchedule, Rating, ReviewLog } from "@/types/card";
 import { useEffect, useMemo, useState } from "react";
 import { useDueCards } from "./use-due-cards";
 import { useSubmitReview } from "./use-submit-review";
+import {
+  countDueCards,
+  getUpdatedStats,
+  getSoonestDueAt,
+  type StudyAnswerResult,
+  type StudyQueueCounts,
+  type StudySessionStats,
+} from "./use-study-session.utils";
 
-export interface StudyAnswerResult {
-  isRevealed: boolean;
-  response?: string;
-  selectedChoiceId?: string;
-  wasCorrect?: boolean;
-}
+export type {
+  StudyAnswerResult,
+  StudyQueueCounts,
+  StudySessionStats,
+} from "./use-study-session.utils";
 
-export interface StudyQueueCounts {
-  new: number;
-  learning: number;
-  review: number;
-}
-
-export interface StudySessionStats {
-  reviewed: number;
-  correct: number;
-  again: number;
-  nextDueAt: string | null;
-}
-
-const emptyCounts: StudyQueueCounts = {
-  new: 0,
-  learning: 0,
-  review: 0,
-};
-
-const countDueCards = (cards: CardWithSchedule[]): StudyQueueCounts => {
-  return cards.reduce<StudyQueueCounts>(
-    (counts, card) => {
-      const state = card.schedule.state;
-      if (state === "new") {
-        counts.new += 1;
-      } else if (state === "learning" || state === "relearning") {
-        counts.learning += 1;
-      } else {
-        counts.review += 1;
-      }
-      return counts;
-    },
-    { ...emptyCounts }
-  );
-};
-
-const getSoonestDueAt = (
-  current: string | null,
-  next: string | null
-): string | null => {
-  if (!next) return current;
-  if (!current) return next;
-  return new Date(next).getTime() < new Date(current).getTime()
-    ? next
-    : current;
-};
-
-const getUpdatedStats = (
-  currentStats: StudySessionStats,
-  rating: Rating,
-  answerResult: StudyAnswerResult,
-  nextDueAt: string | null
-): StudySessionStats => ({
-  reviewed: currentStats.reviewed + 1,
-  correct:
-    answerResult.wasCorrect === true
-      ? currentStats.correct + 1
-      : currentStats.correct,
-  again: rating === "again" ? currentStats.again + 1 : currentStats.again,
-  nextDueAt: getSoonestDueAt(currentStats.nextDueAt, nextDueAt),
-});
+const emptyCounts = { new: 0, learning: 0, review: 0 };
 
 export const useStudySession = (deckId: string) => {
   const dueCardsQuery = useDueCards(deckId);
