@@ -1,27 +1,34 @@
 import { useSettings } from "@/hooks/settings/use-settings";
 import { useListLlmModels } from "@/hooks/llm/use-list-llm-models";
 import { getLlmProviderOptions } from "@/providers/llm-provider";
-import { Switch } from "@/components/ui/switch";
-import { Field } from "../shared/field";
-import { Select } from "../shared/select";
-import { Input } from "../ui/input";
+import { AppSwitch } from "@/components/shared/app-switch";
+import { AppSelect } from "@/components/shared/app-select";
+import { AppInput } from "@/components/shared/app-input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   settingsFormSchema,
   SettingsFormValues,
 } from "@/schemas/settings-form-schema";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
-import { Button } from "../ui/button";
 import { getErrorMessage } from "@/utils/handle-error";
+import { getVersion } from "@tauri-apps/api/app";
+import { useEffect, useState } from "react";
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="mb-2.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground/50">
+    {children}
+  </div>
+);
 
 export const SettingsContent = () => {
   const { data, setData } = useSettings();
+  const [appVersion, setAppVersion] = useState<string | null>(null);
 
-  const {
-    handleSubmit,
-    control,
-    reset,
-  } = useForm<SettingsFormValues>({
+  useEffect(() => {
+    getVersion().then(setAppVersion).catch(() => null);
+  }, []);
+
+  const { handleSubmit, control, reset } = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues: {
       devMode: data.devMode,
@@ -31,6 +38,7 @@ export const SettingsContent = () => {
       apiKey: data.apiKey ?? "",
     },
   });
+
   const defaultProvider = useWatch({ control, name: "defaultProvider" });
   const defaultModel = useWatch({ control, name: "defaultModel" });
   const apiKey = useWatch({ control, name: "apiKey" });
@@ -44,148 +52,160 @@ export const SettingsContent = () => {
   ];
   const modelListErrorMessage = getErrorMessage(modelListQuery.error);
 
-  const onSubmit: SubmitHandler<SettingsFormValues> = (data) => {
+  const onSubmit: SubmitHandler<SettingsFormValues> = (values) => {
     setData({
-      devMode: data.devMode,
-      saveApiSettings: !!data.saveApiSettings,
-      defaultProvider: data.defaultProvider,
-      defaultModel: data.defaultModel ?? "",
-      apiKey: data.apiKey ?? "",
+      devMode: values.devMode,
+      saveApiSettings: !!values.saveApiSettings,
+      defaultProvider: values.defaultProvider,
+      defaultModel: values.defaultModel ?? "",
+      apiKey: values.apiKey ?? "",
     });
   };
 
   return (
-    <div className="w-full flex flex-col gap-4 py-8 px-16">
-      <h1 className="text-3xl font-medium text-foreground">Settings</h1>
+    <div className="w-full max-w-[620px] px-9 py-8">
+      <div className="mb-7">
+        <h1 className="text-[22px] font-semibold tracking-tight">Settings</h1>
+        <p className="mt-1 font-mono text-xs text-muted-foreground">
+          flashcards{appVersion ? ` · v${appVersion}` : ""}
+        </p>
+      </div>
 
-      {import.meta.env.DEV && (
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-foreground">
-              Dev Mode
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Enables the dev clock and other development tools.
-            </span>
-          </div>
-          <Controller
-            control={control}
-            name="devMode"
-            render={({ field }) => (
-              <Switch
-                id="dev-mode"
-                checked={field.value === "on"}
-                onCheckedChange={(checked) =>
-                  field.onChange(checked ? "on" : "off")
-                }
-              />
-            )}
-          />
-        </div>
-      )}
-
-      <form
-        className="flex items-center justify-between rounded-lg border p-4"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="flex flex-col gap-4 w-full">
-          <p className="text-lg font-medium text-foreground">
-            LLM Provider Settings
-          </p>
-
-          <Field label="Default provider" htmlFor="provider">
-            <Controller
-              control={control}
-              name="defaultProvider"
-              render={({ field }) => (
-                <Select
-                  className="w-full"
-                  id="provider"
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                  options={getLlmProviderOptions()}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {import.meta.env.DEV && (
+          <div className="mb-5">
+            <SectionLabel>General</SectionLabel>
+            <div className="rounded-sm border border-input bg-card">
+              <div className="flex items-center justify-between px-5 py-4">
+                <div>
+                  <div className="text-[13px] font-medium">Dev Mode</div>
+                  <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                    Enables the dev clock and other development tools
+                  </div>
+                </div>
+                <Controller
+                  control={control}
+                  name="devMode"
+                  render={({ field }) => (
+                    <AppSwitch
+                      id="dev-mode"
+                      checked={field.value === "on"}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked ? "on" : "off")
+                      }
+                      className="ml-5"
+                    />
+                  )}
                 />
-              )}
-            />
-          </Field>
+              </div>
+            </div>
+          </div>
+        )}
 
-          <Field label="Default model" htmlFor="model">
-            <div className="flex gap-2">
+        <div>
+          <SectionLabel>LLM Provider</SectionLabel>
+          <div className="rounded-sm border border-input bg-card">
+            <div className="flex flex-col gap-5 p-5">
               <Controller
                 control={control}
-                name="defaultModel"
+                name="defaultProvider"
                 render={({ field }) => (
-                  <Select
-                    className="w-full"
-                    id="model"
+                  <AppSelect
+                    id="provider"
+                    label="Default provider"
                     value={field.value ?? ""}
                     onChange={field.onChange}
-                    options={modelOptions}
-                    disabled={modelListQuery.isFetching}
+                    options={getLlmProviderOptions()}
                   />
                 )}
               />
-              <Button
-                type="button"
-                variant="outline"
-                disabled={modelListQuery.isFetching}
-                onClick={() => void modelListQuery.refetch()}
-              >
-                {modelListQuery.isFetching ? "Loading..." : "Load models"}
-              </Button>
-            </div>
-            {modelListErrorMessage && (
-              <p className="text-sm text-red-500" role="alert">
-                {modelListErrorMessage}
-              </p>
-            )}
-          </Field>
 
-          <Field label="API Key" htmlFor="api-key">
-            <Controller
-              control={control}
-              name="apiKey"
-              render={({ field }) => (
-                <Input
-                  className="w-full"
-                  id="api-key"
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                  type="password"
-                  placeholder="Enter API key"
+              <div className="flex flex-col gap-2">
+                <Controller
+                  control={control}
+                  name="defaultModel"
+                  render={({ field }) => (
+                    <AppSelect
+                      id="model"
+                      label="Default model"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      options={modelOptions}
+                      disabled={modelListQuery.isFetching}
+                    />
+                  )}
                 />
-              )}
-            />
-          </Field>
-
-          <Field label="Save settings to Local Storage?" htmlFor="save-api-key">
-            <Controller
-              control={control}
-              name="saveApiSettings"
-              render={({ field }) => (
-                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                  <Switch
-                    id="save-api-key"
-                    checked={field.value ?? false}
-                    onCheckedChange={field.onChange}
-                  />
-                  {field.value ? "Yes" : "No"}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={modelListQuery.isFetching}
+                    onClick={() => void modelListQuery.refetch()}
+                    className="w-fit rounded-sm border border-border bg-zinc-950 text-muted-foreground px-4 py-2 text-sm font-medium tracking-tight hover:bg-zinc-900 transition-colors font-mono disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {modelListQuery.isFetching ? "Loading..." : "Load models"}
+                  </button>
+                  {modelListErrorMessage && (
+                    <p className="text-xs text-red-500" role="alert">
+                      {modelListErrorMessage}
+                    </p>
+                  )}
                 </div>
-              )}
-            />
-          </Field>
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              onClick={() => reset()}
-            >
-              Reset
-            </Button>
-            <Button type="submit" size="lg">
-              Save
-            </Button>
+              </div>
+
+              <Controller
+                control={control}
+                name="apiKey"
+                render={({ field }) => (
+                  <AppInput
+                    id="api-key"
+                    label="API Key"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    type="password"
+                    placeholder="Enter API key"
+                  />
+                )}
+              />
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[13px] font-medium">
+                    Save settings to local storage
+                  </div>
+                  <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                    Persist API key and preferences between sessions
+                  </div>
+                </div>
+                <Controller
+                  control={control}
+                  name="saveApiSettings"
+                  render={({ field }) => (
+                    <AppSwitch
+                      id="save-api-settings"
+                      checked={field.value ?? false}
+                      onCheckedChange={field.onChange}
+                      className="ml-5"
+                    />
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => reset()}
+                  className="w-fit rounded-sm border border-border bg-zinc-950 text-muted-foreground px-4 py-2 text-sm font-medium tracking-tight hover:bg-zinc-900 transition-colors font-mono"
+                >
+                  Reset
+                </button>
+                <button
+                  type="submit"
+                  className="w-fit rounded-sm border border-orange-400 bg-orange-400 text-zinc-950 px-4 py-2 text-sm font-medium tracking-tight hover:bg-orange-500 hover:border-orange-500 transition-colors font-mono"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </form>
