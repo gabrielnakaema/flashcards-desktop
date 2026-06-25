@@ -6,7 +6,7 @@ import {
   DeckWithStats,
   UpdateDeckCategoryPayload,
   UpdateDeckPayload,
-} from "@/types/deck";
+} from "@/features/decks/types";
 
 export interface DeckRepository {
   listCategories: () => Promise<DeckCategory[]>;

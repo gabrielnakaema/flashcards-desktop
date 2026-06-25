@@ -1,4 +1,4 @@
-import { DEFAULT_EASE_FACTOR } from "@/lib/srs";
+import { DEFAULT_EASE_FACTOR } from "@/shared/lib/srs";
 import { CardSqliteRepository } from "../card-sqlite-repository";
 import { TestSqlClient } from "./test-sql-client";
 

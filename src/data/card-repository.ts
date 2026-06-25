@@ -6,7 +6,7 @@ import type {
   ReviewLog,
   SubmitReviewPayload,
   UpdateCardPayload,
-} from "@/types/card";
+} from "@/features/cards/types";
 
 export type CardStats = {
   cardsDueNow: number;

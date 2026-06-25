@@ -1,5 +1,5 @@
 import { DeckRepository } from "@/data/deck-repository";
-import { MATURE_INTERVAL_DAYS } from "@/lib/srs";
+import { MATURE_INTERVAL_DAYS } from "@/shared/lib/srs";
 import {
   CreateDeckCategoryPayload,
   CreateDeckPayload,
@@ -11,8 +11,8 @@ import {
   toDeckWithStats,
   UpdateDeckCategoryPayload,
   UpdateDeckPayload,
-} from "@/types/deck";
-import { formatZodError } from "@/utils/format-zod-error";
+} from "@/features/decks/types";
+import { formatZodError } from "@/shared/utils/format-zod-error";
 import { getDb } from "./db";
 import type { SqlClient } from "./sql-client";
 
@@ -76,7 +76,7 @@ export class DeckSqliteRepository implements DeckRepository {
       throw new Error(`Failed to parse categories: ${errors}`);
     }
 
-    return results.map((result) => result.data);
+    return results.flatMap((result) => (result.success ? [result.data] : []));
   };
 
   updateCategory = async (
@@ -182,7 +182,7 @@ export class DeckSqliteRepository implements DeckRepository {
       throw new Error(`Failed to parse deck with stats: ${errors}`);
     }
 
-    return results.map((result) => result.data);
+    return results.flatMap((result) => (result.success ? [result.data] : []));
   };
 
   createDeck = async (payload: CreateDeckPayload): Promise<Deck> => {

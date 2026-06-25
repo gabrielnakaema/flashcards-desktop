@@ -11,9 +11,9 @@ import {
   type ReviewLog,
   type SubmitReviewPayload,
   type UpdateCardPayload,
-} from "@/types/card";
-import { formatZodError } from "@/utils/format-zod-error";
-import { DEFAULT_EASE_FACTOR, computeNextSchedule } from "@/lib/srs";
+} from "@/features/cards/types";
+import { formatZodError } from "@/shared/utils/format-zod-error";
+import { DEFAULT_EASE_FACTOR, computeNextSchedule } from "@/shared/lib/srs";
 import { getDb } from "./db";
 import type { SqlClient } from "./sql-client";
 

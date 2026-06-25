@@ -1,4 +1,4 @@
-import { SettingsContent } from "@/components/settings/settings-content";
+import { SettingsContent } from "@/features/settings";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/settings/")({

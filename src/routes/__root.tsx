@@ -1,8 +1,8 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { Sidebar } from "@/components/shared/sidebar";
-import { useTheme } from "@/hooks/use-theme";
+import { Sidebar } from "@/shared/layout/sidebar";
+import { useTheme } from "@/shared/hooks/use-theme";
 
 function RootLayout() {
   useTheme();

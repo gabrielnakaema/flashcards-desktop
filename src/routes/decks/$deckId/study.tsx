@@ -1,4 +1,4 @@
-import { StudyScreen } from "@/components/study/study-screen";
+import { StudyScreen } from "@/features/study";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/decks/$deckId/study")({

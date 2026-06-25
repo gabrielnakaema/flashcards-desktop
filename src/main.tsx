@@ -5,7 +5,7 @@ import { initDb } from "@/data/implementations/sqlite/db";
 import { routeTree } from "./routeTree.gen";
 import "./index.css";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { SettingsProvider } from "./components/settings/settings-context";
+import { SettingsProvider } from "@/features/settings";
 
 const queryClient = new QueryClient();
 
