@@ -1,4 +1,4 @@
-import { Button } from "@/shared/ui/button";
+import { AppButton } from "@/shared/components/app-button";
 import { useDeckDetails } from "@/features/decks";
 import { useStudyKeyboardShortcuts } from "@/features/study/hooks/use-study-keyboard-shortcuts";
 import { useStudySession } from "@/features/study/hooks/use-study-session";
@@ -54,11 +54,11 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
 
   if (isLoading) {
     return (
-      <div className="dark flex min-h-screen items-center justify-center bg-background text-foreground">
+      <div className="flex flex-1 items-center justify-center">
         <Loader2Icon
           aria-label="Loading study session"
           role="status"
-          className="size-10 animate-spin text-primary"
+          className="size-8 animate-spin text-primary"
         />
       </div>
     );
@@ -66,22 +66,22 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
 
   if (error) {
     return (
-      <div className="dark flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
-        <section className="flex max-w-md flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center">
+      <div className="flex flex-1 items-center justify-center px-4">
+        <section className="flex max-w-md flex-col items-center gap-4 rounded-sm border border-border bg-zinc-900 p-8 text-center">
           <h1 className="text-xl font-bold">Unable to load study session</h1>
           <p className="text-sm text-muted-foreground">
             {(error as Error).message}
           </p>
-          <Button type="button" onClick={handleBack}>
+          <AppButton type="button" onClick={handleBack}>
             Go back
-          </Button>
+          </AppButton>
         </section>
       </div>
     );
   }
 
   return (
-    <div className="dark flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
+    <div className="flex flex-1 flex-col overflow-hidden">
       <StudyHeader
         deckTitle={deckTitle}
         counts={session.initialCounts}
@@ -90,17 +90,19 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
         onBack={handleBack}
       />
 
-      <main className="study-enter flex flex-1 flex-col items-center justify-center gap-8 overflow-auto px-4 py-8 md:px-8">
+      <main className="study-enter flex flex-1 flex-col items-center justify-center gap-6 overflow-auto px-4 py-8 md:px-8">
         {session.initialTotal === 0 && (
-          <section className="study-enter mx-auto flex w-full max-w-lg flex-col items-center gap-4 rounded-lg border border-border bg-card p-8 text-center">
-            <h1 className="text-2xl font-bold">No due cards</h1>
+          <section className="study-enter mx-auto flex w-full max-w-lg flex-col items-center gap-4 rounded-sm border border-border/60 bg-zinc-900 p-8 text-center">
+            <h1 className="font-mono text-2xl font-bold tracking-tight">
+              No due cards
+            </h1>
             <p className="text-sm leading-6 text-muted-foreground">
               This deck is caught up. New or due cards will appear here when
               they are ready to review.
             </p>
-            <Button type="button" onClick={handleBack}>
+            <AppButton type="button" onClick={handleBack}>
               Go back
-            </Button>
+            </AppButton>
           </section>
         )}
 
@@ -111,7 +113,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
         {session.currentCard && (
           <div
             key={session.currentCard.id}
-            className="study-enter flex w-full max-w-3xl flex-col gap-6 will-change-transform"
+            className="study-enter flex w-full max-w-3xl flex-col gap-4 will-change-transform"
           >
             <StudyCard
               card={session.currentCard}
@@ -121,7 +123,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
             {session.submitError && (
               <div
                 role="alert"
-                className="study-enter rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-200"
+                className="study-enter rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-300"
               >
                 {session.submitError}
               </div>
@@ -141,7 +143,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
         )}
       </main>
 
-      <footer className="px-4 pb-6">
+      <footer className="px-4 pb-4">
         <StudyActionBar shortcutItems={shortcutItems} />
       </footer>
     </div>

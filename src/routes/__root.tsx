@@ -1,28 +1,10 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
-import { useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Sidebar } from "@/shared/layout/sidebar";
 import { useTheme } from "@/shared/hooks/use-theme";
 
 function RootLayout() {
   useTheme();
-
-  const pathname = useRouterState({
-    select: (state) => state.location.pathname,
-  });
-
-  const isStudyRoute = /^\/decks\/[^/]+\/study\/?$/.test(pathname);
-
-  if (isStudyRoute) {
-    return (
-      <div className="h-screen bg-zinc-950 text-foreground flex flex-col overflow-hidden">
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <Outlet />
-        </main>
-        <TanStackRouterDevtools position="bottom-right" />
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen bg-zinc-950 text-foreground flex overflow-hidden">

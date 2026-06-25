@@ -103,7 +103,7 @@ const renderReviewDueBadge = (reviewCardsDue: number): ReactNode => {
   }
 
   return (
-    <span className="rounded-full bg-orange-400 px-3 py-1 text-xs font-medium uppercase tracking-wider text-zinc-950">
+    <span className="rounded-full bg-orange-400/20 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-orange-400">
       {reviewCardsDue}
     </span>
   );

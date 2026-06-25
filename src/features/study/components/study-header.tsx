@@ -1,7 +1,6 @@
-import { Button } from "@/shared/ui/button";
 import type { StudyQueueCounts } from "@/features/study/hooks/use-study-session";
 import { cn } from "@/shared/lib/utils";
-import { TimerIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 
 interface StudyHeaderProps {
   deckTitle: string;
@@ -10,9 +9,6 @@ interface StudyHeaderProps {
   total: number;
   onBack: () => void;
 }
-
-const counterClasses =
-  "flex min-w-12 flex-col items-center gap-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground";
 
 export const StudyHeader = ({
   deckTitle,
@@ -24,49 +20,52 @@ export const StudyHeader = ({
   const progressPercent =
     total > 0 ? Math.min(100, (reviewed / total) * 100) : 0;
 
+  const headerCounts = [
+    { label: "New", value: counts.new, color: "text-blue-400" },
+    { label: "Learning", value: counts.learning, color: "text-orange-400" },
+    { label: "Review", value: counts.review, color: "text-green-400" },
+  ];
+
   return (
-    <header className="sticky top-0 z-10 border-b border-border/60 bg-background/95 backdrop-blur">
-      <div className="flex h-14 w-full items-center justify-between px-4 md:px-6">
+    <header className="border-b border-border/60 bg-zinc-950">
+      <div className="flex h-14 items-center justify-between px-6">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Exit study"
+          <button
             type="button"
             onClick={onBack}
+            aria-label="Exit study"
+            className="flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-zinc-800 hover:text-foreground"
           >
-            <XIcon className="size-4" />
-          </Button>
-          <p className="text-sm font-bold text-primary md:text-base">
+            <ArrowLeftIcon className="size-4" />
+          </button>
+          <span className="font-mono text-sm font-bold text-foreground">
             {deckTitle}
-          </p>
+          </span>
         </div>
 
         <div className="hidden items-center gap-6 md:flex">
-          <div className={counterClasses}>
-            <span className="text-sm text-foreground">{counts.new}</span>
-            New
-          </div>
-          <div className={counterClasses}>
-            <span className="text-sm text-foreground">{counts.learning}</span>
-            Learning
-          </div>
-          <div className={counterClasses}>
-            <span className="text-sm text-foreground">{counts.review}</span>
-            Review
-          </div>
+          {headerCounts.map(({ label, value, color }) => (
+            <div key={label} className="flex flex-col items-center gap-0.5">
+              <span className={cn("text-sm font-semibold", color)}>
+                {value}
+              </span>
+              <span className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground">
+                {label}
+              </span>
+            </div>
+          ))}
         </div>
 
         <div
           className={cn(
-            "flex items-center gap-2 text-xs font-medium text-muted-foreground",
+            "font-mono text-xs text-muted-foreground",
             total > 0 && "text-foreground"
           )}
         >
-          <TimerIcon className="size-4 text-primary" />
           <span key={reviewed} className="study-progress-pop inline-block">
-            {reviewed}/{total}
+            {reviewed}
           </span>
+          <span className="text-muted-foreground">/{total}</span>
         </div>
       </div>
 

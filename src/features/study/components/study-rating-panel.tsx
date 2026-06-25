@@ -1,4 +1,4 @@
-import { Button } from "@/shared/ui/button";
+import { AppButton } from "@/shared/components/app-button";
 import { cn } from "@/shared/lib/utils";
 import type { Rating } from "@/features/cards";
 import {
@@ -27,7 +27,7 @@ const ratingOptions: Array<{
     label: "Again",
     shortcut: "1",
     className:
-      "border-red-500/40 text-red-300 hover:bg-red-500/10 hover:shadow-red-500/10",
+      "border-red-500/40 text-red-300 hover:bg-red-500/10 hover:border-red-500/60",
     icon: RotateCcwIcon,
   },
   {
@@ -35,7 +35,7 @@ const ratingOptions: Array<{
     label: "Hard",
     shortcut: "2",
     className:
-      "border-yellow-500/40 text-yellow-200 hover:bg-yellow-500/10 hover:shadow-yellow-500/10",
+      "border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10 hover:border-yellow-500/60",
     icon: TrendingUpIcon,
   },
   {
@@ -43,7 +43,7 @@ const ratingOptions: Array<{
     label: "Medium",
     shortcut: "3",
     className:
-      "border-blue-500/40 text-blue-200 hover:bg-blue-500/10 hover:shadow-blue-500/10",
+      "border-blue-500/40 text-blue-300 hover:bg-blue-500/10 hover:border-blue-500/60",
     icon: ZapIcon,
   },
   {
@@ -51,7 +51,7 @@ const ratingOptions: Array<{
     label: "Easy",
     shortcut: "4",
     className:
-      "border-green-500/40 text-green-200 hover:bg-green-500/10 hover:shadow-green-500/10",
+      "border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-500/60",
     icon: SparklesIcon,
   },
 ];
@@ -68,24 +68,24 @@ export const StudyRatingPanel = ({
         const isPending = pendingRating === option.value;
 
         return (
-          <Button
+          <AppButton
             key={option.value}
             type="button"
-            variant="outline"
+            variant="secondary"
             size="lg"
             aria-keyshortcuts={option.shortcut}
             disabled={isSubmitting}
             style={{ "--study-stagger": index } as CSSProperties}
             className={cn(
               option.className,
-              "study-enter transition duration-200 hover:-translate-y-0.5 hover:shadow-lg",
-              isPending && "scale-[1.02] bg-muted/60"
+              "study-enter transition duration-200 hover:-translate-y-0.5",
+              isPending && "scale-[1.02] opacity-70"
             )}
             onClick={() => onRate(option.value)}
           >
             <Icon className="size-4" />
             {isPending ? "Saving..." : option.label}
-          </Button>
+          </AppButton>
         );
       })}
     </div>

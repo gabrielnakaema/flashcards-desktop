@@ -33,7 +33,7 @@ export const StudyCard = ({ card, isRevealed, wasCorrect }: StudyCardProps) => {
   return (
     <article
       className={cn(
-        "relative w-full overflow-hidden rounded-lg border border-border/70 bg-card p-5 shadow-2xl transition-colors duration-300 md:p-8",
+        "relative w-full overflow-hidden rounded-sm border border-border/60 bg-zinc-900 p-6 shadow-lg transition-colors duration-300 md:p-8",
         isRevealed && "study-card-revealed",
         wasCorrect === true && "border-green-500/35",
         wasCorrect === false && "border-red-500/35"
@@ -51,14 +51,14 @@ export const StudyCard = ({ card, isRevealed, wasCorrect }: StudyCardProps) => {
         />
       )}
 
-      <div className="mb-7 flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-border bg-muted px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <span className="rounded-sm border border-border/60 bg-zinc-950/60 px-2.5 py-1 text-[0.65rem] font-mono font-semibold uppercase tracking-wide text-muted-foreground">
           {card.tags[0] ?? getCardKindLabel(card)}
         </span>
         {card.difficulty && (
           <span
             className={cn(
-              "rounded-full px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-wide",
+              "rounded-sm px-2.5 py-1 text-[0.65rem] font-mono font-semibold uppercase tracking-wide",
               difficultyClasses[card.difficulty]
             )}
           >
@@ -73,20 +73,20 @@ export const StudyCard = ({ card, isRevealed, wasCorrect }: StudyCardProps) => {
         </h1>
 
         {card.hint && !isRevealed && (
-          <p className="study-enter max-w-xl text-sm font-medium leading-6 text-muted-foreground">
+          <p className="study-enter max-w-xl text-sm leading-6 text-muted-foreground">
             Hint: {card.hint}
           </p>
         )}
 
         {card.sourceExcerpt && (
-          <blockquote className="study-enter mt-2 max-w-xl rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm leading-6 text-muted-foreground">
+          <blockquote className="study-enter mt-2 max-w-xl rounded-sm border border-border/60 bg-zinc-950/40 px-4 py-3 text-sm leading-6 text-muted-foreground">
             {card.sourceExcerpt}
           </blockquote>
         )}
 
         {isRevealed && card.explanation && (
-          <div className="study-enter mt-3 w-full rounded-lg border border-border bg-muted/50 p-4 text-left">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="study-enter mt-3 w-full rounded-sm border border-border/60 bg-zinc-950/40 p-4 text-left">
+            <p className="mb-1 text-[10px] font-mono font-semibold uppercase tracking-wide text-muted-foreground">
               Explanation
             </p>
             <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">
