@@ -11,20 +11,22 @@ interface DeckCardProps {
 
 export const DeckCard = ({ deck, deckColorClassName }: DeckCardProps) => {
   return (
-    <article className="w-full p-4 rounded-md hover:shadow-md transition-shadow flex flex-col gap-3 bg-zinc-900 border border-border hover:scale-[101%] focus-within:scale-[101%]">
-      <div className="w-full flex items-center justify-between">
-        <div className="flex flex-col">
-          <p className="text-sm font-medium text-foreground">{deck.title}</p>
-          <p className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
-            <span>
+    <article className="w-full p-4 rounded-md hover:shadow-md transition-shadow flex flex-col gap-3 bg-muted border border-border hover:scale-[101%] focus-within:scale-[101%]">
+      <div className="w-full flex items-center justify-between gap-2">
+        <div className="flex flex-col min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground truncate">
+            {deck.title}
+          </p>
+          <p className="text-[10px] text-muted-foreground font-mono flex items-center gap-1 min-w-0">
+            <span className="whitespace-nowrap">
               {deck.totalCards} {deck.totalCards !== 1 ? "cards" : "card"}
             </span>
             <span>&bull;</span>
-            <span>{deck.category.name}</span>
+            <span className="truncate">{deck.category.name}</span>
           </p>
         </div>
         {deck.cardsDue > 0 && (
-          <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 rounded-xs px-2 py-0.5 text-[10px] font-medium">
+          <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 rounded-xs px-2 py-0.5 text-[10px] font-medium whitespace-nowrap shrink-0">
             {deck.cardsDue} due
           </div>
         )}

@@ -66,7 +66,7 @@ export const StudyAnswerPanel = ({
   };
 
   return (
-    <section className="flex w-full flex-col gap-3 rounded-sm border border-border/60 bg-zinc-900 p-4 shadow-lg">
+    <section className="flex w-full flex-col gap-3 rounded-sm border border-border/60 bg-muted p-4 shadow-lg">
       {card.type === "plain" && !isRevealed && (
         <AppButton
           type="button"

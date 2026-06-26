@@ -12,7 +12,7 @@ const appButtonVariants = cva(
         default:
           "border border-orange-400 bg-orange-400 text-zinc-950 hover:bg-orange-500 hover:border-orange-500",
         secondary:
-          "border border-border bg-zinc-950 text-muted-foreground hover:bg-zinc-900 hover:text-foreground",
+          "border border-border bg-zinc-950 text-muted-foreground hover:bg-muted hover:text-foreground",
       },
       size: {
         default: "px-4 py-2 text-sm",

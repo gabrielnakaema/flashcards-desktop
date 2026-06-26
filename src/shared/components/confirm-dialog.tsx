@@ -41,7 +41,9 @@ export const ConfirmDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="text-foreground break-all">
+            {title}
+          </DialogTitle>
           <DialogDescription>{description}</DialogDescription>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </DialogHeader>

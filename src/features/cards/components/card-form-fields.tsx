@@ -3,7 +3,10 @@ import { AppSelect } from "@/shared/components/app-select";
 import { AppTextarea } from "@/shared/components/app-textarea";
 import { AppButton } from "@/shared/components/app-button";
 import { cn } from "@/shared/lib/utils";
-import { nextChoiceId, type CardFormValues } from "@/features/cards/schemas/card-form-schema";
+import {
+  nextChoiceId,
+  type CardFormValues,
+} from "@/features/cards/schemas/card-form-schema";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
@@ -21,7 +24,6 @@ export const DIFFICULTY_OPTIONS = [
 
 const FIELD_LABEL_CLASS =
   "text-[11px] font-mono tracking-wide text-muted-foreground uppercase";
-
 
 interface CardFormFieldProps {
   label: string;
@@ -206,7 +208,7 @@ export const CardFormFields = ({
                 {...register("caseSensitive")}
                 id="card-case-sensitive"
                 type="checkbox"
-                className="size-4 rounded-sm border border-input bg-zinc-900"
+                className="size-4 rounded-sm border border-input bg-muted"
               />
               Case sensitive matching
             </label>
@@ -235,7 +237,7 @@ export const CardFormFields = ({
       <AppTextarea
         {...register("sourceExcerpt")}
         id="card-source-excerpt"
-          label="Source excerpt"
+        label="Source excerpt"
         placeholder="Optional source text this card was derived from"
         rows={3}
         className="min-h-24"

@@ -67,7 +67,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
   if (error) {
     return (
       <div className="flex flex-1 items-center justify-center px-4">
-        <section className="flex max-w-md flex-col items-center gap-4 rounded-sm border border-border bg-zinc-900 p-8 text-center">
+        <section className="flex max-w-md flex-col items-center gap-4 rounded-sm border border-border bg-muted p-8 text-center">
           <h1 className="text-xl font-bold">Unable to load study session</h1>
           <p className="text-sm text-muted-foreground">
             {(error as Error).message}
@@ -92,7 +92,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
 
       <main className="study-enter flex flex-1 flex-col items-center justify-center gap-6 overflow-auto px-4 py-8 md:px-8">
         {session.initialTotal === 0 && (
-          <section className="study-enter mx-auto flex w-full max-w-lg flex-col items-center gap-4 rounded-sm border border-border/60 bg-zinc-900 p-8 text-center">
+          <section className="study-enter mx-auto flex w-full max-w-lg flex-col items-center gap-4 rounded-sm border border-border/60 bg-muted p-8 text-center">
             <h1 className="font-mono text-2xl font-bold tracking-tight">
               No due cards
             </h1>

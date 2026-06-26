@@ -81,7 +81,7 @@ const SidebarDeckLink = ({
           colorClassName
         )}
       />
-      <span className="min-w-0 flex-1 truncate text-sm font-normal">
+      <span className="min-w-0 flex-1 truncate text-xs font-normal">
         {deck.title}
       </span>
       {deck.cardsDue > 0 && (

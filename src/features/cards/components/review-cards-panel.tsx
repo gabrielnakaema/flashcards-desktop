@@ -246,7 +246,7 @@ export const ReviewCardsPanel = ({
         "flex h-full min-h-0 flex-col gap-4",
         isStudioLayout
           ? "overflow-hidden bg-zinc-950 p-6"
-          : "min-h-128 rounded-sm border border-border bg-zinc-900 p-4 lg:min-h-0 lg:h-full"
+          : "min-h-128 rounded-sm border border-border bg-muted p-4 lg:min-h-0 lg:h-full"
       )}
     >
       {!isStudioLayout && (
@@ -396,7 +396,7 @@ export const ReviewCardsPanel = ({
                           onChange={(event) =>
                             toggleDraftApproval(draft.id, event.target.checked)
                           }
-                          className="size-4 rounded-sm border border-input bg-zinc-900"
+                          className="size-4 rounded-sm border border-input bg-muted"
                         />
                       </td>
                       <td className="px-3 py-3 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
@@ -418,7 +418,7 @@ export const ReviewCardsPanel = ({
                             type="button"
                             variant="secondary"
                             size="xs"
-                            className="bg-zinc-900 px-2.5 py-1 text-foreground hover:bg-zinc-800"
+                            className="bg-muted px-2.5 py-1 text-foreground hover:bg-zinc-800"
                             onClick={() => setEditingDraftId(draft.id)}
                           >
                             Edit

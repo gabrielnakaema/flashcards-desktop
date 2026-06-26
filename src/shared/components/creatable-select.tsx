@@ -15,11 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/shared/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 
 const LABEL_CLASS =
   "text-[11px] font-mono tracking-wide text-muted-foreground uppercase";
@@ -79,13 +75,15 @@ export const CreatableSelect = ({
           aria-expanded={open}
           aria-describedby={errorId}
           aria-invalid={error ? true : undefined}
-          className="w-full justify-between font-normal rounded-sm border border-input bg-zinc-900 px-3.5 py-3 text-[0.9375rem] text-foreground h-fit min-h-12 hover:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary focus:shadow-sm"
+          className="w-full justify-between font-normal rounded-sm border border-input bg-input-background dark:bg-input-background px-3.5 py-3 text-[0.9375rem] text-foreground h-fit min-h-12 hover:bg-input-background/80 focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary focus:shadow-sm"
         >
-          {selectedLabel ?? <span className="text-muted-foreground">{placeholder}</span>}
+          {selectedLabel ?? (
+            <span className="text-muted-foreground">{placeholder}</span>
+          )}
           <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0 rounded-sm border-none shadow-none bg-zinc-900">
+      <PopoverContent className="w-(--radix-popover-trigger-width) p-0 rounded-sm border-none shadow-none bg-muted">
         <Command>
           <CommandInput
             placeholder={placeholder}

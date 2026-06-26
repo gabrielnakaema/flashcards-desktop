@@ -29,7 +29,7 @@ export const DueCardsBanner = ({
     </div>
 
     <Button
-      className="bg-orange-400 text-zinc-900 hover:bg-orange-400/80 font-semibold text-lg py-6 rounded-sm px-8 flex items-center gap-2 tracking-tight"
+      className="bg-orange-400 text-muted hover:bg-orange-400/80 font-semibold text-lg py-6 rounded-sm px-8 flex items-center gap-2 tracking-tight"
       type="button"
       asChild
     >

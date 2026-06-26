@@ -30,7 +30,7 @@ const cardStateClasses = {
 
 export const CardListItem = ({ card, onEdit, onDelete }: CardListItemProps) => {
   return (
-    <article className="group flex flex-col gap-3 rounded-sm border border-border bg-zinc-900 p-4 transition-colors hover:border-border/80 hover:bg-zinc-900/80">
+    <article className="group flex flex-col gap-3 rounded-sm border border-border bg-muted p-4 transition-colors hover:border-border/80 hover:bg-muted/80">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="rounded-sm border border-border bg-zinc-950 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">

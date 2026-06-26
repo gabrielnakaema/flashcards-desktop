@@ -28,7 +28,7 @@ export const StudySessionSummary = ({
   ];
 
   return (
-    <section className="study-enter relative mx-auto flex w-full max-w-xl flex-col items-center gap-6 overflow-hidden rounded-sm border border-border/60 bg-zinc-900 p-8 text-center shadow-lg">
+    <section className="study-enter relative mx-auto flex w-full max-w-xl flex-col items-center gap-6 overflow-hidden rounded-sm border border-border/60 bg-muted p-8 text-center shadow-lg">
       <div
         aria-hidden="true"
         className="study-summary-glow absolute -top-24 h-48 w-48 rounded-full bg-green-400/10 blur-3xl"

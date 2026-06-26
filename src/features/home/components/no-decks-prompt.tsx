@@ -12,7 +12,7 @@ export const NoDecksPrompt = () => (
       repetition algorithm schedules each card at the optimal interval for
       long-term retention.
     </p>
-    <Button className="bg-zinc-950/50 border-border border hover:bg-zinc-900/80 text-foreground rounded-sm p-3 px-5 h-fit">
+    <Button className="bg-zinc-950/50 border-border border hover:bg-muted/80 text-foreground rounded-sm p-3 px-5 h-fit">
       Create deck
     </Button>
   </BannerSection>

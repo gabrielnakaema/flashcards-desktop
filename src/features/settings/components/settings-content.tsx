@@ -26,7 +26,9 @@ export const SettingsContent = () => {
   const [appVersion, setAppVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    getVersion().then(setAppVersion).catch(() => null);
+    getVersion()
+      .then(setAppVersion)
+      .catch(() => null);
   }, []);
 
   const { handleSubmit, control, reset } = useForm<SettingsFormValues>({
@@ -76,7 +78,7 @@ export const SettingsContent = () => {
         {import.meta.env.DEV && (
           <div className="mb-5">
             <SectionLabel>General</SectionLabel>
-            <div className="rounded-sm border border-input bg-card">
+            <div className="rounded-sm border border-border bg-muted">
               <div className="flex items-center justify-between px-5 py-4">
                 <div>
                   <div className="text-[13px] font-medium">Dev Mode</div>
@@ -105,7 +107,7 @@ export const SettingsContent = () => {
 
         <div>
           <SectionLabel>LLM Provider</SectionLabel>
-          <div className="rounded-sm border border-input bg-card">
+          <div className="rounded-sm border border-border bg-muted">
             <div className="flex flex-col gap-5 p-5">
               <Controller
                 control={control}
@@ -199,9 +201,7 @@ export const SettingsContent = () => {
                 >
                   Reset
                 </AppButton>
-                <AppButton type="submit">
-                  Save
-                </AppButton>
+                <AppButton type="submit">Save</AppButton>
               </div>
             </div>
           </div>

@@ -44,7 +44,7 @@ export const AppSelect = ({
     <SelectPrimitive value={value} onValueChange={onChange} disabled={disabled}>
       <SelectTrigger
         className={cn(
-          "w-full rounded-sm border border-input bg-zinc-900 px-3.5 py-3 text-[0.9375rem] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary focus:shadow-sm h-fit min-h-12",
+          "w-full rounded-sm border border-input bg-input-background dark:bg-input-background dark:hover:bg-input-background px-3.5 py-3 text-[0.9375rem] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary focus:shadow-sm h-fit min-h-12",
           className
         )}
         id={id}
@@ -52,14 +52,17 @@ export const AppSelect = ({
         aria-describedby={errorId}
         aria-invalid={error ? true : undefined}
       >
-        <SelectValue placeholder={placeholder} className={cn("bg-zinc-900")} />
+        <SelectValue
+          placeholder={placeholder}
+          className={cn("bg-input-background")}
+        />
       </SelectTrigger>
-      <SelectContent className="bg-zinc-900 rounded-sm border-none shadow-none">
+      <SelectContent className="bg-input-background rounded-sm border-none shadow-none">
         {options.map((option) => (
           <SelectItem
             key={option.value}
             value={option.value}
-            className="text-[0.9375rem] text-foreground rounded-none bg-zinc-900 px-3.5 py-3 hover:bg-zinc-800 transition-colors"
+            className="text-[0.9375rem] text-foreground rounded-none bg-input-background px-3.5 py-3 hover:bg-input-background/80 transition-colors"
           >
             {option.label}
           </SelectItem>

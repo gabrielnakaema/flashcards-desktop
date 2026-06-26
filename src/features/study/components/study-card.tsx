@@ -33,7 +33,7 @@ export const StudyCard = ({ card, isRevealed, wasCorrect }: StudyCardProps) => {
   return (
     <article
       className={cn(
-        "relative w-full overflow-hidden rounded-sm border border-border/60 bg-zinc-900 p-6 shadow-lg transition-colors duration-300 md:p-8",
+        "relative w-full overflow-hidden rounded-sm border border-border/60 bg-muted p-6 shadow-lg transition-colors duration-300 md:p-8",
         isRevealed && "study-card-revealed",
         wasCorrect === true && "border-green-500/35",
         wasCorrect === false && "border-red-500/35"

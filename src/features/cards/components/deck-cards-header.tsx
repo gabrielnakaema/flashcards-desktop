@@ -33,7 +33,7 @@ export const DeckCardsHeader = ({
             {deckTitle}
           </h1>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-sm border border-border bg-zinc-900 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+            <span className="rounded-sm border border-border bg-muted px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
               {categoryName}
             </span>
             {deckTags.map((tag) => (
