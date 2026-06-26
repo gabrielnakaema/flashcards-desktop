@@ -2,10 +2,7 @@ import { SidebarContent } from "./sidebar-content";
 
 export const Sidebar = () => {
   return (
-    <aside
-      style={{ viewTransitionName: "sidebar" }}
-      className="flex h-full w-68 shrink-0 border-r border-white/10 bg-sidebar text-sidebar-foreground"
-    >
+    <aside className="flex h-full w-68 shrink-0 border-r border-white/10 bg-sidebar text-sidebar-foreground">
       <SidebarContent />
     </aside>
   );

@@ -1,4 +1,4 @@
-import { Button } from "@/shared/ui/button";
+import { Link } from "@tanstack/react-router";
 import { BannerSection } from "./banner-section";
 
 export const NoDecksPrompt = () => (
@@ -12,8 +12,11 @@ export const NoDecksPrompt = () => (
       repetition algorithm schedules each card at the optimal interval for
       long-term retention.
     </p>
-    <Button className="bg-zinc-950/50 border-border border hover:bg-muted/80 text-foreground rounded-sm p-3 px-5 h-fit">
+    <Link
+      to="/decks/create"
+      className="bg-zinc-950/50 border-border border hover:bg-muted/80 text-foreground rounded-sm p-3 px-5 h-fit inline-flex items-center text-sm font-medium"
+    >
       Create deck
-    </Button>
+    </Link>
   </BannerSection>
 );

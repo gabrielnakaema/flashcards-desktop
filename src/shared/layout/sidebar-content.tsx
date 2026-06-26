@@ -30,7 +30,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
       <div className="border-b border-white/10 px-6 py-7">
         <Link
           to="/"
-          onClick={onNavigate}
+onClick={onNavigate}
           className="text-3xl font-bold tracking-tight text-white"
         >
           flashcards<span className="text-orange-400">.</span>

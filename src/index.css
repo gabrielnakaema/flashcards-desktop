@@ -176,11 +176,3 @@ main {
     transform: translateX(0);
   }
 }
-
-::view-transition-old(sidebar) {
-  animation: fadeLeft 0.3s ease-in-out;
-}
-
-::view-transition-new(sidebar) {
-  animation: fadeRight 0.3s ease-in-out;
-}
