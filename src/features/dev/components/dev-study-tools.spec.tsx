@@ -33,7 +33,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   clearDevClock();
   localStorage.removeItem("flashcards:dev-clock-now");
-  mockResetDeckStudyProgress.mockResolvedValue(undefined);
+  mockResetDeckStudyProgress.mockImplementation(
+    (_: unknown, options?: { onSuccess?: () => void }) => {
+      options?.onSuccess?.();
+    }
+  );
 });
 
 afterEach(() => {
@@ -61,7 +65,10 @@ describe("DevStudyTools", () => {
 
     await waitFor(() => {
       expect(mockUseResetDeckStudyProgress).toHaveBeenCalledWith(DECK_ID);
-      expect(mockResetDeckStudyProgress).toHaveBeenCalledWith();
+      expect(mockResetDeckStudyProgress).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ onSuccess: expect.any(Function) })
+      );
     });
   });
 

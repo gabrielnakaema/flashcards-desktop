@@ -57,19 +57,19 @@ export const DeckForm = ({ deck, onSuccess, onCancel }: DeckFormProps) => {
     });
   }, [deck, reset]);
 
-  const onSubmit = async (data: DeckFormValues) => {
+  const onSubmit = (data: DeckFormValues) => {
     const tags = data.tags?.split(",").map((t) => t.trim()) ?? [];
     if (isEdit) {
-      await update({
-        id: deck.id,
-        title: data.title,
-        tags,
-        categoryId: data.categoryId,
-      });
+      update(
+        { id: deck.id, title: data.title, tags, categoryId: data.categoryId },
+        { onSuccess: () => onSuccess?.() }
+      );
     } else {
-      create({ title: data.title, tags, categoryId: data.categoryId });
+      create(
+        { title: data.title, tags, categoryId: data.categoryId },
+        { onSuccess: () => onSuccess?.() }
+      );
     }
-    onSuccess?.();
   };
 
   const submitButtonLabel = isEdit ? "Save deck" : "Create deck";

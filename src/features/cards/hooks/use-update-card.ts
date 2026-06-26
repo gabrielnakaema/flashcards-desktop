@@ -17,7 +17,7 @@ export const useUpdateCard = () => {
   });
 
   return {
-    update: mutation.mutateAsync,
+    update: mutation.mutate,
     isPending: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,

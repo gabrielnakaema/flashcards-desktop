@@ -338,19 +338,18 @@ describe("CardForm", () => {
       });
     });
 
-    it("shows root error message when the mutation rejects", async () => {
+    it("does not call onSuccess when the mutation rejects", async () => {
       mockCreateCard.mockRejectedValue(new Error("Server error"));
-      const { user } = setup();
+      const { user, onSuccess } = setup();
 
       await user.type(screen.getByLabelText("Front"), "What is gravity?");
       await user.type(screen.getByLabelText("Back"), "A force");
       await user.click(screen.getByRole("button", { name: /^create$/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/server error/i)).toBeInTheDocument();
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-        expect(screen.getByRole("alert")).toHaveTextContent(/server error/i);
+        expect(mockCreateCard).toHaveBeenCalled();
       });
+      expect(onSuccess).not.toHaveBeenCalled();
     });
   });
 });

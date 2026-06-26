@@ -17,7 +17,7 @@ export const useCreateCard = () => {
   });
 
   return {
-    create: mutation.mutateAsync,
+    create: mutation.mutate,
     isPending: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,

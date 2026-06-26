@@ -2,6 +2,7 @@ import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Sidebar } from "@/shared/layout/sidebar";
 import { useTheme } from "@/shared/hooks/use-theme";
+import { Toaster } from "@/shared/ui/sonner";
 
 function RootLayout() {
   useTheme();
@@ -12,6 +13,7 @@ function RootLayout() {
       <main className="flex-1 flex flex-col overflow-hidden pt-14 md:pt-0">
         <Outlet />
       </main>
+      <Toaster />
       <TanStackRouterDevtools position="bottom-right" />
     </div>
   );

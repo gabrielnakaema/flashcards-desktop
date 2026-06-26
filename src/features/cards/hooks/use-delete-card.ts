@@ -18,7 +18,7 @@ export const useDeleteCard = ({ onSuccess }: UseDeleteCardProps = {}) => {
   });
 
   return {
-    delete: mutation.mutateAsync,
+    delete: mutation.mutate,
     isPending: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,

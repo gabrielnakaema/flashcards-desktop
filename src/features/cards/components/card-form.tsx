@@ -39,29 +39,24 @@ export const CardForm = ({
     defaultValues: cardToFormValues(card),
   });
 
-  const {
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors },
-  } = form;
+  const { handleSubmit, reset } = form;
 
   useEffect(() => {
     reset(cardToFormValues(card));
   }, [card, reset]);
 
-  const onSubmit = async (values: CardFormValues) => {
-    try {
-      if (isEdit && card) {
-        await update(formValuesToUpdatePayload(card.id, values));
-      } else {
-        await create(formValuesToCreatePayload(deckId, values));
-        reset(getDefaultCardFormValues());
-      }
-
-      onSuccess?.();
-    } catch (err) {
-      setError("root", { message: (err as Error).message });
+  const onSubmit = (values: CardFormValues) => {
+    if (isEdit && card) {
+      update(formValuesToUpdatePayload(card.id, values), {
+        onSuccess: () => onSuccess?.(),
+      });
+    } else {
+      create(formValuesToCreatePayload(deckId, values), {
+        onSuccess: () => {
+          reset(getDefaultCardFormValues());
+          onSuccess?.();
+        },
+      });
     }
   };
 
@@ -87,17 +82,6 @@ export const CardForm = ({
         >
           <div className="min-h-0 flex-1 overflow-y-auto p-6">
             <CardFormFields disableTypeSelect={isEdit} />
-
-            {errors.root?.message && (
-              <p
-                className="mt-4 text-sm text-red-500"
-                role="alert"
-                id="card-form-error"
-                aria-atomic="true"
-              >
-                {errors.root.message}
-              </p>
-            )}
           </div>
 
           <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border p-6">

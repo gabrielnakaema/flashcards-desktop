@@ -20,7 +20,7 @@ export const useDeleteDeck = ({ onSuccess }: UseDeleteDeckProps = {}) => {
   });
 
   return {
-    remove: mutation.mutateAsync,
+    remove: mutation.mutate,
     isPending: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,

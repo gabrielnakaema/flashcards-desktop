@@ -23,7 +23,7 @@ export const useResetDeckStudyProgress = (deckId: string) => {
   });
 
   return {
-    resetDeckStudyProgress: mutation.mutateAsync,
+    resetDeckStudyProgress: mutation.mutate,
     isPending: mutation.isPending,
     error: mutation.error,
   };

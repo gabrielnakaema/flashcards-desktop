@@ -75,9 +75,10 @@ export const DevStudyTools = ({ deckId }: DevStudyToolsProps) => {
     updateClock(null);
   };
 
-  const handleConfirmReset = async () => {
-    await resetDeckStudyProgress();
-    setIsResetDialogOpen(false);
+  const handleConfirmReset = () => {
+    resetDeckStudyProgress(undefined, {
+      onSuccess: () => setIsResetDialogOpen(false),
+    });
   };
 
   if (isMinimized) {
