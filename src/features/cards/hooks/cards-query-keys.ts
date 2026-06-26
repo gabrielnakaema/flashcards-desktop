@@ -5,4 +5,5 @@ export const cardsQueryKeys = {
   dueByDeck: (deckId: string) =>
     [...cardsQueryKeys.all, "due", deckId] as const,
   stats: () => [...cardsQueryKeys.all, "stats"] as const,
+  streak: () => [...cardsQueryKeys.all, "streak"] as const,
 };

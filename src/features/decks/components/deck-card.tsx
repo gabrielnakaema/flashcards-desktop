@@ -11,7 +11,7 @@ interface DeckCardProps {
 
 export const DeckCard = ({ deck, deckColorClassName }: DeckCardProps) => {
   return (
-    <article className="w-full p-4 rounded-md hover:shadow-md transition-shadow flex flex-col gap-3 bg-muted border border-border hover:scale-[101%] focus-within:scale-[101%]">
+    <article className="w-full p-4 rounded-md hover:shadow-md transition-shadow flex flex-col gap-3 bg-muted border border-border">
       <div className="w-full flex items-center justify-between gap-2">
         <div className="flex flex-col min-w-0 flex-1">
           <p className="text-sm font-medium text-foreground truncate">

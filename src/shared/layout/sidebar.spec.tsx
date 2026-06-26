@@ -4,10 +4,15 @@ import { describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./sidebar";
 
 const mockUseListDecks = vi.fn();
+const mockUseStreak = vi.fn();
 let mockPathname = "/";
 
 vi.mock("@/features/decks", () => ({
   useListDecks: () => mockUseListDecks(),
+}));
+
+vi.mock("@/features/cards", () => ({
+  useStreak: () => mockUseStreak(),
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -69,6 +74,10 @@ const setup = (
 
 describe("Sidebar", () => {
   it("renders primary navigation, deck links, and streak placeholder", () => {
+    mockUseStreak.mockReturnValue({
+      data: { currentStreak: 12, bestStreak: 28 },
+      isFetching: false,
+    });
     setup();
 
     expect(
@@ -85,7 +94,8 @@ describe("Sidebar", () => {
     expect(
       screen.getAllByRole("link", { name: /japanese n5/i })[0]
     ).toHaveAttribute("href", "/decks/deck-1/cards");
-    expect(screen.getByText("12-day streak")).toBeInTheDocument();
+    expect(screen.getByText(/12-day streak/i)).toBeInTheDocument();
+    expect(screen.getByText(/best 28/i)).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: /generate/i })
     ).not.toBeInTheDocument();
@@ -105,10 +115,12 @@ describe("Sidebar", () => {
   it("marks active home and deck links", () => {
     setup({ pathname: "/decks/deck-1/cards" });
 
-    expect(screen.getAllByRole("link", { name: /japanese n5/i })[0])
-      .toHaveAttribute("aria-current", "page");
-    expect(screen.getAllByRole("link", { name: /python/i })[0]).not
-      .toHaveAttribute("aria-current");
+    expect(
+      screen.getAllByRole("link", { name: /japanese n5/i })[0]
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      screen.getAllByRole("link", { name: /python/i })[0]
+    ).not.toHaveAttribute("aria-current");
   });
 
   it("shows due badges only for decks with due cards", () => {

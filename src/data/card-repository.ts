@@ -19,6 +19,11 @@ export type CardStats = {
   nextDueAt: string | null;
 };
 
+export type Streak = {
+  currentStreak: number;
+  bestStreak: number;
+};
+
 export interface CardRepository {
   createCard: (payload: CreateCardPayload) => Promise<Card>;
   bulkCreateCards: (payloads: CreateCardPayload[]) => Promise<Card[]>;
@@ -31,4 +36,5 @@ export interface CardRepository {
   submitReview: (payload: SubmitReviewPayload) => Promise<ReviewLog>;
   resetDeckStudyProgress: (deckId: string) => Promise<void>;
   getStats: (date: Date) => Promise<CardStats>;
+  getStreak: () => Promise<Streak>;
 }

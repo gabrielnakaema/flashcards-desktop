@@ -767,4 +767,194 @@ describe("CardSqliteRepository", () => {
       expect(input.getTime()).toBe(originalTime);
     });
   });
+
+  describe("getStreak", () => {
+    const dayIso = (offsetDays: number): string => {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() - offsetDays);
+      d.setUTCHours(12, 0, 0, 0);
+      return d.toISOString();
+    };
+
+    it("returns zero when there are no reviews", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const streak = await ctx.repository.getStreak();
+
+      expect(streak.currentStreak).toBe(0);
+      expect(streak.bestStreak).toBe(0);
+    });
+
+    it("counts a review today as a 1-day streak", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Q",
+        back: "A",
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-1",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(0),
+      });
+
+      const streak = await ctx.repository.getStreak();
+
+      expect(streak.currentStreak).toBe(1);
+      expect(streak.bestStreak).toBe(1);
+    });
+
+    it("keeps the streak alive when the last review was yesterday", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Q",
+        back: "A",
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-1",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(1),
+      });
+
+      const streak = await ctx.repository.getStreak();
+
+      expect(streak.currentStreak).toBe(1);
+      expect(streak.bestStreak).toBe(1);
+    });
+
+    it("breaks the streak when the last review was 2+ days ago", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Q",
+        back: "A",
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-1",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(2),
+      });
+
+      const streak = await ctx.repository.getStreak();
+
+      expect(streak.currentStreak).toBe(0);
+      expect(streak.bestStreak).toBe(1);
+    });
+
+    it("counts consecutive days correctly", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Q",
+        back: "A",
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-0",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(0),
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-1",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(1),
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-2",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(2),
+      });
+
+      const streak = await ctx.repository.getStreak();
+
+      expect(streak.currentStreak).toBe(3);
+      expect(streak.bestStreak).toBe(3);
+    });
+
+    it("ignores multiple reviews on the same day for streak counting", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Q",
+        back: "A",
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-a",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(0),
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-b",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(0),
+      });
+
+      const streak = await ctx.repository.getStreak();
+
+      expect(streak.currentStreak).toBe(1);
+    });
+
+    it("reports best streak from a past run even after the streak breaks", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      const card = await ctx.repository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front: "Q",
+        back: "A",
+      });
+
+      for (let i = 10; i <= 14; i++) {
+        await seedReviewLog(ctx.db, {
+          id: `log-old-${i}`,
+          cardId: card.id,
+          deckId: DECK_ID,
+          reviewedAt: dayIso(i),
+        });
+      }
+
+      await seedReviewLog(ctx.db, {
+        id: "log-new-0",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(0),
+      });
+      await seedReviewLog(ctx.db, {
+        id: "log-new-1",
+        cardId: card.id,
+        deckId: DECK_ID,
+        reviewedAt: dayIso(1),
+      });
+
+      const streak = await ctx.repository.getStreak();
+
+      expect(streak.currentStreak).toBe(2);
+      expect(streak.bestStreak).toBe(5);
+    });
+  });
 });

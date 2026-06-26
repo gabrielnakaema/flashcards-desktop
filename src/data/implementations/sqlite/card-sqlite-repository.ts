@@ -1,4 +1,4 @@
-import type { CardRepository, CardStats } from "@/data/card-repository";
+import type { CardRepository, CardStats, Streak } from "@/data/card-repository";
 import {
   toCard,
   toCardSchedule,
@@ -470,5 +470,40 @@ export class CardSqliteRepository implements CardRepository {
       deckCount: row.deckCount,
       nextDueAt: row.nextDueAt,
     };
+  };
+
+  getStreak = async (): Promise<Streak> => {
+    const [row] = await this.dbClient.select<
+      { currentStreak: number; bestStreak: number }[]
+    >(
+      `WITH
+        daily_reviews AS (
+          SELECT date(reviewed_at) AS review_date
+          FROM review_logs
+          GROUP BY date(reviewed_at)
+        ),
+        numbered AS (
+          SELECT review_date,
+                 ROW_NUMBER() OVER (ORDER BY review_date ASC) - 1 AS rn
+          FROM daily_reviews
+        ),
+        streak_groups AS (
+          SELECT review_date,
+                 date(review_date, '-' || CAST(rn AS INTEGER) || ' days') AS grp
+          FROM numbered
+        ),
+        group_counts AS (
+          SELECT grp, COUNT(*) AS streak_len, MAX(review_date) AS last_day
+          FROM streak_groups
+          GROUP BY grp
+        )
+      SELECT
+        COALESCE((SELECT streak_len FROM group_counts
+                  WHERE last_day >= date('now', '-1 day')
+                  ORDER BY last_day DESC LIMIT 1), 0) AS currentStreak,
+        COALESCE((SELECT MAX(streak_len) FROM group_counts), 0) AS bestStreak`
+    );
+
+    return { currentStreak: row.currentStreak, bestStreak: row.bestStreak };
   };
 }

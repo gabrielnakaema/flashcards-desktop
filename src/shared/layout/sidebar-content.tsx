@@ -1,8 +1,10 @@
+import { useStreak } from "@/features/cards";
 import { useListDecks } from "@/features/decks";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Flame } from "lucide-react";
 import { SidebarDeckList } from "./sidebar-deck-list";
 import { SidebarNav } from "./sidebar-nav";
+import { cn } from "../lib/utils";
 
 interface SidebarContentProps {
   onNavigate?: () => void;
@@ -10,6 +12,7 @@ interface SidebarContentProps {
 
 export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const { data: decks = [], isFetching } = useListDecks();
+  const { data: streak } = useStreak();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
@@ -17,6 +20,10 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
     (total, deck) => total + deck.cardsDue,
     0
   );
+  const currentStreak = streak?.currentStreak ?? 0;
+  const bestStreak = streak?.bestStreak ?? 0;
+  const streakProgress =
+    bestStreak > 0 ? (currentStreak / bestStreak) * 100 : 0;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
@@ -57,14 +64,23 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-lg font-bold text-white">
             <Flame className="size-4 text-orange-400" />
-            <span className="text-sm font-medium">12-day streak</span>
+            <span className="text-sm font-medium">
+              {currentStreak}-day streak
+            </span>
           </div>
-          <p className="text-xs font-normal tracking-wider text-zinc-600">
-            best 28
-          </p>
+          {bestStreak > 0 && (
+            <p className="text-xs font-normal tracking-wider text-zinc-600">
+              best {bestStreak}
+            </p>
+          )}
         </div>
         <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/5">
-          <div className="h-full w-[46%] rounded-full bg-orange-400" />
+          <div
+            className={cn(
+              "h-full rounded-full bg-orange-400 transition-all duration-500",
+              streakProgress != undefined && `w-[${streakProgress}%]`
+            )}
+          />
         </div>
       </div>
     </div>
