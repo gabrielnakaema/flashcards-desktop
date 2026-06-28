@@ -1,16 +1,52 @@
 import { DEFAULT_EASE_FACTOR } from "@/shared/lib/srs";
 import { CardSqliteRepository } from "../card-sqlite-repository";
+import { CardStatisticsSqliteRepository } from "../card-statistics-sqlite-repository";
+import { StudySqliteRepository } from "../study-sqlite-repository";
+import { parseSchedule } from "../card-sqlite-mappers";
 import { TestSqlClient } from "./test-sql-client";
 
-export const createTestCardRepository = async () => {
+export const createTestCardRepositories = async () => {
   const db = await TestSqlClient.create();
-  const repository = new CardSqliteRepository(db);
 
   return {
-    repository,
+    cardRepository: new CardSqliteRepository(db),
+    studyRepository: new StudySqliteRepository(db),
+    cardStatisticsRepository: new CardStatisticsSqliteRepository(db),
     db,
     async teardown() {
       await db.destroy();
+    },
+  };
+};
+
+export const createTestCardRepository = async () => {
+  const context = await createTestCardRepositories();
+  const getSchedule = async (cardId: string) => {
+    const [row] = await context.db.select<Record<string, unknown>[]>(
+      "SELECT * FROM card_schedules WHERE card_id = $1",
+      [cardId]
+    );
+    if (!row) {
+      throw new Error(`Schedule not found for card: ${cardId}`);
+    }
+    return parseSchedule(row);
+  };
+
+  return {
+    ...context,
+    repository: {
+      createCard: context.cardRepository.createCard,
+      bulkCreateCards: context.cardRepository.bulkCreateCards,
+      updateCard: context.cardRepository.updateCard,
+      deleteCard: context.cardRepository.deleteCard,
+      listCardsByDeck: context.cardRepository.listCardsByDeck,
+      getDueCards: context.studyRepository.getDueCards,
+      submitReview: context.studyRepository.submitReview,
+      resetDeckStudyProgress:
+        context.studyRepository.resetDeckStudyProgress,
+      getStats: context.cardStatisticsRepository.getStats,
+      getStreak: context.cardStatisticsRepository.getStreak,
+      getSchedule,
     },
   };
 };

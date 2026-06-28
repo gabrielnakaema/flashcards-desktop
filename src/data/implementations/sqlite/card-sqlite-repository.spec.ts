@@ -7,13 +7,10 @@ import {
   seedReviewLog,
 } from "./test/create-test-card-repository";
 import type { TestSqlClient } from "./test/test-sql-client";
-import type { CardSqliteRepository } from "./card-sqlite-repository";
 
-interface TestContext {
-  repository: CardSqliteRepository;
+type TestContext = Awaited<ReturnType<typeof createTestCardRepository>> & {
   db: TestSqlClient;
-  teardown: () => Promise<void>;
-}
+};
 
 const DECK_ID = "deck-1";
 const CATEGORY_ID = "cat-1";
@@ -29,7 +26,7 @@ const setupContext = async (): Promise<TestContext> => {
   return ctx;
 };
 
-describe("CardSqliteRepository", () => {
+describe("SQLite card data repositories", () => {
   let teardown: (() => Promise<void>) | undefined;
 
   afterEach(async () => {
@@ -37,7 +34,47 @@ describe("CardSqliteRepository", () => {
     teardown = undefined;
   });
 
-  describe("createCard", () => {
+  describe("CardSqliteRepository.createCard", () => {
+    it("stores SQL-like user input only as a bound value", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+      const front = "'); DROP TABLE cards; --";
+
+      const card = await ctx.cardRepository.createCard({
+        deckId: DECK_ID,
+        type: "plain",
+        front,
+        back: "Answer",
+      });
+      const cards = await ctx.cardRepository.listCardsByDeck(DECK_ID);
+
+      expect(card.front).toBe(front);
+      expect(cards.map((item) => item.id)).toEqual([card.id]);
+    });
+
+    it("rejects an invalid payload before writing card or schedule rows", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      await expect(
+        ctx.cardRepository.createCard({
+          deckId: DECK_ID,
+          type: "plain",
+          front: "",
+          back: "Answer",
+        })
+      ).rejects.toThrow("Invalid card payload:");
+
+      const [{ cardCount }] = await ctx.db.select<{ cardCount: number }[]>(
+        "SELECT COUNT(*) AS cardCount FROM cards"
+      );
+      const [{ scheduleCount }] = await ctx.db.select<
+        { scheduleCount: number }[]
+      >("SELECT COUNT(*) AS scheduleCount FROM card_schedules");
+      expect(cardCount).toBe(0);
+      expect(scheduleCount).toBe(0);
+    });
+
     it("creates a plain card and initial schedule row", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -112,7 +149,7 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("bulkCreateCards", () => {
+  describe("CardSqliteRepository.bulkCreateCards", () => {
     it("creates all cards and their schedules", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -147,7 +184,16 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("updateCard", () => {
+  describe("CardSqliteRepository.updateCard", () => {
+    it("preserves the missing-card error contract", async () => {
+      const ctx = await setupContext();
+      teardown = ctx.teardown;
+
+      await expect(
+        ctx.cardRepository.updateCard({ id: "missing", front: "Updated" })
+      ).rejects.toThrow("Card not found: missing");
+    });
+
     it("updates card fields", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -171,7 +217,7 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("deleteCard", () => {
+  describe("CardSqliteRepository.deleteCard", () => {
     it("deletes the card and cascades to schedule and review logs", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -205,7 +251,7 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("listCardsByDeck", () => {
+  describe("CardSqliteRepository.listCardsByDeck", () => {
     it("returns all cards for a deck ordered by creation time", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -260,7 +306,7 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("getDueCards", () => {
+  describe("StudySqliteRepository.getDueCards", () => {
     it("returns cards whose due_at is in the past", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -339,7 +385,7 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("submitReview", () => {
+  describe("StudySqliteRepository.submitReview", () => {
     it("updates schedule and inserts review log", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -451,7 +497,7 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("resetDeckStudyProgress", () => {
+  describe("StudySqliteRepository.resetDeckStudyProgress", () => {
     it("clears review logs and returns deck schedules to new due-now state", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -574,7 +620,7 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("getStats", () => {
+  describe("CardStatisticsSqliteRepository.getStats", () => {
     it("returns all zeroes when there are no cards or reviews", async () => {
       const ctx = await setupContext();
       teardown = ctx.teardown;
@@ -768,7 +814,7 @@ describe("CardSqliteRepository", () => {
     });
   });
 
-  describe("getStreak", () => {
+  describe("CardStatisticsSqliteRepository.getStreak", () => {
     const dayIso = (offsetDays: number): string => {
       const d = new Date();
       d.setUTCDate(d.getUTCDate() - offsetDays);

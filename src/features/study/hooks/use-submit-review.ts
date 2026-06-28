@@ -1,4 +1,4 @@
-import { cardRepository } from "@/data/repositories";
+import { studyRepository } from "@/data/repositories";
 import { cardsQueryKeys } from "@/features/cards";
 import { decksQueryKeys } from "@/features/decks";
 import type { SubmitReviewPayload } from "@/features/cards";
@@ -9,7 +9,7 @@ export const useSubmitReview = (deckId: string) => {
 
   const mutation = useMutation({
     mutationFn: (payload: SubmitReviewPayload) =>
-      cardRepository.submitReview(payload),
+      studyRepository.submitReview(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: cardsQueryKeys.dueByDeck(deckId),

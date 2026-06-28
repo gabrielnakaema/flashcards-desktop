@@ -1,4 +1,4 @@
-import type { CardStats } from "@/data/card-repository";
+import type { CardStats } from "@/features/cards";
 import { Link } from "@tanstack/react-router";
 import { Play } from "lucide-react";
 import { Button } from "@/shared/ui/button";

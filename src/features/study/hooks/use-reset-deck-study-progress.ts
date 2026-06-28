@@ -1,4 +1,4 @@
-import { cardRepository } from "@/data/repositories";
+import { studyRepository } from "@/data/repositories";
 import { cardsQueryKeys } from "@/features/cards";
 import { decksQueryKeys } from "@/features/decks";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,7 +7,7 @@ export const useResetDeckStudyProgress = (deckId: string) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: () => cardRepository.resetDeckStudyProgress(deckId),
+    mutationFn: () => studyRepository.resetDeckStudyProgress(deckId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: cardsQueryKeys.dueByDeck(deckId),
@@ -28,4 +28,3 @@ export const useResetDeckStudyProgress = (deckId: string) => {
     error: mutation.error,
   };
 };
-

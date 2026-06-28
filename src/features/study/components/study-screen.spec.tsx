@@ -35,7 +35,7 @@ vi.mock("@/data/repositories", () => ({
   deckRepository: {
     getDeck: (...args: unknown[]) => mockGetDeck(...args),
   },
-  cardRepository: {
+  studyRepository: {
     getDueCards: (...args: unknown[]) => mockGetDueCards(...args),
     submitReview: (...args: unknown[]) => mockSubmitReview(...args),
   },

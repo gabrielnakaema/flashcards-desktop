@@ -1,4 +1,4 @@
-import type { CardStats } from "@/data/card-repository";
+import type { CardStats } from "@/features/cards";
 import { Check } from "lucide-react";
 import { BannerSection } from "./banner-section";
 import { formatNextDueAt } from "./home-page-content.utils";
