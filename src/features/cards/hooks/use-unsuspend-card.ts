@@ -2,25 +2,24 @@ import { cardRepository } from "@/data/repositories";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateCardQueries } from "./invalidate-card-queries";
 
-interface UseDeleteCardProps {
+interface UseUnsuspendCardProps {
   onSuccess?: () => void;
 }
 
-export const useDeleteCard = ({ onSuccess }: UseDeleteCardProps = {}) => {
+export const useUnsuspendCard = ({ onSuccess }: UseUnsuspendCardProps = {}) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: cardRepository.deleteCard,
-    onSuccess: async () => {
-      await invalidateCardQueries(queryClient);
+    mutationFn: cardRepository.unsuspendCard,
+    onSuccess: () => {
+      void invalidateCardQueries(queryClient);
       onSuccess?.();
     },
   });
 
   return {
-    delete: mutation.mutate,
+    unsuspend: mutation.mutate,
     isPending: mutation.isPending,
-    isError: mutation.isError,
     error: mutation.error,
   };
 };

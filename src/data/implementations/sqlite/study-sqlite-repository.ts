@@ -140,6 +140,13 @@ export class StudySqliteRepository implements StudyRepository {
     return result.data;
   };
 
+  buryCard = async (cardId: string, dueAt: string): Promise<void> => {
+    await this.dbClient.execute(
+      `UPDATE card_schedules SET due_at = $1, updated_at = $2 WHERE card_id = $3`,
+      [dueAt, now(), cardId]
+    );
+  };
+
   resetDeckStudyProgress = async (deckId: string): Promise<void> => {
     const timestamp = now();
     const batch = buildSqlStatementBatch([

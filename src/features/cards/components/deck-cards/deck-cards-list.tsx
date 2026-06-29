@@ -5,6 +5,8 @@ import { Card } from "@/features/cards/types";
 import { CardForm } from "../card-form/card-form";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { useDeleteCard } from "@/features/cards/hooks/use-delete-card";
+import { useSuspendCard } from "@/features/cards/hooks/use-suspend-card";
+import { useUnsuspendCard } from "@/features/cards/hooks/use-unsuspend-card";
 import {
   DEFAULT_CARD_LIST_FILTERS,
   type CardListFilters,
@@ -49,6 +51,8 @@ export const DeckCardsList = ({
       setDeletingCard(null);
     },
   });
+  const { suspend: suspendCard } = useSuspendCard();
+  const { unsuspend: unsuspendCard } = useUnsuspendCard();
 
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [deletingCard, setDeletingCard] = useState<Card | null>(null);
@@ -131,6 +135,8 @@ export const DeckCardsList = ({
               card={card}
               onEdit={() => setEditingCard(card)}
               onDelete={() => setDeletingCard(card)}
+              onSuspend={() => suspendCard(card.id)}
+              onUnsuspend={() => unsuspendCard(card.id)}
             />
           ))}
         </div>

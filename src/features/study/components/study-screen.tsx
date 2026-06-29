@@ -144,7 +144,13 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
       </main>
 
       <footer className="px-4 pb-4">
-        <StudyActionBar shortcutItems={shortcutItems} />
+        <StudyActionBar
+          shortcutItems={shortcutItems}
+          currentCard={session.currentCard}
+          deckId={deckId}
+          onSkip={session.skipCurrentCard}
+          isStudySubmitting={session.isSubmitting}
+        />
       </footer>
     </div>
   );

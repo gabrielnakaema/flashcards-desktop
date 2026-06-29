@@ -1,6 +1,6 @@
 import { cn } from "@/shared/lib/utils";
 import { CardWithSchedule } from "@/features/cards/types";
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { PauseIcon, PencilIcon, PlayIcon, TrashIcon } from "lucide-react";
 import { CardListItemAnswer } from "./card-list-item-answer";
 import {
   cardDifficultyLabels,
@@ -13,6 +13,8 @@ interface CardListItemProps {
   card: CardWithSchedule;
   onEdit: () => void;
   onDelete: () => void;
+  onSuspend?: () => void;
+  onUnsuspend?: () => void;
 }
 
 const cardDifficultyClasses = {
@@ -28,7 +30,7 @@ const cardStateClasses = {
   relearning: "border-orange-500/20 bg-orange-500/10 text-orange-400",
 } as const;
 
-export const CardListItem = ({ card, onEdit, onDelete }: CardListItemProps) => {
+export const CardListItem = ({ card, onEdit, onDelete, onSuspend, onUnsuspend }: CardListItemProps) => {
   return (
     <article className="group flex flex-col gap-3 rounded-sm border border-border bg-muted p-4 transition-colors hover:border-border/80 hover:bg-muted/80">
       <div className="flex items-start justify-between gap-3">
@@ -62,6 +64,11 @@ export const CardListItem = ({ card, onEdit, onDelete }: CardListItemProps) => {
               {tag}
             </span>
           ))}
+          {card.isSuspended && (
+            <span className="rounded-sm border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-amber-400">
+              Suspended
+            </span>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
@@ -73,6 +80,20 @@ export const CardListItem = ({ card, onEdit, onDelete }: CardListItemProps) => {
           >
             <PencilIcon className="size-3.5" />
           </button>
+          {(onSuspend || onUnsuspend) && (
+            <button
+              type="button"
+              aria-label={card.isSuspended ? "Unsuspend card" : "Suspend card"}
+              onClick={card.isSuspended ? onUnsuspend : onSuspend}
+              className="inline-flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-zinc-950 hover:text-foreground"
+            >
+              {card.isSuspended ? (
+                <PlayIcon className="size-3.5" />
+              ) : (
+                <PauseIcon className="size-3.5" />
+              )}
+            </button>
+          )}
           <button
             type="button"
             aria-label="Delete card"

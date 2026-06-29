@@ -38,6 +38,11 @@ vi.mock("@/data/repositories", () => ({
   studyRepository: {
     getDueCards: (...args: unknown[]) => mockGetDueCards(...args),
     submitReview: (...args: unknown[]) => mockSubmitReview(...args),
+    buryCard: vi.fn().mockResolvedValue(undefined),
+  },
+  cardRepository: {
+    suspendCard: vi.fn().mockResolvedValue(undefined),
+    unsuspendCard: vi.fn().mockResolvedValue(undefined),
   },
 }));
 

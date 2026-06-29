@@ -183,6 +183,20 @@ export class CardSqliteRepository implements CardRepository {
     await this.dbClient.execute("DELETE FROM cards WHERE id = $1", [id]);
   };
 
+  suspendCard = async (id: string): Promise<void> => {
+    await this.dbClient.execute(
+      `UPDATE cards SET is_suspended = 1, updated_at = $1 WHERE id = $2`,
+      [now(), id]
+    );
+  };
+
+  unsuspendCard = async (id: string): Promise<void> => {
+    await this.dbClient.execute(
+      `UPDATE cards SET is_suspended = 0, updated_at = $1 WHERE id = $2`,
+      [now(), id]
+    );
+  };
+
   listCardsByDeck = async (deckId: string): Promise<CardWithSchedule[]> => {
     const rows = await this.dbClient.select<Record<string, unknown>[]>(
       `${CARD_WITH_SCHEDULE_SELECT}

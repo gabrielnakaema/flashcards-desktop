@@ -8,4 +8,5 @@ export interface StudyRepository {
   getDueCards: (deckId: string) => Promise<CardWithSchedule[]>;
   submitReview: (payload: SubmitReviewPayload) => Promise<ReviewLog>;
   resetDeckStudyProgress: (deckId: string) => Promise<void>;
+  buryCard: (cardId: string, dueAt: string) => Promise<void>;
 }

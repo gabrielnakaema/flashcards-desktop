@@ -164,6 +164,15 @@ export const useStudySession = (deckId: string) => {
     }
   };
 
+  const skipCurrentCard = () => {
+    if (!currentCard) return;
+    setQueue((cards) =>
+      cards[0]?.id === currentCard.id ? cards.slice(1) : cards
+    );
+    setAnswerResult(null);
+    setCardStartedAt(Date.now());
+  };
+
   const restartSession = async () => {
     setInitializedDeckId(null);
     setQueue([]);
@@ -199,6 +208,7 @@ export const useStudySession = (deckId: string) => {
     submitTypedAnswer,
     selectChoice,
     rateCurrentCard,
+    skipCurrentCard,
     restartSession,
   };
 };
