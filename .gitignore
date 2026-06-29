@@ -25,3 +25,8 @@ dist-ssr
 
 .pnpm-store
 .tanstack
+
+__pycache__
+e2e/.venv
+
+.env

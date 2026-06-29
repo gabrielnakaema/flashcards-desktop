@@ -1,13 +1,13 @@
 import Database from "@tauri-apps/plugin-sql";
+import { invoke } from "@tauri-apps/api/core";
 import type { SqlClient } from "./sql-client";
-
-export const DATABASE_PATH = "sqlite:flashcards.db";
 
 let dbInstance: SqlClient | undefined;
 
 export const initDb = async (): Promise<SqlClient> => {
   if (!dbInstance) {
-    dbInstance = await Database.load(DATABASE_PATH);
+    const path = await invoke<string>("database_path");
+    dbInstance = await Database.load(path);
   }
 
   return dbInstance;

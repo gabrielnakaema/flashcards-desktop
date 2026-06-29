@@ -17,6 +17,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+[features]
+webdriver = ["tauri-plugin-webdriver"]
+
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-http = "2.0.0"
@@ -25,3 +28,4 @@ dark-light = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-webdriver = { version = "0.2", optional = true }
