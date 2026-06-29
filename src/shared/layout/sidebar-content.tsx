@@ -4,7 +4,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Flame } from "lucide-react";
 import { SidebarDeckList } from "./sidebar-deck-list";
 import { SidebarNav } from "./sidebar-nav";
-import { cn } from "../lib/utils";
 
 interface SidebarContentProps {
   onNavigate?: () => void;
@@ -22,8 +21,10 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   );
   const currentStreak = streak?.currentStreak ?? 0;
   const bestStreak = streak?.bestStreak ?? 0;
-  const streakProgress =
-    bestStreak > 0 ? (currentStreak / bestStreak) * 100 : 0;
+  const streakProgress = Math.min(
+    100,
+    Math.max(0, bestStreak > 0 ? (currentStreak / bestStreak) * 100 : 0)
+  );
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
@@ -76,10 +77,8 @@ onClick={onNavigate}
         </div>
         <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/5">
           <div
-            className={cn(
-              "h-full rounded-full bg-orange-400 transition-all duration-500",
-              streakProgress != undefined && `w-[${streakProgress}%]`
-            )}
+            className="h-full rounded-full bg-orange-400 transition-all duration-500"
+            style={{ width: `${streakProgress}%` }}
           />
         </div>
       </div>
