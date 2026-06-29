@@ -1,7 +1,7 @@
 import { render, screen } from "@/test-utils";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_CARD_LIST_FILTERS } from "./card-list-filters";
+import { DEFAULT_CARD_LIST_FILTERS } from "../card-list/card-list-filters";
 import { DeckCardsToolbar } from "./deck-cards-toolbar";
 
 describe("DeckCardsToolbar", () => {

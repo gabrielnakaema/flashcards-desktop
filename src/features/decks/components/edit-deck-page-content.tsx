@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useCanGoBack, useNavigate, useRouter } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { useDeckDetails } from "../hooks/use-deck-details";
 import { DeckForm } from "./deck-form";
@@ -7,14 +7,19 @@ interface EditDeckPageContentProps {
   deckId: string;
 }
 
-export const EditDeckPageContent = ({
-  deckId,
-}: EditDeckPageContentProps) => {
+export const EditDeckPageContent = ({ deckId }: EditDeckPageContentProps) => {
   const navigate = useNavigate();
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
   const { data: deck, isLoading, isError } = useDeckDetails(deckId);
 
-  const handleBack = () =>
-    navigate({ to: "/decks/$deckId/cards", params: { deckId } });
+  const handleBack = () => {
+    if (canGoBack) {
+      router.history.back();
+    } else {
+      navigate({ to: "/" });
+    }
+  };
 
   if (isLoading) {
     return (

@@ -25,7 +25,7 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   LOCKED_RESPONSE_FORMAT_PROMPT,
 } from "./generate-cards-constants";
-import { ReviewCardsPanel } from "./review-cards-panel";
+import { ReviewCardsPanel } from "../review-cards/review-cards-panel";
 
 interface DeckGenerateCardsContentProps {
   deckId: string;
@@ -259,7 +259,6 @@ const DeckGenerateCardsForm = ({
 
         <div className="min-w-0 flex-1 overflow-hidden">
           <ReviewCardsPanel
-            layout="studio"
             cards={generatedCards}
             deck={deck}
             isGenerating={isGenerating}

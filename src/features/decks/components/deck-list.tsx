@@ -1,6 +1,6 @@
 import { useListDecks } from "@/features/decks/hooks/use-list-decks";
 import { getDeckColor } from "@/shared/utils/deck-colors";
-import { DeckCard } from "./deck-card";
+import { DeckCard } from "./deck-card/deck-card";
 
 export const DeckList = () => {
   const { data: decks, isLoading } = useListDecks();

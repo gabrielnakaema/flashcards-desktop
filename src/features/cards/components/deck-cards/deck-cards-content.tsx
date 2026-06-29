@@ -4,8 +4,8 @@ import { useSettings } from "@/features/settings";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
-import { CardForm } from "./card-form";
-import type { CardListFilters } from "./card-list-filters";
+import { CardForm } from "../card-form/card-form";
+import type { CardListFilters } from "../card-list/card-list-filters";
 import { DeckCardsHeader } from "./deck-cards-header";
 import { DeckCardsList } from "./deck-cards-list";
 

@@ -1,8 +1,8 @@
 import { useListCardsByDeck } from "@/features/cards/hooks/use-list-cards-by-deck";
-import { CardListItem } from "./card-list-item";
+import { CardListItem } from "../card-list/card-list-item";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/features/cards/types";
-import { CardForm } from "./card-form";
+import { CardForm } from "../card-form/card-form";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { useDeleteCard } from "@/features/cards/hooks/use-delete-card";
 import {
@@ -10,7 +10,7 @@ import {
   type CardListFilters,
   filterCards,
   hasActiveCardListFilters,
-} from "./card-list-filters";
+} from "../card-list/card-list-filters";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { CardListEmptyState } from "./card-list-empty-state";
+import { CardListEmptyState } from "../card-list/card-list-empty-state";
 import { DeckCardsToolbar } from "./deck-cards-toolbar";
 
 interface DeckCardsListProps {

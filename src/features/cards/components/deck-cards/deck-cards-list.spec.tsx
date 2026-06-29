@@ -8,7 +8,7 @@ import {
   DEFAULT_CARD_LIST_FILTERS,
   normalizeCardListFilters,
   type CardListFilters,
-} from "./card-list-filters";
+} from "../card-list/card-list-filters";
 import { DeckCardsList } from "./deck-cards-list";
 
 const mockListCardsByDeck = vi.fn();

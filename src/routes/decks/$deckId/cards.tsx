@@ -1,9 +1,9 @@
-import { DeckCardsContent } from "@/features/cards/components/deck-cards-content";
+import { DeckCardsContent } from "@/features/cards/components/deck-cards/deck-cards-content";
 import {
   DEFAULT_CARD_LIST_FILTERS,
   type CardListFilters,
   normalizeCardListFilters,
-} from "@/features/cards/components/card-list-filters";
+} from "@/features/cards/components/card-list/card-list-filters";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 

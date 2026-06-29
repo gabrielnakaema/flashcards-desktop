@@ -1,6 +1,7 @@
 import { deckRepository } from "@/data/repositories";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { decksQueryKeys } from "./decks-query-keys";
+import { cardsQueryKeys } from "@/features/cards";
 
 const repo = deckRepository;
 
@@ -15,6 +16,7 @@ export const useDeleteDeck = ({ onSuccess }: UseDeleteDeckProps = {}) => {
     mutationFn: repo.deleteDeck,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: decksQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: cardsQueryKeys.all });
       onSuccess?.();
     },
   });

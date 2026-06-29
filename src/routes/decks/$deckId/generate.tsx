@@ -1,4 +1,4 @@
-import { DeckGenerateCardsContent } from "@/features/cards/components/deck-generate-cards-content";
+import { DeckGenerateCardsContent } from "@/features/cards/components/generate-cards/deck-generate-cards-content";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/decks/$deckId/generate")({

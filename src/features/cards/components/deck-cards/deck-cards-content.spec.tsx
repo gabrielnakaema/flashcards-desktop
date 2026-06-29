@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@/test-utils";
 import type { Deck } from "@/features/decks";
 import { DeckCardsContent } from "./deck-cards-content";
-import { DEFAULT_CARD_LIST_FILTERS } from "./card-list-filters";
+import { DEFAULT_CARD_LIST_FILTERS } from "../card-list/card-list-filters";
 
 const mockGetDeck = vi.fn();
 const mockListCardsByDeck = vi.fn();

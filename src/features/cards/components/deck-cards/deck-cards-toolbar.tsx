@@ -7,7 +7,7 @@ import {
   type CardListFilters,
   isCardTypeFilter,
   isDifficultyFilter,
-} from "./card-list-filters";
+} from "../card-list/card-list-filters";
 
 interface DeckCardsToolbarProps {
   searchValue: string;
