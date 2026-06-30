@@ -37,6 +37,7 @@ pub fn run() {
     let db_path = DATABASE_PATH;
 
     let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(
             tauri_plugin_sql::Builder::default()

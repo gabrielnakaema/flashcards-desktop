@@ -1,6 +1,9 @@
 import { useSettings } from "@/features/settings/hooks/use-settings";
-import { useListLlmModels } from "@/features/llm";
-import { getLlmProviderOptions } from "@/features/llm";
+import {
+  useUpdater,
+  type UpdaterStatus,
+} from "@/features/settings/hooks/use-updater";
+import { getLlmProviderOptions, useListLlmModels } from "@/features/llm";
 import { AppSwitch } from "@/shared/components/app-switch";
 import { AppSelect } from "@/shared/components/app-select";
 import { AppInput } from "@/shared/components/app-input";
@@ -15,6 +18,24 @@ import { getErrorMessage } from "@/shared/utils/handle-error";
 import { getVersion } from "@tauri-apps/api/app";
 import { useEffect, useState } from "react";
 
+const STATUS_TEXT: Record<UpdaterStatus["type"], string> = {
+  idle: "Check if a new version is available",
+  checking: "Checking…",
+  "up-to-date": "You're on the latest version",
+  available: "Update available",
+  downloading: "Downloading…",
+  installed: "Installed — restart to apply",
+  error: "An error occurred",
+};
+
+const getUpdaterStatusText = (status: UpdaterStatus): string => {
+  if (status.type === "available")
+    return `v${status.update.version} is available`;
+  if (status.type === "downloading") return `Downloading… ${status.progress}%`;
+  if (status.type === "error") return status.message;
+  return STATUS_TEXT[status.type];
+};
+
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <div className="mb-2.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground/50">
     {children}
@@ -23,6 +44,7 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 export const SettingsContent = () => {
   const { data, setData } = useSettings();
+  const { status, checkForUpdate, installUpdate } = useUpdater();
   const [appVersion, setAppVersion] = useState<string | null>(null);
 
   useEffect(() => {
@@ -207,6 +229,40 @@ export const SettingsContent = () => {
           </div>
         </div>
       </form>
+
+      <div className="mt-5">
+        <SectionLabel>Updates</SectionLabel>
+        <div className="rounded-sm border border-border bg-muted">
+          <div className="flex items-center justify-between px-5 py-4">
+            <div>
+              <div className="text-[13px] font-medium">Check for updates</div>
+              <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                {getUpdaterStatusText(status)}
+              </div>
+            </div>
+            <div className="ml-5 shrink-0">
+              {status.type === "available" ? (
+                <AppButton type="button" onClick={() => void installUpdate()}>
+                  Install
+                </AppButton>
+              ) : (
+                <AppButton
+                  type="button"
+                  variant="secondary"
+                  disabled={
+                    status.type === "checking" ||
+                    status.type === "downloading" ||
+                    status.type === "installed"
+                  }
+                  onClick={() => void checkForUpdate()}
+                >
+                  {status.type === "checking" ? "Checking…" : "Check now"}
+                </AppButton>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
