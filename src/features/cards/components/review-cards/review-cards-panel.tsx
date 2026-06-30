@@ -6,7 +6,7 @@ import {
   CardFormValues,
   formValuesToCreatePayload,
 } from "@/features/cards/schemas/card-form-schema";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBulkCreateCards } from "@/features/cards/hooks/use-bulk-create-cards";
@@ -14,12 +14,8 @@ import { getErrorMessage } from "@/shared/utils/handle-error";
 import { Deck } from "@/features/decks";
 import { Loader2, Sparkles } from "lucide-react";
 import { CardFormFields } from "../card-form/card-form-fields";
-import {
-  doGeneratedCardsExtendPrevious,
-  getGeneratedCardDraftId,
-  reconcileGeneratedCardDrafts,
-  type GeneratedCardDraft,
-} from "./review-cards-panel.utils";
+import { type GeneratedCardDraft } from "./review-cards-panel.utils";
+import { useGeneratedCardDrafts } from "./use-generated-card-drafts";
 import "./review-cards-motion.css";
 import { toast } from "sonner";
 
@@ -114,10 +110,8 @@ export const ReviewCardsPanel = ({
   onSave,
   isGenerating = false,
 }: ReviewCardsPanelProps) => {
-  const [drafts, setDrafts] = useState<GeneratedCardDraft[]>([]);
-  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const previousCardsRef = useRef<GeneratedCard[]>([]);
+  const { drafts, editingDraft, selectedDraftCount, hasDrafts, validationError, dispatch } =
+    useGeneratedCardDrafts();
 
   const {
     bulkCreate,
@@ -128,84 +122,14 @@ export const ReviewCardsPanel = ({
   const errorMessage = validationError ?? getErrorMessage(createError);
 
   useEffect(() => {
-    const previousCards = previousCardsRef.current;
-    const extendsPreviousCards = doGeneratedCardsExtendPrevious(
-      previousCards,
-      cards
-    );
-
-    setDrafts((current) =>
-      reconcileGeneratedCardDrafts(current, previousCards, cards)
-    );
-    setEditingDraftId((current) =>
-      extendsPreviousCards &&
-      current &&
-      cards.some((_, index) => getGeneratedCardDraftId(index) === current)
-        ? current
-        : null
-    );
-    if (!extendsPreviousCards) {
-      setValidationError(null);
-    }
-    previousCardsRef.current = cards;
-  }, [cards]);
-
-  const commitDraftValues = useCallback(
-    (draftId: string, values: CardFormValues) => {
-      setDrafts((current) =>
-        current.map((d) => (d.id === draftId ? { ...d, values } : d))
-      );
-    },
-    []
-  );
-
-  const toggleDraftApproval = (draftId: string, approved: boolean) => {
-    setValidationError(null);
-    setDrafts((current) =>
-      current.map((d) => (d.id === draftId ? { ...d, approved } : d))
-    );
-  };
-
-  const discardDraft = (draftId: string) => {
-    setDrafts((current) => current.filter((d) => d.id !== draftId));
-    if (editingDraftId === draftId) setEditingDraftId(null);
-  };
-
-  const selectAllDrafts = () => {
-    setDrafts((current) => current.map((d) => ({ ...d, approved: true })));
-  };
-
-  const clearDraftSelection = () => {
-    setDrafts((current) => current.map((d) => ({ ...d, approved: false })));
-  };
-
-  const discardSelectedDrafts = () => {
-    const selectedIds = new Set(
-      drafts.filter((d) => d.approved).map((d) => d.id)
-    );
-
-    if (selectedIds.size === 0) {
-      setValidationError("Select at least one generated card to discard.");
-      return;
-    }
-
-    setDrafts((current) => current.filter((d) => !selectedIds.has(d.id)));
-
-    if (editingDraftId && selectedIds.has(editingDraftId)) {
-      setEditingDraftId(null);
-    }
-  };
-
-  const discardAllDrafts = () => {
-    setDrafts([]);
-    setEditingDraftId(null);
-  };
+    dispatch({ type: "cardsReceived", cards });
+  }, [cards, dispatch]);
 
   const handleSave = () => {
     const approvedDrafts = drafts.filter((d) => d.approved);
 
     if (approvedDrafts.length === 0) {
-      setValidationError("Select at least one generated card before saving.");
+      dispatch({ type: "validationErrorSet", message: "Select at least one generated card before saving." });
       return;
     }
 
@@ -214,26 +138,21 @@ export const ReviewCardsPanel = ({
       const result = cardFormSchema.safeParse(draft.values);
       if (!result.success) {
         const message = result.error.issues[0]?.message ?? "Invalid card.";
-        setValidationError(`Generated card ${index + 1}: ${message}`);
+        dispatch({ type: "validationErrorSet", message: `Generated card ${index + 1}: ${message}` });
         return;
       }
       payloads.push(formValuesToCreatePayload(deck.id, result.data));
     }
 
-    setValidationError(null);
+    dispatch({ type: "validationErrorSet", message: null });
     bulkCreate(payloads, {
       onSuccess: () => {
-        setDrafts([]);
-        setEditingDraftId(null);
+        dispatch({ type: "saveSucceeded" });
         onSave?.(payloads.length);
         toast.success(`Saved ${payloads.length} cards successfully!`);
       },
     });
   };
-
-  const selectedDraftCount = drafts.filter((d) => d.approved).length;
-  const editingDraft = drafts.find((d) => d.id === editingDraftId) ?? null;
-  const hasDrafts = drafts.length > 0;
 
   const renderContent = () => {
     if (editingDraft) {
@@ -243,10 +162,10 @@ export const ReviewCardsPanel = ({
             key={editingDraft.id}
             draft={editingDraft}
             onCommit={(values) => {
-              commitDraftValues(editingDraft.id, values);
-              setEditingDraftId(null);
+              dispatch({ type: "draftEdited", draftId: editingDraft.id, values });
+              dispatch({ type: "editingEnded" });
             }}
-            onBack={() => setEditingDraftId(null)}
+            onBack={() => dispatch({ type: "editingEnded" })}
           />
         </div>
       );
@@ -281,7 +200,7 @@ export const ReviewCardsPanel = ({
                 type="button"
                 variant="secondary"
                 size="xs"
-                onClick={selectAllDrafts}
+                onClick={() => dispatch({ type: "allDraftsSelected" })}
               >
                 Select all
               </AppButton>
@@ -289,7 +208,7 @@ export const ReviewCardsPanel = ({
                 type="button"
                 variant="secondary"
                 size="xs"
-                onClick={clearDraftSelection}
+                onClick={() => dispatch({ type: "selectionCleared" })}
               >
                 Clear selection
               </AppButton>
@@ -297,13 +216,13 @@ export const ReviewCardsPanel = ({
                 type="button"
                 variant="secondary"
                 size="xs"
-                onClick={discardSelectedDrafts}
+                onClick={() => dispatch({ type: "selectedDraftsDiscarded" })}
               >
                 Discard selected
               </AppButton>
               <button
                 type="button"
-                onClick={discardAllDrafts}
+                onClick={() => dispatch({ type: "allDraftsDiscarded" })}
                 className={cn(destructiveButtonClassNames, "px-3 py-1.5")}
               >
                 Discard all
@@ -331,7 +250,7 @@ export const ReviewCardsPanel = ({
                         checked={draft.approved}
                         aria-label={`Select card ${index + 1} for save`}
                         onChange={(event) =>
-                          toggleDraftApproval(draft.id, event.target.checked)
+                          dispatch({ type: "draftApprovalToggled", draftId: draft.id, approved: event.target.checked })
                         }
                         className="size-4 rounded-sm border border-input bg-muted"
                       />
@@ -356,13 +275,13 @@ export const ReviewCardsPanel = ({
                           variant="secondary"
                           size="xs"
                           className="bg-muted px-2.5 py-1 text-foreground hover:bg-zinc-800"
-                          onClick={() => setEditingDraftId(draft.id)}
+                          onClick={() => dispatch({ type: "editingStarted", draftId: draft.id })}
                         >
                           Edit
                         </AppButton>
                         <button
                           type="button"
-                          onClick={() => discardDraft(draft.id)}
+                          onClick={() => dispatch({ type: "draftDiscarded", draftId: draft.id })}
                           className={cn(
                             destructiveButtonClassNames,
                             "px-2.5 py-1"
