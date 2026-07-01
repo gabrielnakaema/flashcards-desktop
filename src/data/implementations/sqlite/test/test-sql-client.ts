@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { applySqliteMigrations } from "../migrations";
+import createInitialTables from "../migrations/001_create_initial_tables.sql?raw";
 import type { QueryResult, SqlClient } from "../sql-client";
 
 const toNativePlaceholders = (query: string): string => {
@@ -54,7 +54,7 @@ export class TestSqlClient implements SqlClient {
     const tempDir = await mkdtemp(join(tmpdir(), "flashcards-test-"));
     const dbPath = join(tempDir, `${randomUUID()}.db`);
     const db = new Database(dbPath);
-    applySqliteMigrations((sql) => db.exec(sql));
+    db.exec(createInitialTables);
     return new TestSqlClient(db, tempDir);
   }
 

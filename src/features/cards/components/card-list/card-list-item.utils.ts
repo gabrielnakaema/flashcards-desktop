@@ -1,4 +1,4 @@
-import type { Card, CardSchedule, CardType } from "@/features/cards/types";
+import type { CardSchedule, CardType } from "@/features/cards/types";
 
 export const cardDifficultyLabels = {
   easy: "Easy",
@@ -35,26 +35,6 @@ export const formatInterval = (days: number): string => {
   if (days === 0) return "Same day";
   if (days === 1) return "1 day";
   return `${days} days`;
-};
-
-export const getCardAnswerPreview = (card: Card): string | null => {
-  if (card.type === "plain") {
-    return card.back;
-  }
-
-  if (card.type === "multiple_choice") {
-    const correctChoice = card.content.choices.find(
-      (choice) => choice.id === card.content.correctChoiceId
-    );
-
-    return correctChoice?.text ?? null;
-  }
-
-  if (card.type === "typed_answer") {
-    return card.content.acceptedAnswer;
-  }
-
-  return null;
 };
 
 export const formatScheduleSummary = (schedule: CardSchedule): string => {

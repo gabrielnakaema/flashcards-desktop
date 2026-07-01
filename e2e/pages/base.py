@@ -1,6 +1,5 @@
 import os
 
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
@@ -23,14 +22,6 @@ def xpath_literal(value: str) -> str:
 def wait_for(driver: WebDriver, by: str, value: str, timeout: int = TIMEOUT) -> WebElement:
     return WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((by, value))
-    )
-
-
-def wait_for_visible(
-    driver: WebDriver, by: str, value: str, timeout: int = TIMEOUT
-) -> WebElement:
-    return WebDriverWait(driver, timeout).until(
-        EC.visibility_of_element_located((by, value))
     )
 
 
@@ -105,11 +96,3 @@ def select_option(driver: WebDriver, trigger_xpath: str, option_text: str) -> No
         f"//*[@role = 'option' and normalize-space(.) = {xpath_literal(option_text)}]",
     )
     driver.execute_script("arguments[0].click();", option)
-
-
-def element_exists(driver: WebDriver, by: str, value: str) -> bool:
-    try:
-        wait_for(driver, by, value, timeout=1)
-        return True
-    except TimeoutException:
-        return False

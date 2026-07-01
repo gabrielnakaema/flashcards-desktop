@@ -16,7 +16,6 @@ export const cardStateSchema = z.enum([
   "review",
   "relearning",
 ]);
-export type CardState = z.infer<typeof cardStateSchema>;
 
 export const cardDifficultySchema = z.enum(["easy", "medium", "hard"]);
 

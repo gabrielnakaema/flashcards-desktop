@@ -4,7 +4,6 @@ import {
   isCorrectChoice,
 } from "@/features/study/components/study-grading";
 import type {
-  CardState,
   CardWithSchedule,
   Rating,
   ReviewLog,
@@ -212,5 +211,3 @@ export const useStudySession = (deckId: string) => {
     restartSession,
   };
 };
-
-export type StudyCardState = CardState;
