@@ -27,8 +27,8 @@ const ResultBanner = ({ wasCorrect }: { wasCorrect?: boolean }) => {
       className={cn(
         "flex items-center gap-2 rounded-sm border px-3 py-2.5 text-sm font-medium",
         wasCorrect
-          ? "study-correct-pop border-green-500/40 bg-green-500/10 text-green-300"
-          : "study-incorrect-shake border-red-500/40 bg-red-500/10 text-red-300"
+          ? "study-correct-pop border-success/40 bg-success/10 text-success"
+          : "study-incorrect-shake border-destructive/40 bg-destructive/10 text-destructive"
       )}
     >
       {wasCorrect ? (
@@ -80,7 +80,7 @@ export const StudyAnswerPanel = ({
       )}
 
       {card.type === "plain" && isRevealed && (
-        <div className="study-enter rounded-sm border border-border/60 bg-zinc-950/60 p-4">
+        <div className="study-enter rounded-sm border border-border/60 bg-background/60 p-4">
           <p className="mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-wide text-muted-foreground">
             Answer
           </p>
@@ -112,11 +112,11 @@ export const StudyAnswerPanel = ({
                   !isRevealed && "study-enter",
                   isRevealed &&
                     isCorrect &&
-                    "study-correct-pop border-green-500/60 text-green-300 disabled:opacity-100",
+                    "study-correct-pop border-success/60 text-success disabled:opacity-100",
                   isRevealed &&
                     isSelected &&
                     !isCorrect &&
-                    "study-incorrect-shake border-red-500/40 bg-red-500/10 text-red-200"
+                    "study-incorrect-shake border-destructive/40 bg-destructive/10 text-destructive"
                 )}
               >
                 <span className="mr-2 font-mono font-bold uppercase">
@@ -124,10 +124,10 @@ export const StudyAnswerPanel = ({
                 </span>
                 <span className="flex-1">{choice.text}</span>
                 {isRevealed && isCorrect && (
-                  <CheckCircle2Icon className="ml-auto size-4 text-green-400" />
+                  <CheckCircle2Icon className="ml-auto size-4 text-success" />
                 )}
                 {isRevealed && isSelected && !isCorrect && (
-                  <XCircleIcon className="ml-auto size-4 text-red-300" />
+                  <XCircleIcon className="ml-auto size-4 text-destructive" />
                 )}
               </AppButton>
             );
@@ -163,7 +163,7 @@ export const StudyAnswerPanel = ({
               <span className="text-foreground">{answerResult.response}</span>
             </p>
           )}
-          <div className="rounded-sm border border-border/60 bg-zinc-950/60 p-4">
+          <div className="rounded-sm border border-border/60 bg-background/60 p-4">
             <p className="mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-wide text-muted-foreground">
               Accepted answer
             </p>

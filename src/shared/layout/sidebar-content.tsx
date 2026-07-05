@@ -28,13 +28,13 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
-      <div className="border-b border-white/10 px-6 py-7">
+      <div className="border-b border-sidebar-border px-6 py-7">
         <Link
           to="/"
 onClick={onNavigate}
-          className="text-3xl font-bold tracking-tight text-white"
+          className="text-3xl font-bold tracking-tight text-sidebar-foreground"
         >
-          flashcards<span className="text-orange-400">.</span>
+          flashcards<span className="text-sidebar-primary">.</span>
         </Link>
       </div>
 
@@ -46,8 +46,8 @@ onClick={onNavigate}
           onNavigate={onNavigate}
         />
 
-        <div className="min-h-0 border-t border-white/10 pt-6">
-          <p className="px-3 text-xs font-medium uppercase tracking-[0.125em] text-zinc-600">
+        <div className="min-h-0 border-t border-sidebar-border pt-6">
+          <p className="px-3 text-xs font-medium uppercase tracking-[0.125em] text-muted-foreground">
             Decks
           </p>
           <div className="mt-4 max-h-[calc(100vh-28rem)] min-h-0 overflow-y-auto pr-1">
@@ -61,23 +61,23 @@ onClick={onNavigate}
         </div>
       </nav>
 
-      <div className="border-t border-white/10 px-6 py-5">
+      <div className="border-t border-sidebar-border px-6 py-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-lg font-bold text-white">
-            <Flame className="size-4 text-orange-400" />
+          <div className="flex items-center gap-3 text-lg font-bold text-sidebar-foreground">
+            <Flame className="size-4 text-sidebar-primary" />
             <span className="text-sm font-medium">
               {currentStreak}-day streak
             </span>
           </div>
           {bestStreak > 0 && (
-            <p className="text-xs font-normal tracking-wider text-zinc-600">
+            <p className="text-xs font-normal tracking-wider text-muted-foreground">
               best {bestStreak}
             </p>
           )}
         </div>
-        <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/5">
+        <div className="mt-4 h-1 overflow-hidden rounded-full bg-sidebar-accent">
           <div
-            className="h-full rounded-full bg-orange-400 transition-all duration-500"
+            className="h-full rounded-full bg-sidebar-primary transition-all duration-500"
             style={{ width: `${streakProgress}%` }}
           />
         </div>

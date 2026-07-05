@@ -5,8 +5,9 @@ import { Home, Settings, SquareCheckBig } from "lucide-react";
 import type { ReactNode } from "react";
 
 const navLinkClasses =
-  "flex items-center gap-2 rounded-sm px-2 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-white/5 hover:text-white";
-const activeNavLinkClasses = "bg-white/10 text-white hover:bg-white/10";
+  "flex items-center gap-2 rounded-sm px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
+const activeNavLinkClasses =
+  "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent";
 
 type ReviewLinkProps =
   | { to: "/" }
@@ -61,7 +62,7 @@ export const SidebarNav = ({
         >
           <Sparkles className="size-4" />
           <span className="flex-1">Generate</span>
-          <span className="rounded-full bg-purple-950/25 px-3 py-1 text-xs font-medium uppercase tracking-wider text-blue-100">
+          <span className="rounded-full bg-info/15 px-3 py-1 text-xs font-medium uppercase tracking-wider text-info">
             AI
           </span>
         </Link>
@@ -103,7 +104,7 @@ const renderReviewDueBadge = (reviewCardsDue: number): ReactNode => {
   }
 
   return (
-    <span className="rounded-full bg-orange-400/20 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-orange-400">
+    <span className="rounded-full bg-sidebar-primary/20 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-sidebar-primary">
       {reviewCardsDue}
     </span>
   );

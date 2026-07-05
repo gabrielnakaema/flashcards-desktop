@@ -170,7 +170,7 @@ export const SettingsContent = () => {
                     {modelListQuery.isFetching ? "Loading..." : "Load models"}
                   </AppButton>
                   {modelListErrorMessage && (
-                    <p className="text-xs text-red-500" role="alert">
+                    <p className="text-xs text-destructive" role="alert">
                       {modelListErrorMessage}
                     </p>
                   )}

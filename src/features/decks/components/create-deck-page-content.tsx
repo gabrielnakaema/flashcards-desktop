@@ -7,7 +7,7 @@ export const CreateDeckPageContent = () => {
   const handleBack = () => navigate({ to: "/" });
 
   return (
-    <div className="w-full flex flex-col gap-4 py-8 px-16 flex-1 bg-zinc-950">
+    <div className="w-full flex flex-col gap-4 py-8 px-16 flex-1 bg-background">
       <button
         type="button"
         onClick={handleBack}

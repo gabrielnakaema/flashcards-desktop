@@ -123,7 +123,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
             {session.submitError && (
               <div
                 role="alert"
-                className="study-enter rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-300"
+                className="study-enter rounded-sm border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
               >
                 {session.submitError}
               </div>

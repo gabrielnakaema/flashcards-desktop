@@ -112,7 +112,7 @@ export const DevStudyTools = ({ deckId }: DevStudyToolsProps) => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-md bg-amber-500/15 px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-600">
+            <span className="rounded-md bg-warning/15 px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-wide text-warning">
               Dev
             </span>
             <Button

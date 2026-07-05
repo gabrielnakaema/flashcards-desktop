@@ -46,7 +46,7 @@ const CardFormField = ({
     </label>
     {children}
     {error && (
-      <p id={`${htmlFor}-error`} className="text-xs text-red-500">
+      <p id={`${htmlFor}-error`} className="text-xs text-destructive">
         {error}
       </p>
     )}

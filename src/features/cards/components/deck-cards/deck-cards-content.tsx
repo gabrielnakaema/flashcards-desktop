@@ -28,14 +28,14 @@ export const DeckCardsContent = ({
 
   if (isFetching) {
     return (
-      <div className="flex min-h-[70vh] w-full flex-1 flex-col items-center justify-center gap-4 bg-zinc-950 px-16 py-8">
+      <div className="flex min-h-[70vh] w-full flex-1 flex-col items-center justify-center gap-4 bg-background px-16 py-8">
         <Loader2 className="size-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="flex w-full flex-1 flex-col overflow-hidden bg-zinc-950">
+    <div className="flex w-full flex-1 flex-col overflow-hidden bg-background">
       <main className="flex min-w-0 flex-1 flex-col gap-8 overflow-auto px-6 py-8 lg:px-16">
         {deck && (
           <DeckCardsHeader
@@ -56,7 +56,7 @@ export const DeckCardsContent = ({
       </main>
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden rounded-sm border border-border bg-zinc-950 p-0 sm:max-w-2xl">
+        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden rounded-sm border border-border bg-background p-0 sm:max-w-2xl">
           <DialogTitle className="sr-only">Create flashcard</DialogTitle>
           <DialogDescription className="sr-only">
             Add a new flashcard to this deck.

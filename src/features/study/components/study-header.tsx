@@ -21,20 +21,20 @@ export const StudyHeader = ({
     total > 0 ? Math.min(100, (reviewed / total) * 100) : 0;
 
   const headerCounts = [
-    { label: "New", value: counts.new, color: "text-blue-400" },
-    { label: "Learning", value: counts.learning, color: "text-orange-400" },
-    { label: "Review", value: counts.review, color: "text-green-400" },
+    { label: "New", value: counts.new, color: "text-info" },
+    { label: "Learning", value: counts.learning, color: "text-warning" },
+    { label: "Review", value: counts.review, color: "text-success" },
   ];
 
   return (
-    <header className="border-b border-border/60 bg-zinc-950">
+    <header className="border-b border-border/60 bg-background">
       <div className="flex h-14 items-center justify-between px-6">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onBack}
             aria-label="Exit study"
-            className="flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-zinc-800 hover:text-foreground"
+            className="flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ArrowLeftIcon className="size-4" />
           </button>

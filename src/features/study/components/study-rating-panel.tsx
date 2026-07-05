@@ -27,7 +27,7 @@ const ratingOptions: Array<{
     label: "Again",
     shortcut: "1",
     className:
-      "border-red-500/40 text-red-300 hover:bg-red-500/10 hover:border-red-500/60",
+      "border-destructive/40 text-destructive hover:bg-destructive/10 hover:border-destructive/60",
     icon: RotateCcwIcon,
   },
   {
@@ -35,7 +35,7 @@ const ratingOptions: Array<{
     label: "Hard",
     shortcut: "2",
     className:
-      "border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10 hover:border-yellow-500/60",
+      "border-warning/40 text-warning hover:bg-warning/10 hover:border-warning/60",
     icon: TrendingUpIcon,
   },
   {
@@ -43,7 +43,7 @@ const ratingOptions: Array<{
     label: "Medium",
     shortcut: "3",
     className:
-      "border-blue-500/40 text-blue-300 hover:bg-blue-500/10 hover:border-blue-500/60",
+      "border-info/40 text-info hover:bg-info/10 hover:border-info/60",
     icon: ZapIcon,
   },
   {
@@ -51,7 +51,7 @@ const ratingOptions: Array<{
     label: "Easy",
     shortcut: "4",
     className:
-      "border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-500/60",
+      "border-success/40 text-success hover:bg-success/10 hover:border-success/60",
     icon: SparklesIcon,
   },
 ];

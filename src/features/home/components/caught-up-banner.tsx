@@ -12,8 +12,8 @@ export const CaughtUpBanner = ({ data }: CaughtUpBannerProps) => (
   <BannerSection>
     <div className="flex gap-12 items-center">
       <div className="flex flex-col gap-2 items-center">
-        <div className="border border-green-600 rounded-full h-12 w-12 min-h-12 min-w-12 flex items-center justify-center bg-green-600/10">
-          <Check className="size-4 text-green-600" />
+        <div className="border border-success rounded-full h-12 w-12 min-h-12 min-w-12 flex items-center justify-center bg-success/10">
+          <Check className="size-4 text-success" />
         </div>
 
         <p className="text-sm font-bold text-foreground">All caught up!</p>

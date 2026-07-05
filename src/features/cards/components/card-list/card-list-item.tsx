@@ -18,16 +18,16 @@ interface CardListItemProps {
 }
 
 const cardDifficultyClasses = {
-  easy: "border-green-500/20 bg-green-500/10 text-green-500",
-  medium: "border-yellow-500/20 bg-yellow-500/10 text-yellow-500",
-  hard: "border-red-500/20 bg-red-500/10 text-red-500",
+  easy: "border-success/20 bg-success/10 text-success",
+  medium: "border-warning/20 bg-warning/10 text-warning",
+  hard: "border-destructive/20 bg-destructive/10 text-destructive",
 } as const;
 
 const cardStateClasses = {
-  new: "border-blue-500/20 bg-blue-500/10 text-blue-400",
-  learning: "border-yellow-500/20 bg-yellow-500/10 text-yellow-500",
-  review: "border-green-500/20 bg-green-500/10 text-green-500",
-  relearning: "border-orange-500/20 bg-orange-500/10 text-orange-400",
+  new: "border-info/20 bg-info/10 text-info",
+  learning: "border-warning/20 bg-warning/10 text-warning",
+  review: "border-success/20 bg-success/10 text-success",
+  relearning: "border-primary/20 bg-primary/10 text-primary",
 } as const;
 
 export const CardListItem = ({ card, onEdit, onDelete, onSuspend, onUnsuspend }: CardListItemProps) => {
@@ -35,7 +35,7 @@ export const CardListItem = ({ card, onEdit, onDelete, onSuspend, onUnsuspend }:
     <article className="group flex flex-col gap-3 rounded-sm border border-border bg-muted p-4 transition-colors hover:border-border/80 hover:bg-muted/80">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="rounded-sm border border-border bg-zinc-950 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+          <span className="rounded-sm border border-border bg-background px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
             {cardTypeLabels[card.type]}
           </span>
           <span
@@ -59,13 +59,13 @@ export const CardListItem = ({ card, onEdit, onDelete, onSuspend, onUnsuspend }:
           {card.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-sm border border-orange-400/20 bg-orange-400/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-orange-400"
+              className="rounded-sm border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-primary"
             >
               {tag}
             </span>
           ))}
           {card.isSuspended && (
-            <span className="rounded-sm border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-amber-400">
+            <span className="rounded-sm border border-warning/20 bg-warning/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-warning">
               Suspended
             </span>
           )}
@@ -76,7 +76,7 @@ export const CardListItem = ({ card, onEdit, onDelete, onSuspend, onUnsuspend }:
             type="button"
             aria-label="Edit card"
             onClick={onEdit}
-            className="inline-flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-zinc-950 hover:text-foreground"
+            className="inline-flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
           >
             <PencilIcon className="size-3.5" />
           </button>
@@ -85,7 +85,7 @@ export const CardListItem = ({ card, onEdit, onDelete, onSuspend, onUnsuspend }:
               type="button"
               aria-label={card.isSuspended ? "Unsuspend card" : "Suspend card"}
               onClick={card.isSuspended ? onUnsuspend : onSuspend}
-              className="inline-flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-zinc-950 hover:text-foreground"
+              className="inline-flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
             >
               {card.isSuspended ? (
                 <PlayIcon className="size-3.5" />
@@ -98,7 +98,7 @@ export const CardListItem = ({ card, onEdit, onDelete, onSuspend, onUnsuspend }:
             type="button"
             aria-label="Delete card"
             onClick={onDelete}
-            className="inline-flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-zinc-950 hover:text-red-500"
+            className="inline-flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-background hover:text-destructive"
           >
             <TrashIcon className="size-3.5" />
           </button>

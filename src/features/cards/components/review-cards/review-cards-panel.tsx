@@ -27,7 +27,7 @@ interface ReviewCardsPanelProps {
 }
 
 const destructiveButtonClassNames =
-  "rounded-sm border border-red-500/30 bg-red-500/10 font-mono text-xs font-medium tracking-tight text-red-500 transition-colors hover:bg-red-500/15";
+  "rounded-sm border border-destructive/30 bg-destructive/10 font-mono text-xs font-medium tracking-tight text-destructive transition-colors hover:bg-destructive/15";
 
 const DRAFT_TYPE_LABELS = {
   plain: "Plain",
@@ -230,9 +230,9 @@ export const ReviewCardsPanel = ({
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-auto rounded-sm border border-border/60 bg-zinc-950">
+          <div className="min-h-0 flex-1 overflow-auto rounded-sm border border-border/60 bg-background">
             <table className="w-full min-w-[520px] text-left text-sm">
-              <thead className="sticky top-0 bg-zinc-950 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+              <thead className="sticky top-0 bg-background text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
                 <tr className="border-b border-border">
                   <th className="w-12 px-3 py-2">Save</th>
                   <th className="w-28 px-3 py-2">Type</th>
@@ -274,7 +274,7 @@ export const ReviewCardsPanel = ({
                           type="button"
                           variant="secondary"
                           size="xs"
-                          className="bg-muted px-2.5 py-1 text-foreground hover:bg-zinc-800"
+                          className="bg-muted px-2.5 py-1 text-foreground hover:bg-muted/80"
                           onClick={() => dispatch({ type: "editingStarted", draftId: draft.id })}
                         >
                           Edit
@@ -319,7 +319,7 @@ export const ReviewCardsPanel = ({
                         </div>
 
                         <div
-                          className="generated-card-progress h-1 overflow-hidden rounded-full bg-white/5"
+                          className="generated-card-progress h-1 overflow-hidden rounded-full bg-muted"
                           role="progressbar"
                           aria-label={`Generating card ${drafts.length + 1}`}
                         >
@@ -354,7 +354,7 @@ export const ReviewCardsPanel = ({
       aria-labelledby={
         hasDrafts || isGenerating ? "review-generated-cards-heading" : undefined
       }
-      className="flex h-full min-h-0 flex-col gap-4 overflow-hidden bg-zinc-950 p-6"
+      className="flex h-full min-h-0 flex-col gap-4 overflow-hidden bg-background p-6"
     >
       {(hasDrafts || isGenerating) && (
         <header className="shrink-0 border-b border-border/60 pb-4">
@@ -376,7 +376,7 @@ export const ReviewCardsPanel = ({
       )}
 
       {errorMessage && (
-        <p className="text-sm text-red-500" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {errorMessage}
         </p>
       )}

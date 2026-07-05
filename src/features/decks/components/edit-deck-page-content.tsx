@@ -23,7 +23,7 @@ export const EditDeckPageContent = ({ deckId }: EditDeckPageContentProps) => {
 
   if (isLoading) {
     return (
-      <div className="w-full flex flex-col gap-4 py-8 px-16 flex-1 bg-zinc-950">
+      <div className="w-full flex flex-col gap-4 py-8 px-16 flex-1 bg-background">
         <p className="text-sm text-muted-foreground font-mono">Loading...</p>
       </div>
     );
@@ -31,14 +31,14 @@ export const EditDeckPageContent = ({ deckId }: EditDeckPageContentProps) => {
 
   if (isError || !deck) {
     return (
-      <div className="w-full flex flex-col gap-4 py-8 px-16 flex-1 bg-zinc-950">
-        <p className="text-sm text-red-500 font-mono">Failed to load deck.</p>
+      <div className="w-full flex flex-col gap-4 py-8 px-16 flex-1 bg-background">
+        <p className="text-sm text-destructive font-mono">Failed to load deck.</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col gap-4 py-8 px-16 flex-1 bg-zinc-950">
+    <div className="w-full flex flex-col gap-4 py-8 px-16 flex-1 bg-background">
       <button
         type="button"
         onClick={handleBack}

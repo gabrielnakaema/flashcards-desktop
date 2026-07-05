@@ -100,7 +100,7 @@ const DeckGenerateCardsForm = ({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background">
       <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
         <div className="flex min-w-0 items-center gap-4">
           <Link
@@ -125,7 +125,7 @@ const DeckGenerateCardsForm = ({
       </header>
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        <aside className="flex w-120 shrink-0 flex-col border-r border-border bg-zinc-950">
+        <aside className="flex w-120 shrink-0 flex-col border-r border-border bg-background">
           <form
             className="flex h-full min-h-0 flex-col"
             onSubmit={handleSubmit(onSubmit)}
@@ -197,10 +197,10 @@ const DeckGenerateCardsForm = ({
                   </AppButton>
                 </div>
                 {errors.model?.message && (
-                  <p className="text-xs text-red-500">{errors.model.message}</p>
+                  <p className="text-xs text-destructive">{errors.model.message}</p>
                 )}
                 {modelListErrorMessage && (
-                  <p className="text-xs text-red-500" role="alert">
+                  <p className="text-xs text-destructive" role="alert">
                     {modelListErrorMessage}
                   </p>
                 )}
@@ -227,7 +227,7 @@ const DeckGenerateCardsForm = ({
               />
 
               {errorMessage && (
-                <p className="text-sm text-red-500" role="alert">
+                <p className="text-sm text-destructive" role="alert">
                   {errorMessage}
                 </p>
               )}
@@ -280,7 +280,7 @@ export const DeckGenerateCardsContent = ({
 
   if (isFetching) {
     return (
-      <div className="flex h-full min-h-0 flex-1 items-center justify-center bg-zinc-950">
+      <div className="flex h-full min-h-0 flex-1 items-center justify-center bg-background">
         <Loader2 className="size-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -288,8 +288,8 @@ export const DeckGenerateCardsContent = ({
 
   if (isError || !deck) {
     return (
-      <div className="flex h-full min-h-0 flex-1 items-center justify-center bg-zinc-950 px-6">
-        <p className="text-sm font-mono text-red-500">Failed to load deck.</p>
+      <div className="flex h-full min-h-0 flex-1 items-center justify-center bg-background px-6">
+        <p className="text-sm font-mono text-destructive">Failed to load deck.</p>
       </div>
     );
   }

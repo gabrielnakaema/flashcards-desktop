@@ -17,7 +17,7 @@ export const DueCardsBanner = ({
   <BannerSection>
     <div className="flex gap-12 items-center">
       <div className="flex flex-col gap-1">
-        <p className="text-4xl font-bold text-orange-400">{data.cardsDueNow}</p>
+        <p className="text-4xl font-bold text-primary">{data.cardsDueNow}</p>
         <p className="text-xs text-muted-foreground font-mono">cards due now</p>
       </div>
 
@@ -29,7 +29,7 @@ export const DueCardsBanner = ({
     </div>
 
     <Button
-      className="bg-orange-400 text-muted hover:bg-orange-400/80 font-semibold text-lg py-6 rounded-sm px-8 flex items-center gap-2 tracking-tight"
+      className="bg-primary text-primary-foreground hover:bg-primary/80 font-semibold text-lg py-6 rounded-sm px-8 flex items-center gap-2 tracking-tight"
       type="button"
       asChild
     >

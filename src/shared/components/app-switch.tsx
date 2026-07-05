@@ -27,13 +27,13 @@ export const AppSwitch = ({
         "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full outline-none transition-colors duration-200",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        checked ? "bg-orange-400" : "bg-[#2a2a2e]",
+        checked ? "bg-primary" : "bg-muted",
         className
       )}
     >
       <span
         className={cn(
-          "pointer-events-none absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-[left] duration-200",
+          "pointer-events-none absolute top-0.5 size-4 rounded-full bg-primary-foreground shadow-sm transition-[left] duration-200",
           checked ? "left-[18px]" : "left-0.5"
         )}
       />

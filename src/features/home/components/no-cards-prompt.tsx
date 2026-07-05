@@ -17,7 +17,7 @@ export const NoCardsPrompt = () => (
         </p>
       </div>
     </div>
-    <Button className="bg-zinc-950/50 border-border border hover:bg-muted/80 text-foreground rounded-sm p-3 px-5 h-fit">
+    <Button className="bg-background/50 border-border border hover:bg-muted/80 text-foreground rounded-sm p-3 px-5 h-fit">
       Add card
     </Button>
   </BannerSection>

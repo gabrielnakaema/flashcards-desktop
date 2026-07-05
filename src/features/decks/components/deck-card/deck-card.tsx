@@ -26,7 +26,7 @@ export const DeckCard = ({ deck, deckColorClassName }: DeckCardProps) => {
           </p>
         </div>
         {deck.cardsDue > 0 && (
-          <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 rounded-xs px-2 py-0.5 text-[10px] font-medium whitespace-nowrap shrink-0">
+          <div className="flex items-center gap-1 bg-warning/10 text-warning rounded-xs px-2 py-0.5 text-[10px] font-medium whitespace-nowrap shrink-0">
             {deck.cardsDue} due
           </div>
         )}
@@ -43,7 +43,7 @@ export const DeckCard = ({ deck, deckColorClassName }: DeckCardProps) => {
           variant="default"
           size="sm"
           asChild
-          className="rounded-sm bg-orange-400 w-full hover:bg-orange-400/80 focus:bg-orange-400/80"
+          className="rounded-sm bg-primary w-full hover:bg-primary/80 focus:bg-primary/80"
         >
           <Link to="/decks/$deckId/study" params={{ deckId: deck.id }}>
             Study

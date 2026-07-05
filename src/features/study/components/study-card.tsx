@@ -8,9 +8,9 @@ interface StudyCardProps {
 }
 
 const difficultyClasses = {
-  easy: "bg-green-500/15 text-green-300",
-  medium: "bg-yellow-500/15 text-yellow-300",
-  hard: "bg-red-500/15 text-red-300",
+  easy: "bg-success/15 text-success",
+  medium: "bg-warning/15 text-warning",
+  hard: "bg-destructive/15 text-destructive",
 } as const;
 
 const getPrompt = (card: CardWithSchedule): string => {
@@ -35,8 +35,8 @@ export const StudyCard = ({ card, isRevealed, wasCorrect }: StudyCardProps) => {
       className={cn(
         "relative w-full overflow-hidden rounded-sm border border-border/60 bg-muted p-6 shadow-lg transition-colors duration-300 md:p-8",
         isRevealed && "study-card-revealed",
-        wasCorrect === true && "border-green-500/35",
-        wasCorrect === false && "border-red-500/35"
+        wasCorrect === true && "border-success/35",
+        wasCorrect === false && "border-destructive/35"
       )}
     >
       {wasCorrect !== undefined && (
@@ -45,14 +45,14 @@ export const StudyCard = ({ card, isRevealed, wasCorrect }: StudyCardProps) => {
           className={cn(
             "pointer-events-none absolute inset-x-6 top-0 h-px opacity-80 blur-[1px]",
             wasCorrect
-              ? "bg-linear-to-r from-transparent via-green-300 to-transparent"
-              : "bg-linear-to-r from-transparent via-red-300 to-transparent"
+              ? "bg-linear-to-r from-transparent via-success to-transparent"
+              : "bg-linear-to-r from-transparent via-destructive to-transparent"
           )}
         />
       )}
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
-        <span className="rounded-sm border border-border/60 bg-zinc-950/60 px-2.5 py-1 text-[0.65rem] font-mono font-semibold uppercase tracking-wide text-muted-foreground">
+        <span className="rounded-sm border border-border/60 bg-background/60 px-2.5 py-1 text-[0.65rem] font-mono font-semibold uppercase tracking-wide text-muted-foreground">
           {card.tags[0] ?? getCardKindLabel(card)}
         </span>
         {card.difficulty && (
@@ -79,13 +79,13 @@ export const StudyCard = ({ card, isRevealed, wasCorrect }: StudyCardProps) => {
         )}
 
         {card.sourceExcerpt && (
-          <blockquote className="study-enter mt-2 max-w-xl rounded-sm border border-border/60 bg-zinc-950/40 px-4 py-3 text-sm leading-6 text-muted-foreground">
+          <blockquote className="study-enter mt-2 max-w-xl rounded-sm border border-border/60 bg-background/40 px-4 py-3 text-sm leading-6 text-muted-foreground">
             {card.sourceExcerpt}
           </blockquote>
         )}
 
         {isRevealed && card.explanation && (
-          <div className="study-enter mt-3 w-full rounded-sm border border-border/60 bg-zinc-950/40 p-4 text-left">
+          <div className="study-enter mt-3 w-full rounded-sm border border-border/60 bg-background/40 p-4 text-left">
             <p className="mb-1 text-[10px] font-mono font-semibold uppercase tracking-wide text-muted-foreground">
               Explanation
             </p>

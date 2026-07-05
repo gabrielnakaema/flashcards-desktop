@@ -29,8 +29,8 @@ export const CardListItemAnswer = ({ card }: CardListItemAnswerProps) => {
               className={cn(
                 "flex items-center gap-2 rounded-sm border px-2.5 py-1.5 text-sm",
                 isCorrect
-                  ? "border-green-500/25 bg-green-500/10 text-green-500"
-                  : "border-border/60 bg-zinc-950/60 text-muted-foreground"
+                  ? "border-success/25 bg-success/10 text-success"
+                  : "border-border/60 bg-background/60 text-muted-foreground"
               )}
             >
               <span className="shrink-0 font-mono text-[11px] uppercase tracking-wider">
@@ -57,11 +57,11 @@ export const CardListItemAnswer = ({ card }: CardListItemAnswerProps) => {
 
     return (
       <div className="flex flex-col gap-2">
-        <div className="rounded-sm border border-green-500/25 bg-green-500/10 px-2.5 py-1.5">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-green-500/80">
+        <div className="rounded-sm border border-success/25 bg-success/10 px-2.5 py-1.5">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-success/80">
             Accepted answer
           </p>
-          <p className="mt-0.5 text-sm text-green-500 whitespace-pre-wrap">
+          <p className="mt-0.5 text-sm text-success whitespace-pre-wrap">
             {card.content.acceptedAnswer}
           </p>
         </div>
@@ -75,7 +75,7 @@ export const CardListItemAnswer = ({ card }: CardListItemAnswerProps) => {
               {aliases.map((alias) => (
                 <span
                   key={alias}
-                  className="rounded-sm border border-border bg-zinc-950 px-2 py-0.5 text-xs text-foreground"
+                  className="rounded-sm border border-border bg-background px-2 py-0.5 text-xs text-foreground"
                 >
                   {alias}
                 </span>

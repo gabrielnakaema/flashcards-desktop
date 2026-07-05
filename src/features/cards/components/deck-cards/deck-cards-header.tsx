@@ -39,7 +39,7 @@ export const DeckCardsHeader = ({
             {deckTags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-sm border border-orange-400/20 bg-orange-400/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-orange-400"
+                className="rounded-sm border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-primary"
               >
                 {tag}
               </span>

@@ -21,7 +21,7 @@ export const SidebarDeckList = ({
   }
 
   if (decks.length === 0) {
-    return <p className="px-3 text-sm text-zinc-600">No decks yet.</p>;
+    return <p className="px-3 text-sm text-muted-foreground">No decks yet.</p>;
   }
 
   return (
@@ -46,7 +46,7 @@ const SidebarDeckListSkeleton = () => (
     className="flex flex-col gap-3 px-3"
   >
     {Array.from({ length: 4 }).map((_, index) => (
-      <div key={index} className="h-5 animate-pulse rounded-sm bg-white/10" />
+      <div key={index} className="h-5 animate-pulse rounded-sm bg-sidebar-accent" />
     ))}
   </div>
 );
@@ -71,8 +71,8 @@ const SidebarDeckLink = ({
       onClick={onNavigate}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "flex items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-100",
-        isActive && "bg-white/10 text-white"
+        "flex items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
       )}
     >
       <span
@@ -85,7 +85,7 @@ const SidebarDeckLink = ({
         {deck.title}
       </span>
       {deck.cardsDue > 0 && (
-        <span className="text-xs font-medium text-orange-400">
+        <span className="text-xs font-medium text-sidebar-primary">
           {deck.cardsDue}
         </span>
       )}

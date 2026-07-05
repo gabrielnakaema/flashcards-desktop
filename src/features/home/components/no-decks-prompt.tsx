@@ -3,8 +3,8 @@ import { BannerSection } from "./banner-section";
 
 export const NoDecksPrompt = () => (
   <BannerSection className="flex-col gap-4">
-    <p className="text-3xl font-bold tracking-tight text-white">
-      flashcards<span className="text-orange-400">.</span>
+    <p className="text-3xl font-bold tracking-tight text-foreground">
+      flashcards<span className="text-primary">.</span>
     </p>
     <p className="text-sm text-foreground font-bold">Create your first deck</p>
     <p className="text-xs text-muted-foreground max-w-sm text-center">
@@ -14,7 +14,7 @@ export const NoDecksPrompt = () => (
     </p>
     <Link
       to="/decks/create"
-      className="bg-zinc-950/50 border-border border hover:bg-muted/80 text-foreground rounded-sm p-3 px-5 h-fit inline-flex items-center text-sm font-medium"
+      className="bg-background/50 border-border border hover:bg-muted/80 text-foreground rounded-sm p-3 px-5 h-fit inline-flex items-center text-sm font-medium"
     >
       Create deck
     </Link>
