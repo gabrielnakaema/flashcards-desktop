@@ -4,6 +4,7 @@ import {
   isCorrectChoice,
 } from "@/features/study/components/study-grading";
 import type {
+  Card,
   CardWithSchedule,
   Rating,
   ReviewLog,
@@ -163,6 +164,14 @@ export const useStudySession = (deckId: string) => {
     }
   };
 
+  const updateQueuedCard = (updatedCard: Card) => {
+    setQueue((cards) =>
+      cards.map((card) =>
+        card.id === updatedCard.id ? { ...card, ...updatedCard } : card
+      )
+    );
+  };
+
   const skipCurrentCard = () => {
     if (!currentCard) return;
     setQueue((cards) =>
@@ -208,6 +217,7 @@ export const useStudySession = (deckId: string) => {
     selectChoice,
     rateCurrentCard,
     skipCurrentCard,
+    updateQueuedCard,
     restartSession,
   };
 };

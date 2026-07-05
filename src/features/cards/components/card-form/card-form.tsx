@@ -19,7 +19,7 @@ import { AppButton } from "@/shared/components/app-button";
 interface CardFormProps {
   deckId: string;
   card?: Card;
-  onSuccess?: () => void;
+  onSuccess?: (card: Card) => void;
   onCancel?: () => void;
 }
 
@@ -48,13 +48,13 @@ export const CardForm = ({
   const onSubmit = (values: CardFormValues) => {
     if (isEdit && card) {
       update(formValuesToUpdatePayload(card.id, values), {
-        onSuccess: () => onSuccess?.(),
+        onSuccess: (updatedCard) => onSuccess?.(updatedCard),
       });
     } else {
       create(formValuesToCreatePayload(deckId, values), {
-        onSuccess: () => {
+        onSuccess: (createdCard) => {
           reset(getDefaultCardFormValues());
-          onSuccess?.();
+          onSuccess?.(createdCard);
         },
       });
     }

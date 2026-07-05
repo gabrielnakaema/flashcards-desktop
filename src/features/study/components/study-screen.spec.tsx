@@ -8,6 +8,7 @@ import { StudyScreen } from "./study-screen";
 const mockGetDeck = vi.fn();
 const mockGetDueCards = vi.fn();
 const mockSubmitReview = vi.fn();
+const mockUpdateCard = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
@@ -43,6 +44,7 @@ vi.mock("@/data/repositories", () => ({
   cardRepository: {
     suspendCard: vi.fn().mockResolvedValue(undefined),
     unsuspendCard: vi.fn().mockResolvedValue(undefined),
+    updateCard: (...args: unknown[]) => mockUpdateCard(...args),
   },
 }));
 
@@ -422,5 +424,30 @@ describe("StudyScreen", () => {
 
     expect(await screen.findByText("Capital of France?")).toBeInTheDocument();
     expect(screen.queryByText("What is gravity?")).not.toBeInTheDocument();
+  });
+
+  it("shows edited content on the active card immediately after saving", async () => {
+    const plainCard = makePlainCard();
+    const { user } = setup([plainCard]);
+
+    expect(await screen.findByText("What is gravity?")).toBeInTheDocument();
+
+    const { schedule: _schedule, ...plainCardWithoutSchedule } = plainCard;
+    mockUpdateCard.mockResolvedValue({
+      ...plainCardWithoutSchedule,
+      front: "What causes gravity?",
+    });
+
+    await user.click(screen.getByRole("button", { name: /edit card/i }));
+    const frontField = await screen.findByLabelText("Front");
+    await user.clear(frontField);
+    await user.type(frontField, "What causes gravity?");
+    await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Front")).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText("What causes gravity?")).toBeInTheDocument();
   });
 });

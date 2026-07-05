@@ -18,7 +18,7 @@ import { CardForm } from "@/features/cards/components/card-form/card-form";
 import { useSuspendCard } from "@/features/cards/hooks/use-suspend-card";
 import { useBuryCard } from "@/features/study/hooks/use-bury-card";
 import type { StudyShortcutItem } from "@/features/study/hooks/use-study-keyboard-shortcuts";
-import type { CardWithSchedule } from "@/features/cards/types";
+import type { Card, CardWithSchedule } from "@/features/cards/types";
 import { KeyboardIcon, MoonIcon, PauseIcon, PencilIcon } from "lucide-react";
 
 const getTomorrowMidnight = (): string => {
@@ -33,6 +33,7 @@ interface StudyActionBarProps {
   currentCard: CardWithSchedule | null;
   deckId: string;
   onSkip: () => void;
+  onCardUpdated: (card: Card) => void;
   isStudySubmitting?: boolean;
 }
 
@@ -41,6 +42,7 @@ export const StudyActionBar = ({
   currentCard,
   deckId,
   onSkip,
+  onCardUpdated,
   isStudySubmitting,
 }: StudyActionBarProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -162,7 +164,10 @@ export const StudyActionBar = ({
             <CardForm
               card={currentCard}
               deckId={deckId}
-              onSuccess={() => setIsEditDialogOpen(false)}
+              onSuccess={(updatedCard) => {
+                onCardUpdated(updatedCard);
+                setIsEditDialogOpen(false);
+              }}
               onCancel={() => setIsEditDialogOpen(false)}
             />
           )}

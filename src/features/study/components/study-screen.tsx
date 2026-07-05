@@ -149,6 +149,7 @@ export const StudyScreen = ({ deckId }: StudyScreenProps) => {
           currentCard={session.currentCard}
           deckId={deckId}
           onSkip={session.skipCurrentCard}
+          onCardUpdated={session.updateQueuedCard}
           isStudySubmitting={session.isSubmitting}
         />
       </footer>
