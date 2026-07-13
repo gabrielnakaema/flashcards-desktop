@@ -1,4 +1,4 @@
-from e2e.pages import cards, decks, settings, study
+from e2e.pages import cards, categories, decks, settings, study
 from e2e.pages import generate
 from e2e.pages.base import wait_for_text
 
@@ -24,6 +24,20 @@ def test_deck_create_and_edit_happy_path(clean_app):
 
     wait_for_text(driver, "E2E Biology Updated")
     wait_for_text(driver, "updated")
+
+
+def test_category_create_rename_delete_happy_path(clean_app):
+    driver = clean_app
+    original_name = "E2E Category Original"
+    renamed_name = "E2E Category Renamed"
+
+    categories.open_categories(driver)
+    wait_for_text(driver, "0 categories")
+    wait_for_text(driver, "No categories yet. Create one above to get started.")
+
+    categories.create_category(driver, original_name)
+    categories.rename_category(driver, original_name, renamed_name)
+    categories.delete_category(driver, renamed_name)
 
 
 def test_plain_card_create_edit_delete_happy_path(clean_app):

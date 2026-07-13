@@ -92,6 +92,9 @@ describe("Sidebar", () => {
       "/decks/deck-1/study"
     );
     expect(
+      screen.getAllByRole("link", { name: /categories/i })[0]
+    ).toHaveAttribute("href", "/categories");
+    expect(
       screen.getAllByRole("link", { name: /japanese n5/i })[0]
     ).toHaveAttribute("href", "/decks/deck-1/cards");
     expect(screen.getByText(/12-day streak/i)).toBeInTheDocument();

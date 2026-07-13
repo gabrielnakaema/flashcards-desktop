@@ -1,7 +1,7 @@
 import { cn } from "@/shared/lib/utils";
 import type { DeckWithStats } from "@/features/decks";
 import { Link } from "@tanstack/react-router";
-import { Home, Settings, SquareCheckBig } from "lucide-react";
+import { FolderCog, Home, Settings, SquareCheckBig } from "lucide-react";
 import type { ReactNode } from "react";
 
 const navLinkClasses =
@@ -49,6 +49,20 @@ export const SidebarNav = ({
           <SquareCheckBig className="size-4" />
           <span className="flex-1">Review</span>
           {renderReviewDueBadge(reviewCardsDue)}
+        </Link>
+      </li>
+      <li>
+        <Link
+          to="/categories"
+          onClick={onNavigate}
+          aria-current={pathname.startsWith("/categories") ? "page" : undefined}
+          className={cn(
+            navLinkClasses,
+            pathname.startsWith("/categories") && activeNavLinkClasses
+          )}
+        >
+          <FolderCog className="size-4" />
+          <span className="flex-1">Categories</span>
         </Link>
       </li>
       {/* <li>

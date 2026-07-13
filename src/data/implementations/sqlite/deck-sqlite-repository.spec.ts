@@ -4,6 +4,7 @@ import {
   createTestDeckRepository,
   seedCategory,
 } from "./test/create-test-deck-repository";
+import { DeckSqliteRepository } from "./deck-sqlite-repository";
 
 describe("DeckSqliteRepository", () => {
   let teardown: (() => Promise<void>) | undefined;
@@ -95,9 +96,9 @@ describe("DeckSqliteRepository", () => {
     });
 
     await expect(
-      testContext.repository.deleteCategory("cat-1"),
+      testContext.repository.deleteCategory("cat-1")
     ).rejects.toThrow(
-      "This category has decks. Move or delete those decks before deleting the category.",
+      "This category has decks. Move or delete those decks before deleting the category."
     );
 
     const categories = await testContext.repository.listCategories();
@@ -120,7 +121,7 @@ describe("DeckSqliteRepository", () => {
     });
 
     expect(deck.id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
     );
     expect(deck.title).toBe("Japanese");
     expect(deck.tags).toEqual(["vocab", "n5"]);
@@ -154,6 +155,36 @@ describe("DeckSqliteRepository", () => {
     expect(updated.tags).toEqual(["vocab", "grammar"]);
     expect(updated.category.id).toBe("cat-1");
     expect(updated.category.name).toBe("Languages");
+  });
+
+  it("persists moving a deck to another category", async () => {
+    const testContext = await createTestDeckRepository();
+    teardown = testContext.teardown;
+
+    await seedCategory(testContext.db, {
+      id: "cat-1",
+      name: "Languages",
+    });
+    await seedCategory(testContext.db, {
+      id: "cat-2",
+      name: "Travel",
+    });
+    const created = await testContext.repository.createDeck({
+      title: "Japanese",
+      tags: [],
+      categoryId: "cat-1",
+    });
+
+    await testContext.repository.updateDeck({
+      id: created.id,
+      title: created.title,
+      tags: created.tags,
+      categoryId: "cat-2",
+    });
+
+    const restartedRepository = new DeckSqliteRepository(testContext.db);
+    const persistedDeck = await restartedRepository.getDeck(created.id);
+    expect(persistedDeck.category).toEqual({ id: "cat-2", name: "Travel" });
   });
 
   it("deletes a deck", async () => {
@@ -201,12 +232,12 @@ describe("DeckSqliteRepository", () => {
       await testContext.db.execute(
         `INSERT INTO cards (id, deck_id, type, front, content, tags, is_suspended, created_at, updated_at)
          VALUES ($1, $2, 'plain', 'Q?', '{}', '[]', 0, $3, $4)`,
-        [cardId, deck.id, timestamp, timestamp],
+        [cardId, deck.id, timestamp, timestamp]
       );
       await testContext.db.execute(
         `INSERT INTO card_schedules (card_id, state, due_at, interval_days, ease_factor, repetition_count, lapse_count, created_at, updated_at)
          VALUES ($1, 'new', $2, 0, 2.5, 0, 0, $3, $4)`,
-        [cardId, timestamp, timestamp, timestamp],
+        [cardId, timestamp, timestamp, timestamp]
       );
     }
 
@@ -265,12 +296,12 @@ describe("DeckSqliteRepository", () => {
       await testContext.db.execute(
         `INSERT INTO cards (id, deck_id, type, front, content, tags, is_suspended, created_at, updated_at)
          VALUES ($1, $2, 'plain', $3, '{}', '[]', $4, $5, $6)`,
-        [card.id, deck.id, card.front, card.isSuspended, timestamp, timestamp],
+        [card.id, deck.id, card.front, card.isSuspended, timestamp, timestamp]
       );
       await testContext.db.execute(
         `INSERT INTO card_schedules (card_id, state, due_at, interval_days, ease_factor, repetition_count, lapse_count, created_at, updated_at)
          VALUES ($1, $2, $3, 0, 2.5, 0, 0, $4, $5)`,
-        [card.id, card.state, card.dueAt, timestamp, timestamp],
+        [card.id, card.state, card.dueAt, timestamp, timestamp]
       );
     }
 
@@ -344,7 +375,7 @@ describe("DeckSqliteRepository", () => {
       await testContext.db.execute(
         `INSERT INTO cards (id, deck_id, type, front, content, tags, is_suspended, created_at, updated_at)
          VALUES ($1, $2, 'plain', $3, '{}', '[]', $4, $5, $6)`,
-        [card.id, deck.id, card.front, card.isSuspended, timestamp, timestamp],
+        [card.id, deck.id, card.front, card.isSuspended, timestamp, timestamp]
       );
       await testContext.db.execute(
         `INSERT INTO card_schedules (
@@ -359,7 +390,7 @@ describe("DeckSqliteRepository", () => {
           card.lastReviewedAt,
           timestamp,
           timestamp,
-        ],
+        ]
       );
     }
 

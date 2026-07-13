@@ -1,4 +1,7 @@
-import { deckFormSchema, DeckFormValues } from "@/features/decks/schemas/deck-form.schema";
+import {
+  deckFormSchema,
+  DeckFormValues,
+} from "@/features/decks/schemas/deck-form.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { AppInput } from "@/shared/components/app-input";
@@ -21,10 +24,13 @@ export const DeckForm = ({ deck, onSuccess, onCancel }: DeckFormProps) => {
   const isEdit = !!deck;
 
   const { data: categories } = useListDeckCategories();
-  const { create, isPending: isCreating } = useCreateDeck();
-  const { update, isPending: isUpdating } = useUpdateDeck();
-  const { asyncCreate: createCategory, isPending: isCreatingCategory } =
-    useCreateDeckCategory();
+  const { create, isPending: isCreating, error: createError } = useCreateDeck();
+  const { update, isPending: isUpdating, error: updateError } = useUpdateDeck();
+  const {
+    asyncCreate: createCategory,
+    isPending: isCreatingCategory,
+    error: createCategoryError,
+  } = useCreateDeckCategory();
 
   const isPending = isCreating || isUpdating;
 
@@ -112,10 +118,16 @@ export const DeckForm = ({ deck, onSuccess, onCancel }: DeckFormProps) => {
               field.onChange(result.id);
             }}
             isLoading={isCreatingCategory}
-            error={error?.message}
+            error={error?.message ?? createCategoryError?.message}
           />
         )}
       />
+
+      {(createError || updateError) && (
+        <p role="alert" className="text-xs text-destructive">
+          {(createError ?? updateError)?.message}
+        </p>
+      )}
 
       <div className="w-full flex items-center justify-end gap-2 pt-6 border-t border-border">
         <AppButton type="button" variant="secondary" onClick={onCancel}>
