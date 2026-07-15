@@ -3,7 +3,11 @@ import {
   useUpdater,
   type UpdaterStatus,
 } from "@/features/settings/hooks/use-updater";
-import { getLlmProviderOptions, useListLlmModels } from "@/features/llm";
+import {
+  getLlmProvider,
+  getLlmProviderOptions,
+  useListLlmModels,
+} from "@/features/llm";
 import { AppSwitch } from "@/shared/components/app-switch";
 import { AppSelect } from "@/shared/components/app-select";
 import { AppInput } from "@/shared/components/app-input";
@@ -53,20 +57,22 @@ export const SettingsContent = () => {
       .catch(() => null);
   }, []);
 
-  const { handleSubmit, control, reset } = useForm<SettingsFormValues>({
-    resolver: zodResolver(settingsFormSchema),
-    defaultValues: {
-      devMode: data.devMode,
-      saveApiSettings: data.saveApiSettings,
-      defaultProvider: data.defaultProvider,
-      defaultModel: data.defaultModel ?? "",
-      apiKey: data.apiKey ?? "",
-    },
-  });
+  const { handleSubmit, control, reset, setValue } =
+    useForm<SettingsFormValues>({
+      resolver: zodResolver(settingsFormSchema),
+      defaultValues: {
+        devMode: data.devMode,
+        saveApiSettings: data.saveApiSettings,
+        defaultProvider: data.defaultProvider,
+        defaultModel: data.defaultModel ?? "",
+        apiKey: data.apiKey ?? "",
+      },
+    });
 
   const defaultProvider = useWatch({ control, name: "defaultProvider" });
   const defaultModel = useWatch({ control, name: "defaultModel" });
   const apiKey = useWatch({ control, name: "apiKey" });
+
   const modelListQuery = useListLlmModels({
     provider: defaultProvider,
     apiKey,
@@ -139,7 +145,15 @@ export const SettingsContent = () => {
                     id="provider"
                     label="Default provider"
                     value={field.value ?? ""}
-                    onChange={field.onChange}
+                    onChange={(value) => {
+                      const provider =
+                        value as SettingsFormValues["defaultProvider"];
+                      field.onChange(provider);
+                      setValue(
+                        "defaultModel",
+                        getLlmProvider(provider).defaultModel
+                      );
+                    }}
                     options={getLlmProviderOptions()}
                   />
                 )}
@@ -154,7 +168,11 @@ export const SettingsContent = () => {
                       id="model"
                       label="Default model"
                       value={field.value ?? ""}
-                      onChange={field.onChange}
+                      onChange={(value) =>
+                        field.onChange(
+                          value || getLlmProvider(defaultProvider).defaultModel
+                        )
+                      }
                       options={modelOptions}
                       disabled={modelListQuery.isFetching}
                     />

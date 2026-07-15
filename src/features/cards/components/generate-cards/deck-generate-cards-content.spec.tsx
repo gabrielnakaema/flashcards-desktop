@@ -24,23 +24,38 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("@/features/llm", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/llm")>();
+  const providers = {
+    openai: {
+      id: "openai",
+      label: "OpenAI",
+      defaultModel: "gpt-4.1-mini",
+      models: [{ label: "gpt-4.1-mini", value: "gpt-4.1-mini" }],
+    },
+    openrouter: {
+      id: "openrouter",
+      label: "OpenRouter",
+      defaultModel: "openrouter/free",
+      models: [{ label: "openrouter/free", value: "openrouter/free" }],
+    },
+  } as const;
+
   return {
     ...actual,
-    defaultLlmProvider: {
-      id: "openai",
-      label: "OpenAI",
-      defaultModel: "gpt-4.1-mini",
+    defaultLlmProvider: providers.openai,
+    getLlmProvider: (provider: keyof typeof providers) => {
+      const selectedProvider = providers[provider];
+
+      return {
+        ...selectedProvider,
+        listModels: vi.fn().mockResolvedValue(selectedProvider.models),
+        generateCards: (...args: unknown[]) => mockGenerateCards(...args),
+      };
     },
-    getLlmProvider: () => ({
-      id: "openai",
-      label: "OpenAI",
-      defaultModel: "gpt-4.1-mini",
-      listModels: vi.fn().mockResolvedValue([
-        { label: "gpt-4.1-mini", value: "gpt-4.1-mini" },
-      ]),
-      generateCards: (...args: unknown[]) => mockGenerateCards(...args),
-    }),
-    getLlmProviderOptions: () => [{ label: "OpenAI", value: "openai" }],
+    getLlmProviderOptions: () =>
+      Object.values(providers).map(({ id, label }) => ({
+        label,
+        value: id,
+      })),
   };
 });
 
@@ -139,6 +154,26 @@ describe("DeckGenerateCardsContent", () => {
     expect(await screen.findByText("What is gravity?")).toBeVisible();
     expect(screen.getByText("A force that attracts mass.")).toBeVisible();
     expect(screen.getByText("1 of 1 drafts selected.")).toBeVisible();
+  });
+
+  it("uses the fixed free model when generating with OpenRouter", async () => {
+    const { user } = setup();
+
+    await user.click(screen.getByLabelText("Provider"));
+    await user.click(await screen.findByRole("option", { name: "OpenRouter" }));
+    await waitFor(() => {
+      expect(screen.getByText("openrouter/free • OpenRouter")).toBeVisible();
+    });
+    await user.type(screen.getByLabelText(/api key/i), "or-test");
+    await user.click(screen.getByRole("button", { name: /\+ generate cards/i }));
+
+    await waitFor(() => {
+      expect(mockGenerateCards).toHaveBeenCalledTimes(1);
+    });
+    expect(mockGenerateCards.mock.calls[0][0]).toMatchObject({
+      apiKey: "or-test",
+      model: "openrouter/free",
+    });
   });
 
   it("previews cards before generation finishes", async () => {

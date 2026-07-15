@@ -1,5 +1,10 @@
-import type { GeneratedCard, LlmModelOption, LlmProviderId } from "@/features/llm/types";
+import type {
+  GeneratedCard,
+  LlmModelOption,
+  LlmProviderId,
+} from "@/features/llm/types";
 import { openAiLlmProvider } from "./openai-llm-provider";
+import { openRouterLlmProvider } from "./openrouter-llm-provider";
 
 export interface GenerateCardsRequest {
   apiKey: string;
@@ -21,7 +26,10 @@ export interface LlmProvider {
   generateCards: (request: GenerateCardsRequest) => Promise<GeneratedCard[]>;
 }
 
-const llmProviders = [openAiLlmProvider] satisfies LlmProvider[];
+const llmProviders = [
+  openAiLlmProvider,
+  openRouterLlmProvider,
+] satisfies LlmProvider[];
 
 export const defaultLlmProvider = openAiLlmProvider;
 

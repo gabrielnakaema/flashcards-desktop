@@ -6,7 +6,7 @@ import {
 } from "@/features/cards";
 import { z } from "zod";
 
-export const llmProviderIdSchema = z.enum(["openai"]);
+export const llmProviderIdSchema = z.enum(["openai", "openrouter"]);
 export type LlmProviderId = z.infer<typeof llmProviderIdSchema>;
 
 export interface LlmModelOption {

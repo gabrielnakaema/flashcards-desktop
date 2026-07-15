@@ -7,7 +7,10 @@
     "core:default",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://api.openai.com/*" }]
+      "allow": [
+        { "url": "https://api.openai.com/*" },
+        { "url": "https://openrouter.ai/*" }
+      ]
     },
     "sql:default",
     "sql:allow-execute",

@@ -5,6 +5,7 @@ import {
   type LlmModelOption,
 } from "@/features/llm/types";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { flashcardResponseJsonSchema } from "./flashcard-response-json-schema";
 import type { LlmProvider } from "./llm-provider";
 
 // const OPENAI_MODELS_URL = "https://api.openai.com/v1/models";
@@ -23,109 +24,11 @@ const OPENAI_MODEL_OPTIONS: LlmModelOption[] = [
   { label: "gpt-4o", value: "gpt-4o" },
 ];
 
-const cardContentJsonSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "question",
-    "choices",
-    "correctChoiceId",
-    "prompt",
-    "acceptedAnswer",
-    "aliases",
-    "caseSensitive",
-  ],
-  properties: {
-    question: { type: ["string", "null"] },
-    choices: {
-      anyOf: [
-        {
-          type: "array",
-          items: {
-            type: "object",
-            additionalProperties: false,
-            required: ["id", "text"],
-            properties: {
-              id: { type: "string" },
-              text: { type: "string" },
-            },
-          },
-        },
-        { type: "null" },
-      ],
-    },
-    correctChoiceId: { type: ["string", "null"] },
-    prompt: { type: ["string", "null"] },
-    acceptedAnswer: { type: ["string", "null"] },
-    aliases: {
-      anyOf: [
-        {
-          type: "array",
-          items: { type: "string" },
-        },
-        { type: "null" },
-      ],
-    },
-    caseSensitive: { type: ["boolean", "null"] },
-  },
-} as const;
-
 const openAiCardResponseFormat = {
   type: "json_schema",
   name: "flashcard_generation",
   strict: true,
-  schema: {
-    type: "object",
-    additionalProperties: false,
-    required: ["cards"],
-    properties: {
-      cards: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: false,
-          required: [
-            "type",
-            "front",
-            "back",
-            "content",
-            "hint",
-            "explanation",
-            "sourceExcerpt",
-            "difficulty",
-            "tags",
-          ],
-          properties: {
-            type: {
-              type: "string",
-              enum: ["plain", "multiple_choice", "typed_answer"],
-            },
-            front: { type: "string" },
-            back: { type: ["string", "null"] },
-            content: cardContentJsonSchema,
-            hint: { type: ["string", "null"] },
-            explanation: { type: ["string", "null"] },
-            sourceExcerpt: { type: ["string", "null"] },
-            difficulty: {
-              anyOf: [
-                { type: "string", enum: ["easy", "medium", "hard"] },
-                { type: "null" },
-              ],
-            },
-            tags: {
-              anyOf: [
-                {
-                  type: "array",
-                  items: { type: "string" },
-                },
-                { type: "null" },
-              ],
-            },
-          },
-        },
-      },
-    },
-  },
+  schema: flashcardResponseJsonSchema,
 } as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {

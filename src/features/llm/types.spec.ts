@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generatedCardsResponseSchema } from "./types";
+import { generatedCardsResponseSchema, llmProviderIdSchema } from "./types";
 
 const baseGeneratedCard = {
   hint: null,
@@ -114,5 +114,12 @@ describe("generatedCardsResponseSchema", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe("llmProviderIdSchema", () => {
+  it("accepts OpenAI and OpenRouter provider ids", () => {
+    expect(llmProviderIdSchema.parse("openai")).toBe("openai");
+    expect(llmProviderIdSchema.parse("openrouter")).toBe("openrouter");
   });
 });

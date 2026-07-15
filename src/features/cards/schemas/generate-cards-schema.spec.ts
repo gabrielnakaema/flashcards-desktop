@@ -15,6 +15,16 @@ describe("generateCardsSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts OpenRouter with its free router model", () => {
+    const result = generateCardsSchema.safeParse({
+      ...validInput,
+      provider: "openrouter",
+      model: "openrouter/free",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   it("rejects unsupported providers", () => {
     const result = generateCardsSchema.safeParse({
       ...validInput,

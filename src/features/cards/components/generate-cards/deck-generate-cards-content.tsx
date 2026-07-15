@@ -51,6 +51,7 @@ const DeckGenerateCardsForm = ({
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<GenerateCardsSchema>({
     resolver: zodResolver(generateCardsSchema),
@@ -158,7 +159,15 @@ const DeckGenerateCardsForm = ({
                     id="provider"
                     label="Provider"
                     value={field.value}
-                    onChange={field.onChange}
+                    onChange={(value) => {
+                      const nextProvider =
+                        value as GenerateCardsSchema["provider"];
+                      field.onChange(nextProvider);
+                      setValue(
+                        "model",
+                        getLlmProvider(nextProvider).defaultModel
+                      );
+                    }}
                     options={getLlmProviderOptions()}
                   />
                 )}
@@ -179,7 +188,11 @@ const DeckGenerateCardsForm = ({
                       <AppSelect
                         id="model"
                         value={field.value}
-                        onChange={field.onChange}
+                        onChange={(value) =>
+                          field.onChange(
+                            value || getLlmProvider(provider).defaultModel
+                          )
+                        }
                         options={modelOptions}
                         disabled={modelListQuery.isFetching}
                         className="min-w-0 flex-1"
